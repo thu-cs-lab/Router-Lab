@@ -1,4 +1,5 @@
 #include <stdint.h>
+#include <arpa/inet.h>
 
 #define N_IFACE_ON_BOARD 4
 typedef uint8_t macaddr_t[6];
@@ -11,6 +12,13 @@ enum HAL_ERROR_NUMBER {
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/**
+ * @brief 初始化，在所有其他函数调用前调用且仅调用一次
+ *
+ * @return void
+ */
+void HAL_Init();
 
 /**
  * @brief 获取从启动到当前时刻的毫秒数

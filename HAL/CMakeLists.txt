@@ -1,0 +1,10 @@
+if(${BACKEND} STREQUAL LINUX)
+    file(GLOB_RECURSE SOURCES src/linux/*.cpp)
+    file(GLOB_RECURSE HEADERS src/linux/*.h)
+    set(LIBRARIES pcap)
+elseif(${BACKEND} STREQUAL XILINX)
+endif()
+
+add_library(ROUTER_HAL ${SOURCES} ${HEADERS})
+target_include_directories(ROUTER_HAL PUBLIC include)
+target_link_libraries(ROUTER_HAL ${LIBRARIES})
