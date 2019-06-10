@@ -7,8 +7,9 @@ typedef uint8_t macaddr_t[6];
 enum HAL_ERROR_NUMBER {
   HAL_ERR_INVALID_PARAMETER = -1000,
   HAL_ERR_IP_NOT_EXIST,
+  HAL_ERR_IFACE_NOT_EXIST,
   HAL_ERR_CALLED_BEFORE_INIT,
-  HAL_ERR_UNKNOWN
+  HAL_ERR_UNKNOWN,
 };
 
 #ifdef __cplusplus

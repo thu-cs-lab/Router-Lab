@@ -6,8 +6,10 @@ void printMAC(macaddr_t mac) {
     printf("%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
 }
 
+char buffer[2048];
+uint8_t packet[2048];
+
 int main() {
-    char buffer[2048];
     printf("HAL init: %d\n", HAL_Init());
     printf("> ");
     while (fgets(buffer, sizeof(buffer), stdin) > 0) {
@@ -43,6 +45,27 @@ int main() {
                 printf("\n");
             } else {
                 printf("Not found: %d\n", res);
+            }
+        } else if (strncmp(buffer, "cap", strlen("cap")) == 0) {
+            int mask = (1 << N_IFACE_ON_BOARD) - 1;
+            macaddr_t src_mac;
+            macaddr_t dst_mac;
+            int res = HAL_ReceiveIPPacket(mask, packet, sizeof(packet), src_mac, dst_mac, 1000);
+            if (res > 0) {
+                printf("Got IP packet of length %d\n", res);
+                printf("Src MAC: ");
+                printMAC(src_mac);
+                printf(" Dst MAC: ");
+                printMAC(dst_mac);
+                printf("\nData: ");
+                for (int i = 0;i < res;i++) {
+                    printf("%02X ", packet[i]);
+                }
+                printf("\n");
+            } else if (res == 0) {
+                printf("Timeout\n");
+            } else {
+                printf("Error: %d\n", res);
             }
         } else {
             printf("Unknown command.\n");
