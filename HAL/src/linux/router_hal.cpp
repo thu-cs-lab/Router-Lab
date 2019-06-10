@@ -5,6 +5,10 @@
 #include <net/if_arp.h>
 #include <string.h>
 #include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <sys/types.h>
+#include <linux/if_packet.h>
+#include <ifaddrs.h>
 #include <time.h>
 
 bool inited = false;
@@ -62,9 +66,27 @@ int HAL_ArpGetMacAddress(int if_index, in_addr_t ip, macaddr_t o_mac) {
   } else {
     return HAL_ERR_IP_NOT_EXIST;
   }
+  return HAL_ERR_UNKNOWN;
 }
 
-int HAL_GetInterfaceMacAddress(int if_index, macaddr_t o_mac) { return 0; }
+
+int HAL_GetInterfaceMacAddress(int if_index, macaddr_t o_mac) {
+  struct ifaddrs *ifaddr, *ifa;
+  if (getifaddrs(&ifaddr) < 0) {
+    return HAL_ERR_UNKNOWN;
+  }
+
+  for (ifa = ifaddr; ifa != NULL;ifa = ifa->ifa_next) {
+    if (ifa->ifa_addr == NULL)
+      continue;
+    if (ifa->ifa_addr->sa_family == AF_PACKET && strcmp(ifa->ifa_name, interfaces[if_index]) == 0) {
+      // found
+      memcpy(o_mac, ((struct sockaddr_ll *)ifa->ifa_addr)->sll_addr, sizeof(macaddr_t));
+      return 0;
+    }
+  }
+  return HAL_ERR_UNKNOWN; 
+}
 
 int HAL_ReceiveIPPacket(int if_index, uint8_t *buffer, size_t length,
                         macaddr_t src_mac, macaddr_t dst_mac, int64_t timeout) {

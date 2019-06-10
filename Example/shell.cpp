@@ -32,6 +32,18 @@ int main() {
             } else {
                 printf("Not found: %d\n", res);
             }
+        } else if (strncmp(buffer, "mac", strlen("mac")) == 0) {
+            int if_index;
+            sscanf(buffer, "mac %d", &if_index);
+            macaddr_t mac;
+            int res = HAL_GetInterfaceMacAddress(if_index, mac);
+            if (res == 0) {
+                printf("Found: ");
+                printMAC(mac);
+                printf("\n");
+            } else {
+                printf("Not found: %d\n", res);
+            }
         } else {
             printf("Unknown command.\n");
         }
