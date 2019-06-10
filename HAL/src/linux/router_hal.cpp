@@ -1,4 +1,5 @@
 #include "router_hal.h"
+#include <stdio.h>
 
 #include <net/if.h>
 #include <net/if_arp.h>
@@ -35,7 +36,7 @@ int HAL_ArpGetMacAddress(int if_index, in_addr_t ip, macaddr_t o_mac) {
   if (!inited) {
     return HAL_ERR_CALLED_BEFORE_INIT;
   }
-  if (if_index >= N_IFACE_ON_BOARD) {
+  if (if_index >= N_IFACE_ON_BOARD || if_index < 0) {
     return HAL_ERR_INVALID_PARAMETER;
   }
 
