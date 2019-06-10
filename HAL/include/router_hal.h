@@ -53,7 +53,7 @@ int HAL_GetInterfaceMacAddress(int if_index, macaddr_t o_mac);
 /**
  * @brief 接收一个IP报文
  *
- * @param if_index IN，接口索引号，[0, N_IFACE_ON_BOARD-1]
+ * @param if_index_mask IN，接口索引号的bitset，最低的N_IFACE_ON_BOARD位有效，每一位位1代表接收对应接口，位0代表不接收
  * @param buffer IN，接收缓冲区，由调用者分配
  * @param length IN，接收缓存区大小
  * @param src_mac OUT，IP报文下层的源MAC地址
@@ -61,7 +61,7 @@ int HAL_GetInterfaceMacAddress(int if_index, macaddr_t o_mac);
  * @param timeout IN，设置接收超时时间（毫秒），-1表示无限等待
  * @return int >0表示实际接收的报文长度，=0表示超时返回，<0表示发生错误
  */
-int HAL_ReceiveIPPacket(int if_index, uint8_t *buffer, size_t length,
+int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
                         macaddr_t src_mac, macaddr_t dst_mac, int64_t timeout);
 
 /**
