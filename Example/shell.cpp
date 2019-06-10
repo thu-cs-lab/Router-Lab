@@ -1,6 +1,7 @@
 #include "router_hal.h"
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 void printMAC(macaddr_t mac) {
     printf("%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
@@ -50,9 +51,10 @@ int main() {
             int mask = (1 << N_IFACE_ON_BOARD) - 1;
             macaddr_t src_mac;
             macaddr_t dst_mac;
-            int res = HAL_ReceiveIPPacket(mask, packet, sizeof(packet), src_mac, dst_mac, 1000);
+            int if_index;
+            int res = HAL_ReceiveIPPacket(mask, packet, sizeof(packet), src_mac, dst_mac, 1000, &if_index);
             if (res > 0) {
-                printf("Got IP packet of length %d\n", res);
+                printf("Got IP packet of length %d from port %d\n", res, if_index);
                 printf("Src MAC: ");
                 printMAC(src_mac);
                 printf(" Dst MAC: ");
@@ -66,6 +68,21 @@ int main() {
                 printf("Timeout\n");
             } else {
                 printf("Error: %d\n", res);
+            }
+        } else if (strncmp(buffer, "out", strlen("out")) == 0) {
+            int if_index;
+            sscanf(buffer, "out %d", &if_index);
+            macaddr_t src_mac;
+            macaddr_t dst_mac;
+            int len = 64;
+            for (int i = 0;i < len;i++) {
+                packet[i] = rand();
+            }
+            int res = HAL_SendIPPacket(if_index, packet, len, src_mac, dst_mac);
+            if (res == 0) {
+                printf("Packet sent\n");
+            } else {
+                printf("Sent failed: %d\n", res);
             }
         } else {
             printf("Unknown command.\n");

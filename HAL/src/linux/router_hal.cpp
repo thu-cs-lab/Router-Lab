@@ -11,6 +11,7 @@
 #include <ifaddrs.h>
 #include <time.h>
 #include <pcap.h>
+#include <stdlib.h>
 
 const int IP_OFFSET = 14;
 
@@ -23,10 +24,15 @@ const char *interfaces[N_IFACE_ON_BOARD] = {
     "eth3",
 };
 
-pcap_t *pcap_handles[N_IFACE_ON_BOARD];
+pcap_t *pcap_in_handles[N_IFACE_ON_BOARD];
+pcap_t *pcap_out_handles[N_IFACE_ON_BOARD];
 
 extern "C" {
 int HAL_Init() {
+  if (inited) {
+    return 0;
+  }
+
   if ((arp_fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
     // TODO: better error codes
     return HAL_ERR_UNKNOWN;
@@ -34,10 +40,11 @@ int HAL_Init() {
 
   char error_buffer[PCAP_ERRBUF_SIZE];
   for (int i = 0;i < N_IFACE_ON_BOARD;i++) {
-    pcap_handles[i] = pcap_open_live(interfaces[i], BUFSIZ, 1, 0, error_buffer);
-    if (pcap_handles[i]) {
-      pcap_activate(pcap_handles[i]);
+    pcap_in_handles[i] = pcap_open_live(interfaces[i], BUFSIZ, 1, 0, error_buffer);
+    if (pcap_in_handles[i]) {
+      pcap_activate(pcap_in_handles[i]);
     }
+    pcap_out_handles[i] = pcap_open_live(interfaces[i], BUFSIZ, 1, 0, error_buffer);
   }
 
   inited = true;
@@ -108,11 +115,11 @@ int HAL_GetInterfaceMacAddress(int if_index, macaddr_t o_mac) {
 }
 
 int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
-                        macaddr_t src_mac, macaddr_t dst_mac, int64_t timeout) {
+                        macaddr_t src_mac, macaddr_t dst_mac, int64_t timeout, int *if_index) {
   if (!inited) {
     return HAL_ERR_CALLED_BEFORE_INIT;
   }
-  if (if_index_mask & ((1 << N_IFACE_ON_BOARD) - 1) == 0) {
+  if ((if_index_mask & ((1 << N_IFACE_ON_BOARD) - 1)) == 0 || timeout < 0) {
     return HAL_ERR_INVALID_PARAMETER;
   }
 
@@ -122,7 +129,7 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
   int current_port = 0;
   struct pcap_pkthdr hdr;
   while((current_time = HAL_GetTicks()) < begin + timeout) {
-    if (if_index_mask & (1 << current_port) == 0 || !pcap_handles[current_port]) {
+    if (if_index_mask & (1 << current_port) == 0 || !pcap_in_handles[current_port]) {
       current_port = (current_port + 1) % N_IFACE_ON_BOARD;
       continue;
     }
@@ -132,8 +139,8 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
     if (current_timeout > 10) {
       current_timeout = 10;
     }
-    pcap_set_timeout(pcap_handles[current_port], current_timeout / N_IFACE_ON_BOARD);
-    const uint8_t *packet = pcap_next(pcap_handles[current_port], &hdr);
+    pcap_set_timeout(pcap_in_handles[current_port], current_timeout / N_IFACE_ON_BOARD);
+    const uint8_t *packet = pcap_next(pcap_in_handles[current_port], &hdr);
     // IPv4
     if (packet && hdr.caplen >= IP_OFFSET && packet[12] == 0x08 && packet[13] == 0x00) {
       // TODO: what if len != caplen
@@ -142,6 +149,7 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
       memcpy(buffer, &packet[IP_OFFSET], real_length);
       memcpy(dst_mac, &packet[0], sizeof(macaddr_t));
       memcpy(src_mac, &packet[6], sizeof(macaddr_t));
+      *if_index = current_port;
       return ip_len;
     }
 
@@ -155,6 +163,26 @@ int HAL_SendIPPacket(int if_index, uint8_t *buffer, size_t length,
   if (!inited) {
     return HAL_ERR_CALLED_BEFORE_INIT;
   }
-  return 0;
+  if (if_index >= N_IFACE_ON_BOARD || if_index < 0) {
+    return HAL_ERR_INVALID_PARAMETER;
+  }
+  if (!pcap_out_handles[if_index]) {
+    return HAL_ERR_IFACE_NOT_EXIST;
+  }
+  uint8_t *eth_buffer = (uint8_t *)malloc(length + IP_OFFSET);
+  memcpy(eth_buffer, dst_mac, sizeof(macaddr_t));
+  memcpy(&eth_buffer[6], src_mac, sizeof(macaddr_t));
+  // IPv4
+  eth_buffer[12] = 0x08;
+  eth_buffer[13] = 0x00;
+  memcpy(&eth_buffer[IP_OFFSET], buffer, length);
+  if (pcap_inject(pcap_out_handles[if_index], eth_buffer, length + IP_OFFSET) >= 0) {
+    free(eth_buffer);
+    return 0;
+  } else {
+    pcap_perror(pcap_out_handles[if_index], "pcap_inject in HAL_SendIPPacket");
+    free(eth_buffer);
+    return HAL_ERR_UNKNOWN;
+  }
 }
 }
