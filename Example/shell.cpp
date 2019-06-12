@@ -1,5 +1,6 @@
 #include "router_hal.h"
 #include <ncurses.h>
+#include <readline/history.h>
 #include <readline/readline.h>
 #include <signal.h>
 #include <stdio.h>
@@ -27,7 +28,9 @@ void interrupt(int _) {
 int main() {
   printf("HAL init: %d\n", HAL_Init(1, addrs));
   signal(SIGINT, interrupt);
+  rl_bind_key('\t', rl_insert);
   while (buffer = readline("> ")) {
+    add_history(buffer);
     if (strcmp(buffer, "time") == 0) {
       printf("Current tick %ld\n", HAL_GetTicks());
     } else if (strncmp(buffer, "arp", strlen("arp")) == 0) {
@@ -110,6 +113,9 @@ int main() {
           break;
         }
       }
+    } else if (strncmp(buffer, "quit", strlen("quit")) == 0) {
+      free(buffer);
+      break;
     } else {
       printf("Unknown command.\n");
     }

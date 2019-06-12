@@ -78,7 +78,7 @@ int HAL_ArpGetMacAddress(int if_index, in_addr_t ip, macaddr_t o_mac) {
   if (it != arp_table.end()) {
     memcpy(o_mac, it->second, sizeof(macaddr_t));
     return 0;
-  } else {
+  } else if (pcap_out_handles[if_index]) {
     if (debugEnabled) {
       fprintf(
           stderr,
@@ -114,8 +114,8 @@ int HAL_ArpGetMacAddress(int if_index, in_addr_t ip, macaddr_t o_mac) {
     memcpy(&buffer[38], &ip, sizeof(in_addr_t));
 
     pcap_inject(pcap_out_handles[if_index], buffer, 64);
-    return HAL_ERR_IP_NOT_EXIST;
   }
+  return HAL_ERR_IP_NOT_EXIST;
 }
 
 int HAL_GetInterfaceMacAddress(int if_index, macaddr_t o_mac) {
