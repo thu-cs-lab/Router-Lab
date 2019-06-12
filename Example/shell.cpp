@@ -105,6 +105,10 @@ int main() {
         int if_index;
         int res = HAL_ReceiveIPPacket(mask, packet, sizeof(packet), src_mac,
                                       dst_mac, 1000, &if_index);
+        if (res < 0) {
+          printf("loop failed with %d\n", res);
+          break;
+        }
       }
     } else {
       printf("Unknown command.\n");

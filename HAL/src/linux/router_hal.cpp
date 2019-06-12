@@ -156,6 +156,20 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
     return HAL_ERR_INVALID_PARAMETER;
   }
 
+  bool flag = false;
+  for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
+    if (pcap_in_handles[i] && (if_index_mask & (1 << i))) {
+      flag = true;
+    }
+  }
+  if (!flag) {
+    if (debugEnabled) {
+      fprintf(stderr,
+              "HAL_ReceiveIPPacket: no viable interfaces open for capture\n");
+    }
+    return HAL_ERR_IFACE_NOT_EXIST;
+  }
+
   int64_t begin = HAL_GetTicks();
   int64_t current_time = 0;
   // Round robin
