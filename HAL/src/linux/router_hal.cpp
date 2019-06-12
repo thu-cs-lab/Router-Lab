@@ -20,7 +20,7 @@ const int IP_OFFSET = 14;
 bool inited = false;
 int debugEnabled = 0;
 const char *interfaces[N_IFACE_ON_BOARD] = {
-    "enp0s31f6",
+    "eth0",
     "eth1",
     "eth2",
     "eth3",
@@ -79,6 +79,41 @@ int HAL_ArpGetMacAddress(int if_index, in_addr_t ip, macaddr_t o_mac) {
     memcpy(o_mac, it->second, sizeof(macaddr_t));
     return 0;
   } else {
+    if (debugEnabled) {
+      fprintf(
+          stderr,
+          "HAL_ArpGetMacAddress: asking for ip address %s with arp request\n",
+          inet_ntoa(in_addr{ip}));
+    }
+    uint8_t buffer[64] = {0};
+    // dst mac
+    for (int i = 0; i < 6; i++) {
+      buffer[i] = 0xff;
+    }
+    // src mac
+    macaddr_t mac;
+    HAL_GetInterfaceMacAddress(if_index, mac);
+    memcpy(&buffer[6], mac, sizeof(macaddr_t));
+    // ARP
+    buffer[12] = 0x08;
+    buffer[13] = 0x06;
+    // hardware type
+    buffer[15] = 0x01;
+    // protocol type
+    buffer[16] = 0x08;
+    // hardware size
+    buffer[18] = 0x06;
+    // protocol size
+    buffer[19] = 0x04;
+    // protocol
+    buffer[21] = 0x01;
+    // sender
+    memcpy(&buffer[22], mac, sizeof(macaddr_t));
+    memcpy(&buffer[28], &interface_addrs[if_index], sizeof(in_addr_t));
+    // target
+    memcpy(&buffer[38], &ip, sizeof(in_addr_t));
+
+    pcap_inject(pcap_out_handles[if_index], buffer, 64);
     return HAL_ERR_IP_NOT_EXIST;
   }
 }
@@ -135,8 +170,8 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
 
     int current_timeout = begin + timeout - current_time;
     // poll, but with low latency
-    if (current_timeout > 10) {
-      current_timeout = 10;
+    if (current_timeout > 5) {
+      current_timeout = 5;
     }
     pcap_set_timeout(pcap_in_handles[current_port],
                      current_timeout / N_IFACE_ON_BOARD);
@@ -162,8 +197,8 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
       memcpy(arp_table[std::pair<in_addr_t, int>(ip, current_port)], mac,
              sizeof(macaddr_t));
       if (debugEnabled) {
-        fprintf(stderr, "HAL_ReceiveIPPacket: learned MAC address of %x\n",
-                htonl(ip));
+        fprintf(stderr, "HAL_ReceiveIPPacket: learned MAC address of %s\n",
+                inet_ntoa(in_addr{ip}));
       }
       continue;
     }
