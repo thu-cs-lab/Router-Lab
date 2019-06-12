@@ -18,10 +18,13 @@ extern "C" {
 
 /**
  * @brief 初始化，在所有其他函数调用前调用且仅调用一次
+ * 
+ * @param debug IN，零表示关闭调试信息，非零表示输出调试信息到标准错误输出
+ * @param if_addrs IN，包含 N_IFACE_ON_BOARD 个 IP 地址，对应每个端口的 IP 地址
  *
  * @return int 0表示成功，非0表示失败
  */
-int HAL_Init();
+int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]);
 
 /**
  * @brief 获取从启动到当前时刻的毫秒数
