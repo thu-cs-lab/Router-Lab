@@ -1,0 +1,3 @@
+[submodule "Example/network-principle-labs"]
+	path = Example/network-principle-labs
+	url = git@github.com:jiegec/network-principle-labs.git
