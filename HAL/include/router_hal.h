@@ -1,3 +1,6 @@
+#ifndef __ROUTER_HAL_H__
+#define __ROUTER_HAL_H__
+
 #include <arpa/inet.h>
 #include <stdint.h>
 
@@ -84,4 +87,6 @@ int HAL_SendIPPacket(int if_index, uint8_t *buffer, size_t length,
 
 #ifdef __cplusplus
 }
+#endif
+
 #endif

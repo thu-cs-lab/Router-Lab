@@ -15,16 +15,16 @@
 #include <time.h>
 #include <utility>
 
+#ifndef HAL_TESTING
+#include "platform/standard.h"
+#else
+#include "platform/testing.h"
+#endif
+
 const int IP_OFFSET = 14;
 
 bool inited = false;
 int debugEnabled = 0;
-const char *interfaces[N_IFACE_ON_BOARD] = {
-    "eth0",
-    "eth1",
-    "eth2",
-    "eth3",
-};
 in_addr_t interface_addrs[N_IFACE_ON_BOARD] = {0};
 
 pcap_t *pcap_in_handles[N_IFACE_ON_BOARD];
