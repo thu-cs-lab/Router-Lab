@@ -42,16 +42,15 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
   char error_buffer[PCAP_ERRBUF_SIZE];
   for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
     pcap_in_handles[i] =
-        pcap_open_live(interfaces[i], BUFSIZ, 1, 0, error_buffer);
+        pcap_open_live(interfaces[i], BUFSIZ, 1, 1, error_buffer);
     if (pcap_in_handles[i]) {
-      pcap_activate(pcap_in_handles[i]);
+      pcap_setnonblock(pcap_in_handles[i], 1, error_buffer);
       if (debugEnabled) {
         fprintf(stderr, "HAL_Init: pcap capture enabled for %s\n",
                 interfaces[i]);
       }
     }
-    pcap_out_handles[i] =
-        pcap_open_live(interfaces[i], BUFSIZ, 1, 0, error_buffer);
+    pcap_out_handles[i] = pcap_create(interfaces[i], error_buffer);
   }
 
   memcpy(interface_addrs, if_addrs, sizeof(interface_addrs));
@@ -182,13 +181,6 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
       continue;
     }
 
-    int current_timeout = begin + timeout - current_time;
-    // poll, but with low latency
-    if (current_timeout > 5) {
-      current_timeout = 5;
-    }
-    pcap_set_timeout(pcap_in_handles[current_port],
-                     current_timeout / N_IFACE_ON_BOARD);
     const uint8_t *packet = pcap_next(pcap_in_handles[current_port], &hdr);
     if (packet && hdr.caplen >= IP_OFFSET && packet[12] == 0x08 &&
         packet[13] == 0x00) {
