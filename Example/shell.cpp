@@ -16,8 +16,9 @@ char *buffer;
 uint8_t packet[2048];
 bool cont = false;
 
-in_addr_t addrs[N_IFACE_ON_BOARD] = {0x0a000001, 0x0a000101, 0x0a000201,
-                                     0x0a000301};
+// 10.0.0.1 ~ 10.0.3.1
+in_addr_t addrs[N_IFACE_ON_BOARD] = {0x0100000a, 0x0101000a, 0x0102000a,
+                                    0x0103000a};
 
 void interrupt(int _) {
   printf("Interrupt\n");

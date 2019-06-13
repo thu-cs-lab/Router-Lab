@@ -50,7 +50,7 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
                 interfaces[i]);
       }
     }
-    pcap_out_handles[i] = pcap_create(interfaces[i], error_buffer);
+    pcap_out_handles[i] = pcap_open_live(interfaces[i], BUFSIZ, 1, 0, error_buffer);
   }
 
   memcpy(interface_addrs, if_addrs, sizeof(interface_addrs));
@@ -104,7 +104,7 @@ int HAL_ArpGetMacAddress(int if_index, in_addr_t ip, macaddr_t o_mac) {
     buffer[18] = 0x06;
     // protocol size
     buffer[19] = 0x04;
-    // protocol
+    // opcode
     buffer[21] = 0x01;
     // sender
     memcpy(&buffer[22], mac, sizeof(macaddr_t));
@@ -112,7 +112,7 @@ int HAL_ArpGetMacAddress(int if_index, in_addr_t ip, macaddr_t o_mac) {
     // target
     memcpy(&buffer[38], &ip, sizeof(in_addr_t));
 
-    pcap_inject(pcap_out_handles[if_index], buffer, 64);
+    pcap_inject(pcap_out_handles[if_index], buffer, sizeof(buffer));
   }
   return HAL_ERR_IP_NOT_EXIST;
 }
@@ -205,6 +205,44 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
       if (debugEnabled) {
         fprintf(stderr, "HAL_ReceiveIPPacket: learned MAC address of %s\n",
                 inet_ntoa(in_addr{ip}));
+      }
+
+      in_addr_t dst_ip;
+      memcpy(&dst_ip, &packet[38], sizeof(in_addr_t));
+      if (dst_ip == interface_addrs[current_port]) {
+        // reply
+        uint8_t buffer[64] = {0};
+        // dst mac
+        memcpy(buffer, &packet[6], sizeof(macaddr_t));
+        // src mac
+        macaddr_t mac;
+        HAL_GetInterfaceMacAddress(current_port, mac);
+        memcpy(&buffer[6], mac, sizeof(macaddr_t));
+        // ARP
+        buffer[12] = 0x08;
+        buffer[13] = 0x06;
+        // hardware type
+        buffer[15] = 0x01;
+        // protocol type
+        buffer[16] = 0x08;
+        // hardware size
+        buffer[18] = 0x06;
+        // protocol size
+        buffer[19] = 0x04;
+        // opcode
+        buffer[21] = 0x02;
+        // sender
+        memcpy(&buffer[22], mac, sizeof(macaddr_t));
+        memcpy(&buffer[28], &dst_ip, sizeof(in_addr_t));
+        // target
+        memcpy(&buffer[32], &packet[22], sizeof(macaddr_t));
+        memcpy(&buffer[38], &packet[28], sizeof(in_addr_t));
+
+        pcap_inject(pcap_out_handles[current_port], buffer, sizeof(buffer));
+        if (debugEnabled) {
+          fprintf(stderr, "HAL_ReceiveIPPacket: replied ARP to %s\n",
+                  inet_ntoa(in_addr{ip}));
+        }
       }
       continue;
     }
