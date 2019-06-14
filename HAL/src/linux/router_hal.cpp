@@ -190,7 +190,7 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
   // Round robin
   int current_port = 0;
   struct pcap_pkthdr hdr;
-  while ((current_time = HAL_GetTicks()) < begin + timeout) {
+  do {
     if (if_index_mask & (1 << current_port) == 0 ||
         !pcap_in_handles[current_port]) {
       current_port = (current_port + 1) % N_IFACE_ON_BOARD;
@@ -269,7 +269,8 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
     }
 
     current_port = (current_port + 1) % N_IFACE_ON_BOARD;
-  }
+    // -1 for infinity
+  } while ((current_time = HAL_GetTicks()) < begin + timeout || timeout == -1);
   return 0;
 }
 
