@@ -26,6 +26,7 @@ const int IP_OFFSET = 14;
 bool inited = false;
 int debugEnabled = 0;
 in_addr_t interface_addrs[N_IFACE_ON_BOARD] = {0};
+macaddr_t interface_mac[N_IFACE_ON_BOARD] = {0};
 
 pcap_t *pcap_in_handles[N_IFACE_ON_BOARD];
 pcap_t *pcap_out_handles[N_IFACE_ON_BOARD];
@@ -52,13 +53,33 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
       }
     }
     pcap_out_handles[i] = pcap_open_live(interfaces[i], BUFSIZ, 1, 0, error_buffer);
-
-    macaddr_t mac;
-    HAL_GetInterfaceMacAddress(i, mac);
-    memcpy(arp_table[std::pair<in_addr_t, int>(if_addrs[i], i)], mac, sizeof(mac));
   }
 
   memcpy(interface_addrs, if_addrs, sizeof(interface_addrs));
+
+  struct ifaddrs *ifaddr, *ifa;
+  if (getifaddrs(&ifaddr) < 0) {
+    if (debugEnabled) {
+      fprintf(stderr, "HAL_Init: getifaddrs failed with %s\n", strerror(errno));
+    }
+    return HAL_ERR_UNKNOWN;
+  }
+
+  for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
+    if (ifa->ifa_addr == NULL)
+      continue;
+    for (int i = 0; i < N_IFACE_ON_BOARD;i++) {
+      if (ifa->ifa_addr->sa_family == AF_PACKET &&
+          strcmp(ifa->ifa_name, interfaces[i]) == 0) {
+        // found
+        memcpy(interface_mac[i], ((struct sockaddr_ll *)ifa->ifa_addr)->sll_addr,
+               sizeof(macaddr_t));
+        memcpy(arp_table[std::pair<in_addr_t, int>(if_addrs[i], i)], interface_mac[i], sizeof(macaddr_t));
+        break;
+      }
+    }
+  }
+  freeifaddrs(ifaddr);
 
   inited = true;
   return 0;
@@ -127,30 +148,12 @@ int HAL_GetInterfaceMacAddress(int if_index, macaddr_t o_mac) {
   if (!inited) {
     return HAL_ERR_CALLED_BEFORE_INIT;
   }
-
-  struct ifaddrs *ifaddr, *ifa;
-  if (getifaddrs(&ifaddr) < 0) {
-    if (debugEnabled) {
-      fprintf(stderr, "HAL_GetInterfaceMacAddress: getifaddrs failed with %s\n",
-              strerror(errno));
-    }
-    return HAL_ERR_UNKNOWN;
+  if (if_index >= N_IFACE_ON_BOARD || if_index < 0) {
+    return HAL_ERR_IFACE_NOT_EXIST;
   }
 
-  for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
-    if (ifa->ifa_addr == NULL)
-      continue;
-    if (ifa->ifa_addr->sa_family == AF_PACKET &&
-        strcmp(ifa->ifa_name, interfaces[if_index]) == 0) {
-      // found
-      memcpy(o_mac, ((struct sockaddr_ll *)ifa->ifa_addr)->sll_addr,
-             sizeof(macaddr_t));
-      freeifaddrs(ifaddr);
-      return 0;
-    }
-  }
-  freeifaddrs(ifaddr);
-  return HAL_ERR_IFACE_NOT_EXIST;
+  memcpy(o_mac, interface_mac[if_index], sizeof(macaddr_t));
+  return 0;
 }
 
 int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,

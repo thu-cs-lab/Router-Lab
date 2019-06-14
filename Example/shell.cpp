@@ -28,6 +28,12 @@ void interrupt(int _) {
 
 int main() {
   printf("HAL init: %d\n", HAL_Init(1, addrs));
+  for (int i = 0; i < N_IFACE_ON_BOARD;i++) {
+    macaddr_t mac;
+    HAL_GetInterfaceMacAddress(i, mac);
+    printf("%d: %02X:%02X:%02X:%02X:%02X:%02X\n", i, mac[0], mac[1], mac[2],
+           mac[3], mac[4], mac[5]);
+  }
   signal(SIGINT, interrupt);
   rl_bind_key('\t', rl_insert);
   while (buffer = readline("> ")) {
