@@ -41,22 +41,6 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
   }
   debugEnabled = debug;
 
-  char error_buffer[PCAP_ERRBUF_SIZE];
-  for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
-    pcap_in_handles[i] =
-        pcap_open_live(interfaces[i], BUFSIZ, 1, 1, error_buffer);
-    if (pcap_in_handles[i]) {
-      pcap_setnonblock(pcap_in_handles[i], 1, error_buffer);
-      if (debugEnabled) {
-        fprintf(stderr, "HAL_Init: pcap capture enabled for %s\n",
-                interfaces[i]);
-      }
-    }
-    pcap_out_handles[i] = pcap_open_live(interfaces[i], BUFSIZ, 1, 0, error_buffer);
-  }
-
-  memcpy(interface_addrs, if_addrs, sizeof(interface_addrs));
-
   struct ifaddrs *ifaddr, *ifa;
   if (getifaddrs(&ifaddr) < 0) {
     if (debugEnabled) {
@@ -68,18 +52,37 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
   for (ifa = ifaddr; ifa != NULL; ifa = ifa->ifa_next) {
     if (ifa->ifa_addr == NULL)
       continue;
-    for (int i = 0; i < N_IFACE_ON_BOARD;i++) {
+    for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
       if (ifa->ifa_addr->sa_family == AF_PACKET &&
           strcmp(ifa->ifa_name, interfaces[i]) == 0) {
         // found
-        memcpy(interface_mac[i], ((struct sockaddr_ll *)ifa->ifa_addr)->sll_addr,
+        memcpy(interface_mac[i],
+               ((struct sockaddr_ll *)ifa->ifa_addr)->sll_addr,
                sizeof(macaddr_t));
-        memcpy(arp_table[std::pair<in_addr_t, int>(if_addrs[i], i)], interface_mac[i], sizeof(macaddr_t));
+        memcpy(arp_table[std::pair<in_addr_t, int>(if_addrs[i], i)],
+               interface_mac[i], sizeof(macaddr_t));
         break;
       }
     }
   }
   freeifaddrs(ifaddr);
+
+  char error_buffer[PCAP_ERRBUF_SIZE];
+  for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
+    pcap_in_handles[i] =
+        pcap_open_live(interfaces[i], BUFSIZ, 1, 1, error_buffer);
+    if (pcap_in_handles[i]) {
+      pcap_setnonblock(pcap_in_handles[i], 1, error_buffer);
+      if (debugEnabled) {
+        fprintf(stderr, "HAL_Init: pcap capture enabled for %s\n",
+                interfaces[i]);
+      }
+    }
+    pcap_out_handles[i] =
+        pcap_open_live(interfaces[i], BUFSIZ, 1, 0, error_buffer);
+  }
+
+  memcpy(interface_addrs, if_addrs, sizeof(interface_addrs));
 
   inited = true;
   return 0;
@@ -103,7 +106,9 @@ int HAL_ArpGetMacAddress(int if_index, in_addr_t ip, macaddr_t o_mac) {
   if (it != arp_table.end()) {
     memcpy(o_mac, it->second, sizeof(macaddr_t));
     return 0;
-  } else if (pcap_out_handles[if_index] && arp_timer[std::pair<in_addr_t, int>(ip, if_index)] + 1000 < HAL_GetTicks()) {
+  } else if (pcap_out_handles[if_index] &&
+             arp_timer[std::pair<in_addr_t, int>(ip, if_index)] + 1000 <
+                 HAL_GetTicks()) {
     arp_timer[std::pair<in_addr_t, int>(ip, if_index)] = HAL_GetTicks();
     if (debugEnabled) {
       fprintf(
@@ -193,8 +198,13 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
     }
 
     const uint8_t *packet = pcap_next(pcap_in_handles[current_port], &hdr);
-    if (packet && hdr.caplen >= IP_OFFSET && packet[12] == 0x08 &&
-        packet[13] == 0x00) {
+    if (packet && hdr.caplen >= IP_OFFSET &&
+        memcmp(&packet[6], interface_mac[current_port], sizeof(macaddr_t)) ==
+            0) {
+      // skip outbound
+      continue;
+    } else if (packet && hdr.caplen >= IP_OFFSET && packet[12] == 0x08 &&
+               packet[13] == 0x00) {
       // IPv4
       // TODO: what if len != caplen
       size_t ip_len = hdr.caplen - IP_OFFSET;
