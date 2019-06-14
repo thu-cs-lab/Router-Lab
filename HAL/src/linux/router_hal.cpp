@@ -139,9 +139,11 @@ int HAL_GetInterfaceMacAddress(int if_index, macaddr_t o_mac) {
       // found
       memcpy(o_mac, ((struct sockaddr_ll *)ifa->ifa_addr)->sll_addr,
              sizeof(macaddr_t));
+      freeifaddrs(ifaddr);
       return 0;
     }
   }
+  freeifaddrs(ifaddr);
   return HAL_ERR_IFACE_NOT_EXIST;
 }
 

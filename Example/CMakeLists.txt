@@ -18,7 +18,7 @@ add_custom_target(
         ${CMAKE_CURRENT_SOURCE_DIR}/network-principle-labs/routing_table/target/release/librouting_table.a
 )
 
-file(GLOB FILES ./network-principle-labs/forwarder/*.c)
+file(GLOB FILES ./network-principle-labs/forwarder/*.c ./network-principle-labs/ripd/*.c*)
 add_executable(forwarder ${FILES})
 add_dependencies(forwarder librouting_table)
 target_include_directories(forwarder PRIVATE ../HAL/include)
