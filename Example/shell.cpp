@@ -94,13 +94,15 @@ int main() {
     } else if (strncmp(buffer, "out", strlen("out")) == 0) {
       int if_index;
       sscanf(buffer, "out %d", &if_index);
-      macaddr_t src_mac;
       macaddr_t dst_mac;
       int len = 64;
       for (int i = 0; i < len; i++) {
         packet[i] = rand();
       }
-      int res = HAL_SendIPPacket(if_index, packet, len, src_mac, dst_mac);
+      for (int i = 0; i < sizeof(macaddr_t);i++) {
+        dst_mac[i] = rand();
+      }
+      int res = HAL_SendIPPacket(if_index, packet, len, dst_mac);
       if (res == 0) {
         printf("Packet sent\n");
       } else {

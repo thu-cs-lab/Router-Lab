@@ -274,7 +274,7 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
 }
 
 int HAL_SendIPPacket(int if_index, uint8_t *buffer, size_t length,
-                     macaddr_t src_mac, macaddr_t dst_mac) {
+                     macaddr_t dst_mac) {
   if (!inited) {
     return HAL_ERR_CALLED_BEFORE_INIT;
   }
@@ -286,7 +286,7 @@ int HAL_SendIPPacket(int if_index, uint8_t *buffer, size_t length,
   }
   uint8_t *eth_buffer = (uint8_t *)malloc(length + IP_OFFSET);
   memcpy(eth_buffer, dst_mac, sizeof(macaddr_t));
-  memcpy(&eth_buffer[6], src_mac, sizeof(macaddr_t));
+  memcpy(&eth_buffer[6], interface_mac[if_index], sizeof(macaddr_t));
   // IPv4
   eth_buffer[12] = 0x08;
   eth_buffer[13] = 0x00;

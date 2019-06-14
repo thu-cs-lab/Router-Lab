@@ -73,17 +73,16 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
                         macaddr_t src_mac, macaddr_t dst_mac, int64_t timeout, int *if_index);
 
 /**
- * @brief 发送一个IP报文
+ * @brief 发送一个IP报文，它的源MAC地址就是对应接口的MAC地址
  *
  * @param if_index IN，接口索引号，[0, N_IFACE_ON_BOARD-1]
  * @param buffer IN，发送缓冲区
  * @param length IN，待发送报文的长度
- * @param src_mac IN，IP报文下层的源MAC地址
  * @param dst_mac IN，IP报文下层的目的MAC地址
  * @return int 0表示成功，非0为失败
  */
 int HAL_SendIPPacket(int if_index, uint8_t *buffer, size_t length,
-                     macaddr_t src_mac, macaddr_t dst_mac);
+                     macaddr_t dst_mac);
 
 #ifdef __cplusplus
 }
