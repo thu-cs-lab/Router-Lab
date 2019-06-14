@@ -31,6 +31,7 @@ pcap_t *pcap_in_handles[N_IFACE_ON_BOARD];
 pcap_t *pcap_out_handles[N_IFACE_ON_BOARD];
 
 std::map<std::pair<in_addr_t, int>, macaddr_t> arp_table;
+std::map<std::pair<in_addr_t, int>, uint64_t> arp_timer;
 
 extern "C" {
 int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
@@ -51,6 +52,10 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
       }
     }
     pcap_out_handles[i] = pcap_open_live(interfaces[i], BUFSIZ, 1, 0, error_buffer);
+
+    macaddr_t mac;
+    HAL_GetInterfaceMacAddress(i, mac);
+    memcpy(arp_table[std::pair<in_addr_t, int>(if_addrs[i], i)], mac, sizeof(mac));
   }
 
   memcpy(interface_addrs, if_addrs, sizeof(interface_addrs));
@@ -77,7 +82,8 @@ int HAL_ArpGetMacAddress(int if_index, in_addr_t ip, macaddr_t o_mac) {
   if (it != arp_table.end()) {
     memcpy(o_mac, it->second, sizeof(macaddr_t));
     return 0;
-  } else if (pcap_out_handles[if_index]) {
+  } else if (pcap_out_handles[if_index] && arp_timer[std::pair<in_addr_t, int>(ip, if_index)] + 1000 < HAL_GetTicks()) {
+    arp_timer[std::pair<in_addr_t, int>(ip, if_index)] = HAL_GetTicks();
     if (debugEnabled) {
       fprintf(
           stderr,
