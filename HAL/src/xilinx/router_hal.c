@@ -221,7 +221,13 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
       memcpy(buffer, &data[IP_OFFSET], real_length);
 
       // recycle
-      memset(bd, 0, sizeof(XAxiDma_Bd));
+      u32 addr = XAxiDma_BdGetBufAddr(bd);
+      u32 len = XAxiDma_BdGetLength(bd, rxRing->MaxTransferLen);
+      XAxiDma_BdRingFree(rxRing, 1, bd);
+
+      XAxiDma_BdRingAlloc(rxRing, 1, &bd);
+      XAxiDma_BdSetBufAddr(bd, addr);
+      XAxiDma_BdSetLength(bd, len, rxRing->MaxTransferLen);
       XAxiDma_BdRingToHw(rxRing, 1, bd);
 
       return real_length;
