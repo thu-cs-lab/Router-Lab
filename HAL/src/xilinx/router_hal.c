@@ -35,9 +35,15 @@ char txBdSpace[XAxiDma_BdRingMemCalc(XAXIDMA_BD_MINIMUM_ALIGNMENT, BD_COUNT)]
 struct EthernetFrame {
   u8 dstMAC[6];
   u8 srcMAC[6];
+  u16 vlanEtherType;
+  u16 vlanID;
   u16 etherType;
-  u8 data[1508];
-} rxBuffers[BD_COUNT] __attribute__((section(".physical")));
+  u8 data[1500];
+};
+
+struct EthernetFrame rxBuffers[BD_COUNT] __attribute__((section(".physical")));
+struct EthernetFrame txBuffers[BD_COUNT] __attribute__((section(".physical")));
+u32 txBufferUsed = 0;
 
 void SpiWriteRegister(u8 addr, u8 data) {
   u8 writeBuffer[3];
@@ -47,7 +53,9 @@ void SpiWriteRegister(u8 addr, u8 data) {
   writeBuffer[2] = data;
   XSpi_SetSlaveSelect(&spi, 1);
   XSpi_Transfer(&spi, writeBuffer, NULL, 3);
-  xil_printf("Write SPI %d = %d\r\n", addr, data);
+  if (debugEnabled) {
+    xil_printf("HAL_Init: Write SPI %d = %d\r\n", addr, data);
+  }
 }
 
 int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
@@ -66,7 +74,9 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
                              axiEthernetConfig->BaseAddress);
   XSpi_CfgInitialize(&spi, spiConfig, spiConfig->BaseAddress);
 
-  xil_printf("Init vlan %x\n\r", rxBdSpace);
+  if (debugEnabled) {
+    xil_printf("HAL_Init: Init vlan %x\n\r", rxBdSpace);
+  }
   XSpi_SetOptions(&spi, XSP_MASTER_OPTION | XSP_MANUAL_SSELECT_OPTION);
   XSpi_Start(&spi);
   XSpi_IntrGlobalDisable(&spi);
@@ -84,30 +94,49 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
   SpiWriteRegister(68, 4);
   SpiWriteRegister(84, 5);
 
-  xil_printf("Init rings @ %x\r\n", rxBdSpace);
-  memset(rxBdSpace, 0, sizeof(rxBdSpace));
+  if (debugEnabled) {
+    xil_printf("HAL_Init: Init rings @ %x\r\n", rxBdSpace);
+  }
   rxRing = XAxiDma_GetRxRing(&axiDma);
   txRing = XAxiDma_GetTxRing(&axiDma);
 
+  memset(rxBdSpace, 0, sizeof(rxBdSpace));
+  memset(txBdSpace, 0, sizeof(txBdSpace));
   XAxiDma_BdRingCreate(rxRing, (UINTPTR)rxBdSpace, (UINTPTR)rxBdSpace,
                        XAXIDMA_BD_MINIMUM_ALIGNMENT, BD_COUNT);
+  XAxiDma_BdRingCreate(txRing, (UINTPTR)txBdSpace, (UINTPTR)txBdSpace,
+                       XAXIDMA_BD_MINIMUM_ALIGNMENT, BD_COUNT);
 
-  print("Enable MAC\r\n");
+  if (debugEnabled) {
+    xil_printf("HAL_Init: Enable Ethernet MAC\r\n");
+  }
   XAxiEthernet_SetOptions(&axiEthernet, XAE_RECEIVER_ENABLE_OPTION |
                                             XAE_TRANSMITTER_ENABLE_OPTION);
   XAxiEthernet_Start(&axiEthernet);
 
-  print("Add buffer to ring\n\r");
+  if (debugEnabled) {
+    xil_printf("HAL_Init: Add buffer to rings\r\n");
+  }
+  // rx
   for (int i = 0; i < BD_COUNT; i++) {
     XAxiDma_BdRingAlloc(rxRing, 1, &bd);
     XAxiDma_BdSetBufAddr(bd, (UINTPTR)&rxBuffers[i]);
     XAxiDma_BdSetLength(bd, sizeof(struct EthernetFrame),
                         rxRing->MaxTransferLen);
-    XAxiDma_BdSetCtrl(bd, 0);
     XAxiDma_BdRingToHw(rxRing, 1, bd);
   }
-  print("Receive start\n\r");
+
+  // tx
+  XAxiDma_BdRingAlloc(txRing, BD_COUNT, &bd);
+  XAxiDma_Bd *firstBd = bd;
+  for (int i = 0; i < BD_COUNT; i++) {
+    XAxiDma_BdSetBufAddr(bd, (UINTPTR)&txBuffers[i]);
+    bd = (XAxiDma_Bd *)XAxiDma_BdRingNext(txRing, bd);
+  }
+  XAxiDma_BdRingUnAlloc(txRing, BD_COUNT, firstBd);
+
   XAxiDma_BdRingStart(rxRing);
+  XAxiDma_BdRingStart(txRing);
 
   memcpy(interface_addrs, if_addrs, sizeof(interface_addrs));
 
@@ -244,26 +273,37 @@ int HAL_SendIPPacket(int if_index, uint8_t *buffer, size_t length,
   if (if_index >= N_IFACE_ON_BOARD || if_index < 0) {
     return HAL_ERR_INVALID_PARAMETER;
   }
-  /*
-  uint8_t *eth_buffer = (uint8_t *)malloc(length + IP_OFFSET);
-  memcpy(eth_buffer, dst_mac, sizeof(macaddr_t));
-  memcpy(&eth_buffer[6], interface_mac[if_index], sizeof(macaddr_t));
-  // IPv4
-  eth_buffer[12] = 0x08;
-  eth_buffer[13] = 0x00;
-  memcpy(&eth_buffer[IP_OFFSET], buffer, length);
-  if (pcap_inject(pcap_out_handles[if_index], eth_buffer, length + IP_OFFSET) >=
-      0) {
-    free(eth_buffer);
-    return 0;
-  } else {
-    if (debugEnabled) {
-      fprintf(stderr, "HAL_SendIPPacket: pcap_inject failed with %s\n",
-              pcap_geterr(pcap_out_handles[if_index]));
+  XAxiDma_Bd *bd;
+  while (txBufferUsed == BD_COUNT) {
+    u32 count = XAxiDma_BdRingFromHw(txRing, BD_COUNT, &bd);
+    if (count > 0) {
+      XAxiDma_BdRingFree(txRing, count, bd);
+      txBufferUsed -= count;
+      break;
     }
-    free(eth_buffer);
-    return HAL_ERR_UNKNOWN;
   }
-  */
+  XAxiDma_BdRingAlloc(txRing, 1, &bd);
+  txBufferUsed++;
+
+  UINTPTR addr = XAxiDma_BdGetBufAddr(bd);
+  XAxiDma_BdClear(bd);
+  XAxiDma_BdSetBufAddr(bd, addr);
+  u8 *data = (u8 *)addr;
+  memcpy(data, dst_mac, sizeof(macaddr_t));
+  memcpy(&data[6], interface_mac, sizeof(macaddr_t));
+  // VLAN
+  data[12] = 0x81;
+  data[13] = 0x00;
+  // PID
+  data[14] = 0x00;
+  data[15] = if_index + 1;
+  // IPv4
+  data[16] = 0x08;
+  data[17] = 0x06;
+  memcpy(&data[IP_OFFSET], buffer, length);
+  XAxiDma_BdSetLength(bd, length + IP_OFFSET, txRing->MaxTransferLen);
+  XAxiDma_BdSetCtrl(bd,
+                    XAXIDMA_BD_CTRL_TXSOF_MASK | XAXIDMA_BD_CTRL_TXEOF_MASK);
+  XAxiDma_BdRingToHw(txRing, 1, bd);
   return 0;
 }
