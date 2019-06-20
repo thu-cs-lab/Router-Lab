@@ -15,7 +15,7 @@
 #include <time.h>
 #include <utility>
 
-#ifndef HAL_TESTING
+#ifndef HAL_PLATFORM_TESTING
 #include "platform/standard.h"
 #else
 #include "platform/testing.h"

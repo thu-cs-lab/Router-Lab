@@ -1,8 +1,13 @@
 #ifndef __ROUTER_HAL_H__
 #define __ROUTER_HAL_H__
 
-#include <arpa/inet.h>
+#include <stdlib.h>
 #include <stdint.h>
+#ifdef ROUTER_BACKEND_LINUX
+#include <arpa/inet.h>
+#elif defined ROUTER_BACKEND_XILINX
+typedef uint32_t in_addr_t;
+#endif
 
 #define N_IFACE_ON_BOARD 4
 typedef uint8_t macaddr_t[6];
@@ -12,6 +17,7 @@ enum HAL_ERROR_NUMBER {
   HAL_ERR_IP_NOT_EXIST,
   HAL_ERR_IFACE_NOT_EXIST,
   HAL_ERR_CALLED_BEFORE_INIT,
+  HAL_ERR_NOT_SUPPORTED,
   HAL_ERR_UNKNOWN,
 };
 
@@ -60,7 +66,7 @@ int HAL_GetInterfaceMacAddress(int if_index, macaddr_t o_mac);
 /**
  * @brief 接收一个 IPv4 报文，保证不会收到自己发送的报文
  *
- * @param if_index_mask IN，接口索引号的 bitset，最低的 N_IFACE_ON_BOARD 位有效，对于每一位，1 代表接收对应接口，0 代表不接收
+ * @param if_index_mask IN，接口索引号的 bitset，最低的 N_IFACE_ON_BOARD 位有效，对于每一位，1 代表接收对应接口，0 代表不接收；部分平台要求所有接口都开启接收
  * @param buffer IN，接收缓冲区，由调用者分配
  * @param length IN，接收缓存区大小
  * @param src_mac OUT，IPv4 报文下层的源 MAC 地址
