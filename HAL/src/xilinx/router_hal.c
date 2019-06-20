@@ -6,6 +6,7 @@
 #include <stdio.h>
 
 const int IP_OFFSET = 14 + 4;
+const int ARP_LENGTH = 28;
 
 int inited = 0;
 int debugEnabled = 0;
@@ -55,6 +56,29 @@ void SpiWriteRegister(u8 addr, u8 data) {
   XSpi_Transfer(&spi, writeBuffer, NULL, 3);
   if (debugEnabled) {
     xil_printf("HAL_Init: Write SPI %d = %d\r\n", addr, data);
+  }
+}
+
+void PutBackBd(XAxiDma_Bd *bd) {
+  u32 addr = XAxiDma_BdGetBufAddr(bd);
+  u32 len = XAxiDma_BdGetLength(bd, rxRing->MaxTransferLen);
+  XAxiDma_BdRingFree(rxRing, 1, bd);
+
+  XAxiDma_BdRingAlloc(rxRing, 1, &bd);
+  XAxiDma_BdSetBufAddr(bd, addr);
+  XAxiDma_BdSetLength(bd, len, rxRing->MaxTransferLen);
+  XAxiDma_BdRingToHw(rxRing, 1, bd);
+}
+
+void WaitTxBdAvailable() {
+  XAxiDma_Bd *bd;
+  while (txBufferUsed == BD_COUNT) {
+    u32 count = XAxiDma_BdRingFromHw(txRing, BD_COUNT, &bd);
+    if (count > 0) {
+      XAxiDma_BdRingFree(txRing, count, bd);
+      txBufferUsed -= count;
+      break;
+    }
   }
 }
 
@@ -112,6 +136,7 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
   }
   XAxiEthernet_SetOptions(&axiEthernet, XAE_RECEIVER_ENABLE_OPTION |
                                             XAE_TRANSMITTER_ENABLE_OPTION);
+  XAxiEthernet_SetMacAddress(&axiEthernet, interface_mac);
   XAxiEthernet_Start(&axiEthernet);
 
   if (debugEnabled) {
@@ -240,26 +265,89 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
       // See AXI Ethernet Table 3-15
       u32 length = XAxiDma_BdRead(bd, XAXIDMA_BD_USR4_OFFSET) & 0xFFFF;
       u8 *data = (u8 *)XAxiDma_BdGetBufAddr(bd);
-      memcpy(dst_mac, data, sizeof(macaddr_t));
-      memcpy(src_mac, &data[6], sizeof(macaddr_t));
-      // Vlan ID 1-4
-      *if_index = data[15] - 1;
+      if (data && length >= IP_OFFSET && data[16] == 0x08 && data[17] == 0x00) {
+        // IPv4
+        memcpy(dst_mac, data, sizeof(macaddr_t));
+        memcpy(src_mac, &data[6], sizeof(macaddr_t));
+        // Vlan ID 1-4
+        *if_index = data[15] - 1;
 
-      size_t ip_len = length - IP_OFFSET;
-      size_t real_length = length > ip_len ? ip_len : length;
-      memcpy(buffer, &data[IP_OFFSET], real_length);
+        size_t ip_len = length - IP_OFFSET;
+        size_t real_length = length > ip_len ? ip_len : length;
+        memcpy(buffer, &data[IP_OFFSET], real_length);
 
-      // recycle
-      u32 addr = XAxiDma_BdGetBufAddr(bd);
-      u32 len = XAxiDma_BdGetLength(bd, rxRing->MaxTransferLen);
-      XAxiDma_BdRingFree(rxRing, 1, bd);
+        PutBackBd(bd);
+        return real_length;
+      } else if (data && length >= IP_OFFSET + ARP_LENGTH && data[16] == 0x08 &&
+                 data[17] == 0x06) {
+        // ARP
+        // TODO: insert into arp table
+        macaddr_t mac;
+        memcpy(mac, &data[26], sizeof(macaddr_t));
+        in_addr_t ip;
+        memcpy(&ip, &data[32], sizeof(in_addr_t));
+        in_addr_t dst_ip;
+        memcpy(&dst_ip, &data[42], sizeof(in_addr_t));
+        u32 vlan = data[15] - 1;
+        if (vlan < N_IFACE_ON_BOARD && dst_ip == interface_addrs[vlan]) {
+          // reply
+          XAxiDma_Bd *bd;
+          WaitTxBdAvailable();
+          XAxiDma_BdRingAlloc(txRing, 1, &bd);
+          txBufferUsed++;
 
-      XAxiDma_BdRingAlloc(rxRing, 1, &bd);
-      XAxiDma_BdSetBufAddr(bd, addr);
-      XAxiDma_BdSetLength(bd, len, rxRing->MaxTransferLen);
-      XAxiDma_BdRingToHw(rxRing, 1, bd);
+          UINTPTR addr = XAxiDma_BdGetBufAddr(bd);
+          XAxiDma_BdClear(bd);
+          XAxiDma_BdSetBufAddr(bd, addr);
+          XAxiDma_BdSetLength(bd, IP_OFFSET + ARP_LENGTH, txRing->MaxTransferLen);
+          XAxiDma_BdSetCtrl(bd, XAXIDMA_BD_CTRL_TXSOF_MASK |
+                                    XAXIDMA_BD_CTRL_TXEOF_MASK);
 
-      return real_length;
+          u8 *buffer = (u8 *)addr;
+          memcpy(buffer, &data[6], sizeof(macaddr_t));
+          memcpy(&buffer[6], interface_mac, sizeof(macaddr_t));
+          // VLAN
+          buffer[12] = 0x81;
+          buffer[13] = 0x00;
+          // PID
+          buffer[14] = 0x00;
+          buffer[15] = vlan + 1;
+          // ARP
+          buffer[16] = 0x08;
+          buffer[17] = 0x06;
+          // hardware type
+          buffer[18] = 0x00;
+          buffer[19] = 0x01;
+          // protocol type
+          buffer[20] = 0x08;
+          buffer[21] = 0x00;
+          // hardware size
+          buffer[22] = 0x06;
+          // protocol size
+          buffer[23] = 0x04;
+          // opcode
+          buffer[24] = 0x00;
+          buffer[25] = 0x02;
+          // sender
+          memcpy(&buffer[26], interface_mac, sizeof(macaddr_t));
+          memcpy(&buffer[32], &dst_ip, sizeof(in_addr_t));
+          // target
+          memcpy(&buffer[36], &data[26], sizeof(macaddr_t));
+          memcpy(&buffer[42], &data[32], sizeof(in_addr_t));
+
+          XAxiDma_BdRingToHw(txRing, 1, bd);
+
+          if (debugEnabled) {
+            xil_printf("HAL_ReceiveIPPacket: replied ARP to %d.%d.%d.%d\r\n",
+                    ip & 0xFF, (ip >> 8) & 0xFF, (ip >> 16) & 0xFF, ip >> 24);
+          }
+        }
+      } else {
+        if (debugEnabled) {
+          xil_printf("HAL_ReceiveIPPacket: ignore recognized packet\r\n");
+        }
+      }
+      PutBackBd(bd);
     }
   }
   return 0;
@@ -274,14 +362,7 @@ int HAL_SendIPPacket(int if_index, uint8_t *buffer, size_t length,
     return HAL_ERR_INVALID_PARAMETER;
   }
   XAxiDma_Bd *bd;
-  while (txBufferUsed == BD_COUNT) {
-    u32 count = XAxiDma_BdRingFromHw(txRing, BD_COUNT, &bd);
-    if (count > 0) {
-      XAxiDma_BdRingFree(txRing, count, bd);
-      txBufferUsed -= count;
-      break;
-    }
-  }
+  WaitTxBdAvailable();
   XAxiDma_BdRingAlloc(txRing, 1, &bd);
   txBufferUsed++;
 
@@ -299,7 +380,7 @@ int HAL_SendIPPacket(int if_index, uint8_t *buffer, size_t length,
   data[15] = if_index + 1;
   // IPv4
   data[16] = 0x08;
-  data[17] = 0x06;
+  data[17] = 0x00;
   memcpy(&data[IP_OFFSET], buffer, length);
   XAxiDma_BdSetLength(bd, length + IP_OFFSET, txRing->MaxTransferLen);
   XAxiDma_BdSetCtrl(bd,
