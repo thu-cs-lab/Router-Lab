@@ -3,6 +3,7 @@
 #include "xaxiethernet.h"
 #include "xil_printf.h"
 #include "xspi.h"
+#include "xtmrctr.h"
 #include <stdio.h>
 
 const int IP_OFFSET = 14 + 4;
@@ -20,6 +21,7 @@ XSpi_Config *spiConfig;
 XAxiEthernet axiEthernet;
 XAxiDma axiDma;
 XSpi spi;
+XTmrCtr tmrCtr;
 
 XAxiDma_BdRing *rxRing;
 XAxiDma_BdRing *txRing;
@@ -106,6 +108,9 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
   XAxiEthernet_CfgInitialize(&axiEthernet, axiEthernetConfig,
                              axiEthernetConfig->BaseAddress);
   XSpi_CfgInitialize(&spi, spiConfig, spiConfig->BaseAddress);
+  XTmrCtr_Initialize(&tmrCtr, XPAR_AXI_TIMER_0_DEVICE_ID);
+
+  XTmrCtr_Start(&tmrCtr, 0);
 
   if (debugEnabled) {
     xil_printf("HAL_Init: Init vlan %x\n\r", rxBdSpace);
@@ -181,8 +186,7 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
 
 uint64_t HAL_GetTicks() {
   // TODO
-  static uint64_t time = 0;
-  return time++;
+  return XTmrCtr_GetValue(&tmrCtr, 0) * 1000.0 / XPAR_AXI_TIMER_0_CLOCK_FREQ_HZ;
 }
 
 int HAL_ArpGetMacAddress(int if_index, in_addr_t ip, macaddr_t o_mac) {
