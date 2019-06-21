@@ -24,7 +24,7 @@ XSpi spi;
 XAxiDma_BdRing *rxRing;
 XAxiDma_BdRing *txRing;
 
-#define BD_COUNT 16
+#define BD_COUNT 128
 
 char rxBdSpace[XAxiDma_BdRingMemCalc(XAXIDMA_BD_MINIMUM_ALIGNMENT, BD_COUNT)]
     __attribute__((aligned(XAXIDMA_BD_MINIMUM_ALIGNMENT)))
@@ -45,6 +45,15 @@ struct EthernetFrame {
 struct EthernetFrame rxBuffers[BD_COUNT] __attribute__((section(".physical")));
 struct EthernetFrame txBuffers[BD_COUNT] __attribute__((section(".physical")));
 u32 txBufferUsed = 0;
+
+#define ARP_TABLE_SIZE 16
+
+// simple FIFO cache
+struct ArpTableEntry {
+  int if_index;
+  macaddr_t mac;
+  in_addr_t ip;
+} arpTable[ARP_TABLE_SIZE];
 
 void SpiWriteRegister(u8 addr, u8 data) {
   u8 writeBuffer[3];
@@ -135,7 +144,7 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
     xil_printf("HAL_Init: Enable Ethernet MAC\r\n");
   }
   XAxiEthernet_SetOptions(&axiEthernet, XAE_RECEIVER_ENABLE_OPTION |
-                                            XAE_TRANSMITTER_ENABLE_OPTION);
+                                            XAE_TRANSMITTER_ENABLE_OPTION | XAE_VLAN_OPTION);
   XAxiEthernet_SetMacAddress(&axiEthernet, interface_mac);
   XAxiEthernet_Start(&axiEthernet);
 
@@ -164,6 +173,7 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
   XAxiDma_BdRingStart(txRing);
 
   memcpy(interface_addrs, if_addrs, sizeof(interface_addrs));
+  memset(arpTable, 0, sizeof(arpTable));
 
   inited = 1;
   return 0;
@@ -183,54 +193,68 @@ int HAL_ArpGetMacAddress(int if_index, in_addr_t ip, macaddr_t o_mac) {
     return HAL_ERR_INVALID_PARAMETER;
   }
 
-  /*
-    auto it = arp_table.find(std::pair<in_addr_t, int>(ip, if_index));
-    if (it != arp_table.end()) {
-      memcpy(o_mac, it->second, sizeof(macaddr_t));
+  for (int i = 0; i < ARP_TABLE_SIZE; i++) {
+    if (arpTable[i].if_index == if_index && arpTable[i].ip == ip) {
+      memcpy(o_mac, arpTable[i].mac, sizeof(macaddr_t));
       return 0;
-    } else if (pcap_out_handles[if_index] &&
-               arp_timer[std::pair<in_addr_t, int>(ip, if_index)] + 1000 <
-                   HAL_GetTicks()) {
-      arp_timer[std::pair<in_addr_t, int>(ip, if_index)] = HAL_GetTicks();
-      if (debugEnabled) {
-        fprintf(
-            stderr,
-            "HAL_ArpGetMacAddress: asking for ip address %s with arp request\n",
-            inet_ntoa(in_addr{ip}));
-      }
-      uint8_t buffer[64] = {0};
-      // dst mac
-      for (int i = 0; i < 6; i++) {
-        buffer[i] = 0xff;
-      }
-      // src mac
-      macaddr_t mac;
-      HAL_GetInterfaceMacAddress(if_index, mac);
-      memcpy(&buffer[6], mac, sizeof(macaddr_t));
-      // ARP
-      buffer[12] = 0x08;
-      buffer[13] = 0x06;
-      // hardware type
-      buffer[15] = 0x01;
-      // protocol type
-      buffer[16] = 0x08;
-      // hardware size
-      buffer[18] = 0x06;
-      // protocol size
-      buffer[19] = 0x04;
-      // opcode
-      buffer[21] = 0x01;
-      // sender
-      memcpy(&buffer[22], mac, sizeof(macaddr_t));
-      memcpy(&buffer[28], &interface_addrs[if_index], sizeof(in_addr_t));
-      // target
-      memcpy(&buffer[38], &ip, sizeof(in_addr_t));
-
-      pcap_inject(pcap_out_handles[if_index], buffer, sizeof(buffer));
     }
-    return HAL_ERR_IP_NOT_EXIST;
-    */
-  return 0;
+  }
+
+  if (debugEnabled) {
+    xil_printf(
+        "HAL_ArpGetMacAddress: asking for ip address with arp request\r\n");
+  }
+  // request
+  XAxiDma_Bd *bd;
+  WaitTxBdAvailable();
+  XAxiDma_BdRingAlloc(txRing, 1, &bd);
+  txBufferUsed++;
+
+  UINTPTR addr = XAxiDma_BdGetBufAddr(bd);
+  XAxiDma_BdClear(bd);
+  XAxiDma_BdSetBufAddr(bd, addr);
+  XAxiDma_BdSetLength(bd, IP_OFFSET + ARP_LENGTH, txRing->MaxTransferLen);
+  XAxiDma_BdSetCtrl(bd,
+                    XAXIDMA_BD_CTRL_TXSOF_MASK | XAXIDMA_BD_CTRL_TXEOF_MASK);
+
+  u8 *buffer = (u8 *)addr;
+  // dst mac
+  for (int i = 0; i < 6; i++) {
+    buffer[i] = 0xff;
+  }
+  // src mac
+  memcpy(&buffer[6], interface_mac, sizeof(macaddr_t));
+  // VLAN
+  buffer[12] = 0x81;
+  buffer[13] = 0x00;
+  // PID
+  buffer[14] = 0x00;
+  buffer[15] = if_index + 1;
+  // ARP
+  buffer[16] = 0x08;
+  buffer[17] = 0x06;
+  // hardware type
+  buffer[18] = 0x00;
+  buffer[19] = 0x01;
+  // protocol type
+  buffer[20] = 0x08;
+  buffer[21] = 0x00;
+  // hardware size
+  buffer[22] = 0x06;
+  // protocol size
+  buffer[23] = 0x04;
+  // opcode
+  buffer[24] = 0x00;
+  buffer[25] = 0x01;
+  // sender
+  memcpy(&buffer[26], interface_mac, sizeof(macaddr_t));
+  memcpy(&buffer[32], &interface_addrs[if_index], sizeof(in_addr_t));
+  // target
+  memset(&buffer[36], 0, sizeof(macaddr_t));
+  memcpy(&buffer[42], &ip, sizeof(in_addr_t));
+
+  XAxiDma_BdRingToHw(txRing, 1, bd);
+  return HAL_ERR_IP_NOT_EXIST;
 }
 
 int HAL_GetInterfaceMacAddress(int if_index, macaddr_t o_mac) {
@@ -251,7 +275,7 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
   if (!inited) {
     return HAL_ERR_CALLED_BEFORE_INIT;
   }
-  if ((if_index_mask & ((1 << N_IFACE_ON_BOARD) - 1)) == 0 || timeout < 0) {
+  if ((if_index_mask & ((1 << N_IFACE_ON_BOARD) - 1)) == 0 || (timeout < 0 && timeout != -1)) {
     return HAL_ERR_INVALID_PARAMETER;
   }
   if (if_index_mask != ((1 << N_IFACE_ON_BOARD) - 1)) {
@@ -281,14 +305,38 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
       } else if (data && length >= IP_OFFSET + ARP_LENGTH && data[16] == 0x08 &&
                  data[17] == 0x06) {
         // ARP
-        // TODO: insert into arp table
         macaddr_t mac;
         memcpy(mac, &data[26], sizeof(macaddr_t));
         in_addr_t ip;
         memcpy(&ip, &data[32], sizeof(in_addr_t));
+        u32 vlan = data[15] - 1;
+
+        // update ARP Table
+        int insert = 1;
+        for (int i = 0; i < ARP_TABLE_SIZE; i++) {
+          if (arpTable[i].if_index == vlan &&
+              memcmp(arpTable[i].mac, mac, sizeof(macaddr_t)) == 0) {
+            arpTable[i].ip = ip;
+            insert = 0;
+            break;
+          }
+        }
+
+        if (insert) {
+          memmove(&arpTable[1], arpTable,
+                  (ARP_TABLE_SIZE - 1) * sizeof(struct ArpTableEntry));
+          arpTable[0].if_index = vlan;
+          memcpy(arpTable[0].mac, mac, sizeof(macaddr_t));
+          arpTable[0].ip = ip;
+          if (debugEnabled) {
+            xil_printf("HAL_ReceiveIPPacket: learned ARP from %d.%d.%d.%d\r\n",
+                       ip & 0xFF, (ip >> 8) & 0xFF, (ip >> 16) & 0xFF,
+                       ip >> 24);
+          }
+        }
+
         in_addr_t dst_ip;
         memcpy(&dst_ip, &data[42], sizeof(in_addr_t));
-        u32 vlan = data[15] - 1;
         if (vlan < N_IFACE_ON_BOARD && dst_ip == interface_addrs[vlan]) {
           // reply
           XAxiDma_Bd *bd;
@@ -299,7 +347,8 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
           UINTPTR addr = XAxiDma_BdGetBufAddr(bd);
           XAxiDma_BdClear(bd);
           XAxiDma_BdSetBufAddr(bd, addr);
-          XAxiDma_BdSetLength(bd, IP_OFFSET + ARP_LENGTH, txRing->MaxTransferLen);
+          XAxiDma_BdSetLength(bd, IP_OFFSET + ARP_LENGTH,
+                              txRing->MaxTransferLen);
           XAxiDma_BdSetCtrl(bd, XAXIDMA_BD_CTRL_TXSOF_MASK |
                                     XAXIDMA_BD_CTRL_TXEOF_MASK);
 
@@ -339,7 +388,8 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
 
           if (debugEnabled) {
             xil_printf("HAL_ReceiveIPPacket: replied ARP to %d.%d.%d.%d\r\n",
-                    ip & 0xFF, (ip >> 8) & 0xFF, (ip >> 16) & 0xFF, ip >> 24);
+                       ip & 0xFF, (ip >> 8) & 0xFF, (ip >> 16) & 0xFF,
+                       ip >> 24);
           }
         }
       } else {

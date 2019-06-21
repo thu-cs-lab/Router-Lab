@@ -167,7 +167,7 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
   if (!inited) {
     return HAL_ERR_CALLED_BEFORE_INIT;
   }
-  if ((if_index_mask & ((1 << N_IFACE_ON_BOARD) - 1)) == 0 || timeout < 0) {
+  if ((if_index_mask & ((1 << N_IFACE_ON_BOARD) - 1)) == 0 || (timeout < 0 && timeout != -1)) {
     return HAL_ERR_INVALID_PARAMETER;
   }
 
