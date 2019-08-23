@@ -7,6 +7,8 @@
 #include <arpa/inet.h>
 #elif defined ROUTER_BACKEND_MACOS
 #include <arpa/inet.h>
+#elif defined ROUTER_BACKEND_STDIO
+#include <arpa/inet.h>
 #elif defined ROUTER_BACKEND_XILINX
 typedef uint32_t in_addr_t;
 #endif

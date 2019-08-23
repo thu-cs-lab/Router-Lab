@@ -3,6 +3,7 @@ add_executable(shell shell.cpp)
 target_include_directories(shell PRIVATE ../HAL/include)
 target_link_libraries(shell router_hal readline ncurses)
 
+if(${BACKEND} STREQUAL LINUX)
 add_custom_command(
     OUTPUT
         ${CMAKE_CURRENT_SOURCE_DIR}/network-principle-labs/routing_table/target/release/librouting_table.a
@@ -23,3 +24,4 @@ add_executable(forwarder ${FILES})
 add_dependencies(forwarder librouting_table)
 target_include_directories(forwarder PRIVATE ../HAL/include)
 target_link_libraries(forwarder router_hal readline ncurses pthread ${CMAKE_CURRENT_SOURCE_DIR}/network-principle-labs/routing_table/target/release/librouting_table.a dl)
+endif()
