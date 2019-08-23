@@ -5,6 +5,7 @@
 #include <signal.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 void printMAC(macaddr_t mac) {
   printf("%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3],
@@ -36,10 +37,10 @@ int main() {
   }
   signal(SIGINT, interrupt);
   rl_bind_key('\t', rl_insert);
-  while (buffer = readline("> ")) {
+  while ((buffer = readline("> "))) {
     add_history(buffer);
     if (strcmp(buffer, "time") == 0) {
-      printf("Current tick %ld\n", HAL_GetTicks());
+      printf("Current tick %lld\n", HAL_GetTicks());
     } else if (strncmp(buffer, "arp", strlen("arp")) == 0) {
       int if_index;
       int ip1, ip2, ip3, ip4;

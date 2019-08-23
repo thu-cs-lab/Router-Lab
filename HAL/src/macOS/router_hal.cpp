@@ -20,10 +20,10 @@
 const int IP_OFFSET = 14;
 
 const char *interfaces[N_IFACE_ON_BOARD] = {
+    "en0",
     "en1",
     "en2",
     "en3",
-    "en4",
 };
 
 bool inited = false;
@@ -57,6 +57,8 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
     return HAL_ERR_UNKNOWN;
   }
 
+  // ref:
+  // https://stackoverflow.com/questions/10593736/mac-address-from-interface-on-os-x-c
   for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
     int index;
     if ((index = if_nametoindex(interfaces[i])) == 0) {
@@ -64,12 +66,18 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
     }
 
     int mib[6];
+    mib[0] = CTL_NET;
+    mib[1] = AF_ROUTE;
+    mib[2] = 0;
+    mib[3] = AF_LINK;
+    mib[4] = NET_RT_IFLIST;
+    mib[5] = index;
+
     size_t len;
 
     if (sysctl(mib, 6, NULL, &len, NULL, 0) < 0) {
       continue;
     }
-
     char *buf;
 
     if ((buf = (char *)malloc(len)) == NULL) {
@@ -80,7 +88,7 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
       continue;
     }
 
-    struct if_msghdr *ifm = (struct if_msghdr *)ifm;
+    struct if_msghdr *ifm = (struct if_msghdr *)buf;
     struct sockaddr_dl *sdl = (struct sockaddr_dl *)(ifm + 1);
     caddr_t mac = LLADDR(sdl);
     // found
