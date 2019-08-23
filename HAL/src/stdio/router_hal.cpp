@@ -154,25 +154,32 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
   int64_t begin = HAL_GetTicks();
   int64_t current_time = 0;
   // Round robin
-  struct pcap_pkthdr hdr;
+  struct pcap_pkthdr *hdr;
+  const u_char *packet;
   do {
-    const uint8_t *packet = pcap_next(pcap_handle, &hdr);
-    if (packet && hdr.caplen >= IP_OFFSET && packet[12] == 0x81 &&
+    int res = pcap_next_ex(pcap_handle, &hdr, &packet);
+    if (res == PCAP_ERROR_BREAK) {
+      return HAL_ERR_EOF;
+    } else if (res != 1) {
+      continue;
+    }
+
+    if (packet && hdr->caplen >= IP_OFFSET && packet[12] == 0x81 &&
         packet[13] == 0x00 && packet[14] == 0 && packet[15] >= 0 &&
         packet[16] < N_IFACE_ON_BOARD) {
       int current_port = packet[15];
-      if (packet && hdr.caplen >= IP_OFFSET && packet[16] == 0x08 &&
+      if (packet && hdr->caplen >= IP_OFFSET && packet[16] == 0x08 &&
           packet[17] == 0x00) {
         // IPv4
         // TODO: what if len != caplen
-        size_t ip_len = hdr.caplen - IP_OFFSET;
+        size_t ip_len = hdr->caplen - IP_OFFSET;
         size_t real_length = length > ip_len ? ip_len : length;
         memcpy(buffer, &packet[IP_OFFSET], real_length);
         memcpy(dst_mac, &packet[0], sizeof(macaddr_t));
         memcpy(src_mac, &packet[6], sizeof(macaddr_t));
         *if_index = current_port;
         return ip_len;
-      } else if (packet && hdr.caplen >= IP_OFFSET && packet[16] == 0x08 &&
+      } else if (packet && hdr->caplen >= IP_OFFSET && packet[16] == 0x08 &&
                  packet[17] == 0x06) {
         // ARP
         macaddr_t mac;
