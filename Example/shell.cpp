@@ -128,6 +128,13 @@ int main() {
       break;
     } else {
       printf("Unknown command.\n");
+      printf("Usage:\n");
+      printf("\ttime: show current ticks\n");
+      printf("\tarp index a.b.c.d: lookup arp\n");
+      printf("\tmac index: print MAC address of interface\n");
+      printf("\tcap: capture one packet\n");
+      printf("\tout index: send random packet to interface\n");
+      printf("\tloop: read packets until interrupted\n");
     }
     free(buffer);
   }

@@ -32,6 +32,8 @@ in_addr_t interface_addrs[N_IFACE_ON_BOARD] = {0};
 macaddr_t interface_mac[N_IFACE_ON_BOARD] = {0};
 
 pcap_t *pcap_handle;
+pcap_t *pcap_out_handle;
+pcap_dumper_t *pcap_dumper;
 
 // workaround for clang
 struct macaddr_wrap {
@@ -56,6 +58,8 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
 
   char error_buffer[PCAP_ERRBUF_SIZE];
   pcap_handle = pcap_open_offline("-", error_buffer);
+  pcap_out_handle = pcap_open_dead(DLT_EN10MB, 0x40000);
+  pcap_dumper = pcap_dump_open(pcap_out_handle, "-");
 
   memcpy(interface_addrs, if_addrs, sizeof(interface_addrs));
 
@@ -123,7 +127,15 @@ int HAL_ArpGetMacAddress(int if_index, in_addr_t ip, macaddr_t o_mac) {
     // target
     memcpy(&buffer[42], &ip, sizeof(in_addr_t));
 
-    pcap_inject(pcap_handle, buffer, sizeof(buffer));
+    struct pcap_pkthdr header;
+    header.caplen = header.len = sizeof(buffer);
+
+    struct timespec tp = {0};
+    clock_gettime(CLOCK_MONOTONIC, &tp);
+    header.ts.tv_sec = tp.tv_sec;
+    header.ts.tv_usec = tp.tv_nsec / 1000;
+
+    pcap_dump((u_char *)pcap_dumper, &header, buffer);
   }
   return HAL_ERR_IP_NOT_EXIST;
 }
@@ -165,11 +177,10 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
     }
 
     if (packet && hdr->caplen >= IP_OFFSET && packet[12] == 0x81 &&
-        packet[13] == 0x00 && packet[14] == 0 && packet[15] >= 0 &&
-        packet[16] < N_IFACE_ON_BOARD) {
+        packet[13] == 0x00 && packet[14] == 0x00 && packet[15] >= 0 &&
+        packet[15] < N_IFACE_ON_BOARD) {
       int current_port = packet[15];
-      if (packet && hdr->caplen >= IP_OFFSET && packet[16] == 0x08 &&
-          packet[17] == 0x00) {
+      if (packet[16] == 0x08 && packet[17] == 0x00) {
         // IPv4
         // TODO: what if len != caplen
         size_t ip_len = hdr->caplen - IP_OFFSET;
@@ -179,8 +190,7 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
         memcpy(src_mac, &packet[6], sizeof(macaddr_t));
         *if_index = current_port;
         return ip_len;
-      } else if (packet && hdr->caplen >= IP_OFFSET && packet[16] == 0x08 &&
-                 packet[17] == 0x06) {
+      } else if (packet[16] == 0x08 && packet[17] == 0x06) {
         // ARP
         macaddr_t mac;
         memcpy(mac, &packet[26], sizeof(macaddr_t));
@@ -231,7 +241,16 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
           memcpy(&buffer[36], &packet[22], sizeof(macaddr_t));
           memcpy(&buffer[42], &packet[28], sizeof(in_addr_t));
 
-          pcap_inject(pcap_handle, buffer, sizeof(buffer));
+          struct pcap_pkthdr header;
+          header.caplen = header.len = sizeof(buffer);
+
+          struct timespec tp = {0};
+          clock_gettime(CLOCK_MONOTONIC, &tp);
+          header.ts.tv_sec = tp.tv_sec;
+          header.ts.tv_usec = tp.tv_nsec / 1000;
+
+          pcap_dump((u_char *)pcap_dumper, &header, buffer);
+
           if (debugEnabled) {
             struct in_addr addr;
             addr.s_addr = ip;
@@ -268,16 +287,16 @@ int HAL_SendIPPacket(int if_index, uint8_t *buffer, size_t length,
   eth_buffer[16] = 0x08;
   eth_buffer[17] = 0x00;
   memcpy(&eth_buffer[IP_OFFSET], buffer, length);
-  if (pcap_inject(pcap_handle, eth_buffer, length + IP_OFFSET) >= 0) {
-    free(eth_buffer);
-    return 0;
-  } else {
-    if (debugEnabled) {
-      fprintf(stderr, "HAL_SendIPPacket: pcap_inject failed with %s\n",
-              pcap_geterr(pcap_handle));
-    }
-    free(eth_buffer);
-    return HAL_ERR_UNKNOWN;
-  }
+  struct pcap_pkthdr header;
+  header.caplen = header.len = length + IP_OFFSET;
+
+  struct timespec tp = {0};
+  clock_gettime(CLOCK_MONOTONIC, &tp);
+  header.ts.tv_sec = tp.tv_sec;
+  header.ts.tv_usec = tp.tv_nsec / 1000;
+
+  pcap_dump((u_char *)pcap_dumper, &header, eth_buffer);
+  free(eth_buffer);
+  return 0;
 }
 }

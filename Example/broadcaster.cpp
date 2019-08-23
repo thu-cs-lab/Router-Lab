@@ -39,7 +39,7 @@ int main() {
                                   dst_mac, 1000, &if_index);
     if (res > 0) {
       for (int i = 0; i < N_IFACE_ON_BOARD;i++) {
-        HAL_SendIPPacket(if_index, packet, res, src_mac);
+        HAL_SendIPPacket(i, packet, res, src_mac);
       }
     } else if (res == 0) {
       fprintf(stderr, "Timeout\n");

@@ -1,0 +1,46 @@
+pub fn parse_string(input: &str) -> Vec<u8> {
+    let mut cur = 0;
+    let mut index = 0;
+    let mut result = Vec::new();
+    for ch in input.bytes() {
+        let num = if ch >= b'0' && ch <= b'9' {
+            ch - b'0'
+        } else if ch >= b'a' && ch <= b'f' {
+            ch - b'a' + 10
+        } else if ch >= b'A' && ch <= b'F' {
+            ch - b'A' + 10
+        } else {
+            continue;
+        };
+
+        if index == 0 {
+            index = 1;
+            cur = num << 4;
+        } else {
+            result.push(cur | num);
+            index = 0;
+        }
+    }
+    result
+}
+
+pub fn update_ip_checksum(mut data: Vec<u8>) -> Vec<u8> {
+    // calculate ip checksum
+    assert_eq!(data[12], 0x08);
+    assert_eq!(data[13], 0x00);
+    assert_eq!(data[14], 0x45);
+    data[24] = 0;
+    data[25] = 0;
+    let mut checksum = 0;
+    for i in 0..10 {
+        checksum += ((data[14 + i * 2] as u32) << 8) | (data[14 + i * 2 + 1] as u32);
+    }
+    while checksum >= 0x10000 {
+        checksum -= 0x10000;
+        checksum += 1;
+    }
+    data[24] = !((checksum >> 8) as u8);
+    data[25] = !(checksum as u8);
+
+    data
+}
