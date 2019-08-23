@@ -5,6 +5,8 @@
 #include <stdint.h>
 #ifdef ROUTER_BACKEND_LINUX
 #include <arpa/inet.h>
+#elif defined ROUTER_BACKEND_MACOS
+#include <arpa/inet.h>
 #elif defined ROUTER_BACKEND_XILINX
 typedef uint32_t in_addr_t;
 #endif

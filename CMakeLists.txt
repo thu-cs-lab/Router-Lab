@@ -2,9 +2,10 @@ cmake_minimum_required(VERSION 2.8)
 project(ROUTER_LAB LANGUAGES C CXX)
 
 set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 11)
 
 option(BACKEND "Router platform" OFF)
-set(BACKEND_VALUES "Linux" "Xilinx")
+set(BACKEND_VALUES "Linux" "Xilinx" "macOS")
 set_property(CACHE BACKEND PROPERTY STRINGS ${BACKEND_VALUES})
 list(FIND BACKEND_VALUES ${BACKEND} BACKEND_INDEX)
 
