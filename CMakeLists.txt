@@ -3,7 +3,6 @@ project(ROUTER_LAB LANGUAGES C CXX)
 
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 11)
-set(CMAKE_CXX_FLAGS "-fsanitize=address -g")
 
 option(BACKEND "Router platform" OFF)
 set(BACKEND_VALUES "Linux" "Xilinx" "macOS" "stdio")
