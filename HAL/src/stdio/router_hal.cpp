@@ -1,19 +1,10 @@
 #include "router_hal.h"
 #include <stdio.h>
 
-#include <ifaddrs.h>
 #include <map>
-#include <net/if.h>
-#include <net/if_arp.h>
-#include <net/if_dl.h>
 #include <pcap.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/errno.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <sys/sysctl.h>
-#include <sys/types.h>
 #include <time.h>
 #include <utility>
 
@@ -309,5 +300,4 @@ int HAL_SendIPPacket(int if_index, uint8_t *buffer, size_t length,
   free(eth_buffer);
   return 0;
 }
-
 }
