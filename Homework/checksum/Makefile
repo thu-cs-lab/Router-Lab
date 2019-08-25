@@ -1,10 +1,14 @@
 CXX ?= g++
 LAB_ROOT ?= ../..
-CXXFLAGS ?= --std=c++11 -I $(LAB_ROOT)/HAL/include -DROUTER_BACKEND_STDIO
+BACKEND ?= STDIO
+CXXFLAGS ?= --std=c++11 -I $(LAB_ROOT)/HAL/include -DROUTER_BACKEND_$(BACKEND)
 LDFLAGS ?= -lpcap
 
-.PHONY: all
+.PHONY: all clean
 all: checksum
+
+clean:
+	rm -f *.o checksum
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $^ -o $@

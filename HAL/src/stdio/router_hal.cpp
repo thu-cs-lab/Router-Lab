@@ -17,21 +17,17 @@
 #include <time.h>
 #include <utility>
 
-const int IP_OFFSET = 18;
-
-const char *interfaces[N_IFACE_ON_BOARD] = {
-    "en0",
-    "en1",
-    "en2",
-    "en3",
-};
+const int IP_OFFSET = 18; // 6 + 6 + 4 + 2
 
 bool inited = false;
 int debugEnabled = 0;
 in_addr_t interface_addrs[N_IFACE_ON_BOARD] = {0};
 macaddr_t interface_mac[N_IFACE_ON_BOARD] = {0};
 
+// input
 pcap_t *pcap_handle;
+
+// output
 pcap_t *pcap_out_handle;
 pcap_dumper_t *pcap_dumper;
 
@@ -50,6 +46,7 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
   debugEnabled = debug;
 
   for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
+    // hard coded MAC
     macaddr_t mac = {2, 3, 3, 0, 0, (uint8_t)i};
     memcpy(interface_mac[i], mac, sizeof(macaddr_t));
     memcpy(&arp_table[std::pair<in_addr_t, int>(if_addrs[i], i)],
@@ -57,7 +54,17 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
   }
 
   char error_buffer[PCAP_ERRBUF_SIZE];
+
+  // input
   pcap_handle = pcap_open_offline("-", error_buffer);
+  if (!pcap_handle) {
+    if (debugEnabled) {
+      fprintf(stderr, "pcap_open_offline failed with %s", error_buffer);
+    }
+    return HAL_ERR_UNKNOWN;
+  }
+
+  // output
   pcap_out_handle = pcap_open_dead(DLT_EN10MB, 0x40000);
   pcap_dumper = pcap_dump_open(pcap_out_handle, "-");
 
@@ -95,7 +102,7 @@ int HAL_ArpGetMacAddress(int if_index, in_addr_t ip, macaddr_t o_mac) {
           inet_ntoa(addr));
     }
     uint8_t buffer[64] = {0};
-    // dst mac
+    // dst mac = broadcast
     for (int i = 0; i < 6; i++) {
       buffer[i] = 0xff;
     }
@@ -165,7 +172,7 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
 
   int64_t begin = HAL_GetTicks();
   int64_t current_time = 0;
-  // Round robin
+
   struct pcap_pkthdr *hdr;
   const u_char *packet;
   do {
@@ -173,16 +180,18 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
     if (res == PCAP_ERROR_BREAK) {
       return HAL_ERR_EOF;
     } else if (res != 1) {
+      // retry
       continue;
     }
 
+    // check 802.1Q
     if (packet && hdr->caplen >= IP_OFFSET && packet[12] == 0x81 &&
         packet[13] == 0x00 && packet[14] == 0x00 && packet[15] >= 0 &&
         packet[15] < N_IFACE_ON_BOARD) {
       int current_port = packet[15];
       if (packet[16] == 0x08 && packet[17] == 0x00) {
         // IPv4
-        // TODO: what if len != caplen
+        // assuming len != caplen
         size_t ip_len = hdr->caplen - IP_OFFSET;
         size_t real_length = length > ip_len ? ip_len : length;
         memcpy(buffer, &packet[IP_OFFSET], real_length);
@@ -196,6 +205,7 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
         memcpy(mac, &packet[26], sizeof(macaddr_t));
         in_addr_t ip;
         memcpy(&ip, &packet[32], sizeof(in_addr_t));
+
         memcpy(&arp_table[std::pair<in_addr_t, int>(ip, current_port)], mac,
                sizeof(macaddr_t));
         if (debugEnabled) {
@@ -299,4 +309,5 @@ int HAL_SendIPPacket(int if_index, uint8_t *buffer, size_t length,
   free(eth_buffer);
   return 0;
 }
+
 }
