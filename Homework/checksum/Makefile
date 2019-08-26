@@ -17,4 +17,4 @@ hal.o: $(LAB_ROOT)/HAL/src/stdio/router_hal.cpp
 	$(CXX) $(CXXFLAGS) -c $^ -o $@
 
 checksum: checksum.o main.o hal.o
-	$(CXX) $(LDFLAGS) $^ -o $@
+	$(CXX) $^ -o $@ $(LDFLAGS) 
