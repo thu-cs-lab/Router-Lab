@@ -11,6 +11,7 @@
 const int IP_OFFSET = 18; // 6 + 6 + 4 + 2
 
 bool inited = false;
+bool outputInited = false;
 int debugEnabled = 0;
 in_addr_t interface_addrs[N_IFACE_ON_BOARD] = {0};
 macaddr_t interface_mac[N_IFACE_ON_BOARD] = {0};
@@ -54,10 +55,6 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
     }
     return HAL_ERR_UNKNOWN;
   }
-
-  // output
-  pcap_out_handle = pcap_open_dead(DLT_EN10MB, 0x40000);
-  pcap_dumper = pcap_dump_open(pcap_out_handle, "-");
 
   memcpy(interface_addrs, if_addrs, sizeof(interface_addrs));
 
@@ -133,6 +130,12 @@ int HAL_ArpGetMacAddress(int if_index, in_addr_t ip, macaddr_t o_mac) {
     header.ts.tv_sec = tp.tv_sec;
     header.ts.tv_usec = tp.tv_nsec / 1000;
 
+    if (!outputInited) {
+      // output
+      pcap_out_handle = pcap_open_dead(DLT_EN10MB, 0x40000);
+      pcap_dumper = pcap_dump_open(pcap_out_handle, "-");
+      outputInited = true;
+    }
     pcap_dump((u_char *)pcap_dumper, &header, buffer);
   }
   return HAL_ERR_IP_NOT_EXIST;
@@ -250,6 +253,12 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
           header.ts.tv_sec = tp.tv_sec;
           header.ts.tv_usec = tp.tv_nsec / 1000;
 
+          if (!outputInited) {
+            // output
+            pcap_out_handle = pcap_open_dead(DLT_EN10MB, 0x40000);
+            pcap_dumper = pcap_dump_open(pcap_out_handle, "-");
+            outputInited = true;
+          }
           pcap_dump((u_char *)pcap_dumper, &header, buffer);
 
           if (debugEnabled) {
@@ -296,6 +305,12 @@ int HAL_SendIPPacket(int if_index, uint8_t *buffer, size_t length,
   header.ts.tv_sec = tp.tv_sec;
   header.ts.tv_usec = tp.tv_nsec / 1000;
 
+  if (!outputInited) {
+    // output
+    pcap_out_handle = pcap_open_dead(DLT_EN10MB, 0x40000);
+    pcap_dumper = pcap_dump_open(pcap_out_handle, "-");
+    outputInited = true;
+  }
   pcap_dump((u_char *)pcap_dumper, &header, eth_buffer);
   free(eth_buffer);
   return 0;

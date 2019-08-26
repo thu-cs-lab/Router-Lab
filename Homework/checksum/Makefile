@@ -4,11 +4,14 @@ BACKEND ?= STDIO
 CXXFLAGS ?= --std=c++11 -I $(LAB_ROOT)/HAL/include -DROUTER_BACKEND_$(BACKEND)
 LDFLAGS ?= -lpcap
 
-.PHONY: all clean
+.PHONY: all clean grade
 all: checksum
 
 clean:
 	rm -f *.o checksum
+
+grade: checksum
+	python3 grade.py
 
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $^ -o $@
