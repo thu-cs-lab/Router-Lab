@@ -1,4 +1,4 @@
-extern crate Datagen;
+extern crate datagen;
 extern crate pcap_file;
 extern crate rand;
 extern crate structopt;
@@ -47,22 +47,26 @@ fn main() {
         let packet_type = rng.gen_range(0, types);
         let frame = match packet_type {
             0 => {
-                // good FCS good IP
-                let mut data = Datagen::parse_string("74EAC8233333 001217122345 8100 0001 0800450000200000400040110D63B7AD71B701020304E36E2766000C635A3132330A");
+                // good IP
+                let mut data = datagen::parse_string("74EAC8233333 001217122345 8100 0001 0800450000200000400040110000B7AD71B701020304E36E2766000C635A3132330A");
                 let extra_length = rng.gen_range(0, file_size);
                 for _ in 0..extra_length {
                     data.push(rng.gen());
                 }
+                data = datagen::update_ip_checksum(data);
                 write!(ans_writer, "Yes\n").expect("write");
                 data
             }
             1 => {
-                // good FCS bad IP
-                let mut data = Datagen::parse_string("74EAC8233333 001217122345 8100 0001 080045000020000040004011DD63B7AD71B701020304E36E2766000C635A3132330A");
+                // bad IP
+                let mut data = datagen::parse_string("74EAC8233333 001217122345 8100 0001 080045000020000040004011DD63B7AD71B701020304E36E2766000C635A3132330A");
                 let extra_length = rng.gen_range(0, file_size);
                 for _ in 0..extra_length {
                     data.push(rng.gen());
                 }
+                data = datagen::update_ip_checksum(data);
+                data[28] ^= rng.gen_range(1, 255);
+                data[29] ^= rng.gen_range(1, 255);
                 write!(ans_writer, "No\n").expect("write");
                 data
             }

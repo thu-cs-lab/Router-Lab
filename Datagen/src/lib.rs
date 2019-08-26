@@ -26,21 +26,21 @@ pub fn parse_string(input: &str) -> Vec<u8> {
 
 pub fn update_ip_checksum(mut data: Vec<u8>) -> Vec<u8> {
     // calculate ip checksum
-    assert_eq!(data[12], 0x08);
-    assert_eq!(data[13], 0x00);
-    assert_eq!(data[14], 0x45);
-    data[24] = 0;
-    data[25] = 0;
+    assert_eq!(data[16], 0x08);
+    assert_eq!(data[17], 0x00);
+    assert_eq!(data[18], 0x45);
+    data[28] = 0;
+    data[29] = 0;
     let mut checksum = 0;
     for i in 0..10 {
-        checksum += ((data[14 + i * 2] as u32) << 8) | (data[14 + i * 2 + 1] as u32);
+        checksum += ((data[18 + i * 2] as u32) << 8) | (data[18 + i * 2 + 1] as u32);
     }
     while checksum >= 0x10000 {
         checksum -= 0x10000;
         checksum += 1;
     }
-    data[24] = !((checksum >> 8) as u8);
-    data[25] = !(checksum as u8);
+    data[28] = !((checksum >> 8) as u8);
+    data[29] = !(checksum as u8);
 
     data
 }

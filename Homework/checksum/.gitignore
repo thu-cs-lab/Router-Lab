@@ -1,5 +1,3 @@
-*
-!.gitignore
-!*.c
-!*.cpp
-!Makefile
+*.o
+checksum
+!*.out
