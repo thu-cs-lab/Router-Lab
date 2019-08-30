@@ -186,7 +186,7 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
 
 uint64_t HAL_GetTicks() {
   // TODO
-  return XTmrCtr_GetValue(&tmrCtr, 0) * 1000.0 / XPAR_AXI_TIMER_0_CLOCK_FREQ_HZ;
+  return XTmrCtr_GetValue(&tmrCtr, 0) * 1000 / XPAR_AXI_TIMER_0_CLOCK_FREQ_HZ;
 }
 
 int HAL_ArpGetMacAddress(int if_index, in_addr_t ip, macaddr_t o_mac) {
