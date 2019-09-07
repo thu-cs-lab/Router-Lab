@@ -398,7 +398,7 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
         }
       } else {
         if (debugEnabled) {
-          xil_printf("HAL_ReceiveIPPacket: ignore recognized packet\r\n");
+          xil_printf("HAL_ReceiveIPPacket: ignore unrecognized packet\r\n");
         }
       }
       PutBackBd(bd);
