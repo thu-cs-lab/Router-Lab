@@ -58,7 +58,7 @@ uint64_t HAL_GetTicks();
  * @param if_index IN，接口索引号，[0, N_IFACE_ON_BOARD-1]
  * @param ip IN，要查询的 IP 地址
  * @param o_mac OUT，查询结果 MAC 地址
- * @return int 0表示成功，非0为失败
+ * @return int 0 表示成功，非 0 为失败
  */
 int HAL_ArpGetMacAddress(int if_index, in_addr_t ip, macaddr_t o_mac);
 
@@ -84,7 +84,7 @@ int HAL_GetInterfaceMacAddress(int if_index, macaddr_t o_mac);
  * @param src_mac OUT，IPv4 报文下层的源 MAC 地址
  * @param dst_mac OUT，IPv4 报文下层的目的 MAC 地址
  * @param timeout IN，设置接收超时时间（毫秒），-1 表示无限等待
- * @param if_index OUT，实际接收到的报文来源的接口号
+ * @param if_index OUT，实际接收到的报文来源的接口号，不能为空指针
  * @return int >0 表示实际接收的报文长度，=0 表示超时返回，<0 表示发生错误
  */
 int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
