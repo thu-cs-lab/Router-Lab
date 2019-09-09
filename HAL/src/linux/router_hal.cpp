@@ -61,6 +61,9 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
                sizeof(macaddr_t));
         memcpy(arp_table[std::pair<in_addr_t, int>(if_addrs[i], i)],
                interface_mac[i], sizeof(macaddr_t));
+        if (debugEnabled) {
+          fprintf(stderr, "HAL_Init: found MAC addr of interface %s\n", interfaces[i]);
+        }
         break;
       }
     }
@@ -75,6 +78,13 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
       pcap_setnonblock(pcap_in_handles[i], 1, error_buffer);
       if (debugEnabled) {
         fprintf(stderr, "HAL_Init: pcap capture enabled for %s\n",
+                interfaces[i]);
+      }
+    } else {
+      if (debugEnabled) {
+        fprintf(stderr,
+                "HAL_Init: pcap capture disabled for %s, either the interface "
+                "does not exist or permission is denied\n",
                 interfaces[i]);
       }
     }
@@ -167,7 +177,8 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
   if (!inited) {
     return HAL_ERR_CALLED_BEFORE_INIT;
   }
-  if ((if_index_mask & ((1 << N_IFACE_ON_BOARD) - 1)) == 0 || (timeout < 0 && timeout != -1)) {
+  if ((if_index_mask & ((1 << N_IFACE_ON_BOARD) - 1)) == 0 ||
+      (timeout < 0 && timeout != -1)) {
     return HAL_ERR_INVALID_PARAMETER;
   }
 
