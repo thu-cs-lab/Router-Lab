@@ -62,6 +62,9 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
   for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
     int index;
     if ((index = if_nametoindex(interfaces[i])) == 0) {
+      if (debugEnabled) {
+        fprintf(stderr, "HAL_Init: get MAC addr failed for interface %s\n", interfaces[i]);
+      }
       continue;
     }
 
@@ -76,15 +79,24 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
     size_t len;
 
     if (sysctl(mib, 6, NULL, &len, NULL, 0) < 0) {
+      if (debugEnabled) {
+        fprintf(stderr, "HAL_Init: get MAC addr failed for interface %s\n", interfaces[i]);
+      }
       continue;
     }
     char *buf;
 
     if ((buf = (char *)malloc(len)) == NULL) {
+      if (debugEnabled) {
+        fprintf(stderr, "HAL_Init: get MAC addr failed for interface %s\n", interfaces[i]);
+      }
       continue;
     }
 
     if (sysctl(mib, 6, buf, &len, NULL, 0) < 0) {
+      if (debugEnabled) {
+        fprintf(stderr, "HAL_Init: get MAC addr failed for interface %s\n", interfaces[i]);
+      }
       continue;
     }
 
@@ -105,6 +117,13 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
       pcap_setnonblock(pcap_in_handles[i], 1, error_buffer);
       if (debugEnabled) {
         fprintf(stderr, "HAL_Init: pcap capture enabled for %s\n",
+                interfaces[i]);
+      }
+    } else {
+      if (debugEnabled) {
+        fprintf(stderr,
+                "HAL_Init: pcap capture disabled for %s, either the interface "
+                "does not exist or permission is denied\n",
                 interfaces[i]);
       }
     }
