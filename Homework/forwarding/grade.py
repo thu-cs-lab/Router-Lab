@@ -14,7 +14,7 @@ import signal
 import glob
 import traceback
 
-prefix = 'checksum'
+prefix = 'forwarding'
 exe = prefix
 if len(sys.argv) > 1:
     exe = sys.argv[1]

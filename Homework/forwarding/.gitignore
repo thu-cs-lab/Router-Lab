@@ -1,5 +1,5 @@
 *.o
-checksum
+forwarding
 std
 std.cpp
 !*_output*.out
