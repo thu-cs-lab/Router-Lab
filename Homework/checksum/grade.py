@@ -14,6 +14,11 @@ import signal
 import glob
 import traceback
 
+prefix = 'checksum'
+exe = prefix
+if len(sys.argv) > 1:
+    exe = sys.argv[1]
+
 try:
     import pyshark
 except Exception:
@@ -24,7 +29,7 @@ def write_grade(grade, total):
     data = {}
     data['grade'] = grade
     if os.isatty(1):
-        print('Grade: {}/{}'.format(grade, total))
+        print('Passed: {}/{}'.format(grade, total))
     else:
         print(json.dumps(data))
 
@@ -39,20 +44,20 @@ if __name__ == '__main__':
 
     if os.isatty(1):
         print('Removing all output files')
-    os.system('rm -f data/checksum_user*.out')
+    os.system('rm -f data/{}user*.out'.format(prefix))
 
-    total = len(glob.glob("data/checksum_input*.pcap"))
+    total = len(glob.glob("data/{}_input*.pcap".format(prefix)))
 
     grade = 0
 
     for i in range(1, 4):
-        in_file = "data/checksum_input{}.pcap".format(i)
-        out_file = "data/checksum_user{}.out".format(i)
-        ans_file = "data/checksum_output{}.out".format(i)
+        in_file = "data/{}_input{}.pcap".format(prefix,i)
+        out_file = "data/{}_user{}.out".format(prefix,i)
+        ans_file = "data/{}_output{}.out".format(prefix,i)
 
         if os.isatty(1):
-            print('Running \'./checksum < {} > {}\''.format(in_file, out_file))
-        p = subprocess.Popen(['./checksum'], stdout=open(out_file, 'w'), stdin=open(in_file, 'r'))
+            print('Running \'./{} < {} > {}\''.format(exe, in_file, out_file))
+        p = subprocess.Popen(['./{}'.format(exe)], stdout=open(out_file, 'w'), stdin=open(in_file, 'r'))
         start_time = time.time()
 
         while p.poll() is None:

@@ -1,3 +1,5 @@
 *.o
 checksum
+std
+std.cpp
 !output*.out

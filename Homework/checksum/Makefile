@@ -8,7 +8,7 @@ LDFLAGS ?= -lpcap
 all: checksum
 
 clean:
-	rm -f *.o checksum
+	rm -f *.o checksum std
 
 grade: checksum
 	python3 grade.py
@@ -20,4 +20,7 @@ hal.o: $(LAB_ROOT)/HAL/src/stdio/router_hal.cpp
 	$(CXX) $(CXXFLAGS) -c $^ -o $@
 
 checksum: checksum.o main.o hal.o
+	$(CXX) $^ -o $@ $(LDFLAGS) 
+
+std: std.o main.o hal.o
 	$(CXX) $^ -o $@ $(LDFLAGS) 
