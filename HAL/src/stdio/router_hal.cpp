@@ -185,7 +185,7 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
       int current_port = packet[15];
       if (packet[16] == 0x08 && packet[17] == 0x00) {
         // IPv4
-        // assuming len != caplen
+        // assuming len == caplen
         size_t ip_len = hdr->caplen - IP_OFFSET;
         size_t real_length = length > ip_len ? ip_len : length;
         memcpy(buffer, &packet[IP_OFFSET], real_length);
