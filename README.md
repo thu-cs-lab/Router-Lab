@@ -13,7 +13,7 @@
 如果你运行的是 Debian 发行版，你可以一把梭地安装需要的依赖：
 
 ```shell
-sudo apt install git make python3 python3-pip libpcap-dev
+sudo apt install git make python3 python3-pip libpcap-dev wireshark
 pip3 install pyshark
 ```
 
