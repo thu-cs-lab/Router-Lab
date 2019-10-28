@@ -277,3 +277,7 @@ Q: 我没有趁手的 Linux 环境，我可以用 WSL 吗
 A: 由于 WSL 没有实现 pcap ，如果使用 Linux 后端，即使 sudo 运行也会报告找不到可以抓包的网口，所以你只能用文件后端进行测试。
 
 ## 项目作者
+
+总设计师： @z4yx
+后续维护： @Harry-Chen @jiegec
+提过建议： @NanoApe
