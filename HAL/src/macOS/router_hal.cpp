@@ -107,6 +107,15 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
     memcpy(interface_mac[i], mac, sizeof(macaddr_t));
     memcpy(&arp_table[std::pair<in_addr_t, int>(if_addrs[i], i)],
            interface_mac[i], sizeof(macaddr_t));
+    if (debugEnabled) {
+      macaddr_t m;
+      // handle signedness
+      memcpy(m, &mac, sizeof(macaddr_t));
+      fprintf(stderr,
+              "HAL_Init: MAC addr of interface %s is "
+              "%02X:%02X:%02X:%02X:%02X:%02X\n",
+              interfaces[i], m[0], m[1], m[2], m[3], m[4], m[5]);
+    }
   }
 
   char error_buffer[PCAP_ERRBUF_SIZE];
