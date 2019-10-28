@@ -62,7 +62,8 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
         memcpy(arp_table[std::pair<in_addr_t, int>(if_addrs[i], i)],
                interface_mac[i], sizeof(macaddr_t));
         if (debugEnabled) {
-          fprintf(stderr, "HAL_Init: found MAC addr of interface %s\n", interfaces[i]);
+          fprintf(stderr, "HAL_Init: found MAC addr of interface %s\n",
+                  interfaces[i]);
         }
         break;
       }
