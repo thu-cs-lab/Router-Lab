@@ -261,7 +261,11 @@ A：总是有同学不认真阅读文档，所以，如果你阅读到了这里�
 
 Q：我用的是纯命令行环境，没有 Wireshark 图形界面可以用，咋办？
 
-A：你可以用 tcpdump 代替 Wireshark，它的特点是一次性输出所有内容；也可以用 termshark ，它是 Wireshark 的 TUI 版，操作方式和 Wireshark 是一致的。
+A：你可以用 tcpdump 代替 Wireshark，它的特点是一次性输出所有内容；或者用 tshark，是 Wireshark 官方的 CLI 版本；也可以用 termshark ，它是 Wireshark 的 TUI 版，操作方式和 Wireshark 是一致的
+
+Q: 运行 grade.py 的时候，提示找不到 tshark ，怎么办？
+
+A: 用你的包管理器安装 wireshark 或者 tshark 都行。如果你在使用 Windows，需要注意 Windows 版的 Wireshark 和 WSL 内部的 Wireshark 是需要分别安装的。
 
 Q：为啥要搞 HAL 啊，去年让大家用 Linux 的 Raw Socket ，不也有人搞出来了吗？
 
@@ -270,4 +274,6 @@ A：我们认为去年的 Linux 的 Raw Socket 是比较古老而且需要同学
 
 Q: 我没有趁手的 Linux 环境，我可以用 WSL 吗
 
-A: 由于 WSL 没有实现 pcap ，如果使用 Linux 后端，即使 sudo 运行也会报告找不到可以抓包的王阔，所以你只能用文件后端进行测试。
+A: 由于 WSL 没有实现 pcap ，如果使用 Linux 后端，即使 sudo 运行也会报告找不到可以抓包的网口，所以你只能用文件后端进行测试。
+
+## 项目作者
