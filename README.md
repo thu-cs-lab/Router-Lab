@@ -13,7 +13,7 @@
 如果你运行的是 Debian 发行版，你可以一把梭地安装需要的依赖：
 
 ```shell
-sudo apt install git make python3 python3-pip libpcap-dev wireshark
+sudo apt install git make python3 python3-pip libpcap-dev wireshark iproute2
 pip3 install pyshark
 ```
 
@@ -206,6 +206,52 @@ int main() {
     return 0;
 }
 ```
+
+### 如何启动并配置一个比较标准的 RIP 实现
+
+你可以用一台 Linux 机器，连接到你的路由器的一个网口上，一边抓包一边运行一个 RIP 的实现。我们提供一个 BIRD（BIRD Internet Routing Daemon）的参考配置，以 Debian 为例，修改文件 `/etc/bird.conf`：
+
+```
+log "bird.log" all;
+# debug protocols all; # 如果要更详细的信息，可以打开这个
+
+router id 网口IP地址；
+
+protocol device {
+}
+
+protocol kernel {
+    # 表示 BIRD 会把系统的路由表通过 RIP 发出去，也会把收到的 RIP 信息写入系统路由表
+    # 你可以用 `ip route` 命令查看系统的路由表
+    persist no;
+    learn;
+    ipv4 {
+        export all;
+    }
+}
+
+protocol static {
+    ipv4 { };
+    # route 10.0.2.2/32 via "网口名称"; # 如果你要添加静态路由的话
+}
+
+protocol rip {
+    ipv4 {
+        import all;
+        export all;
+    }
+    debug all;
+    interface "网口名称" {
+        version 2;
+        # mode broadcast; # 可以设置为广播模式
+        update time 5; # 5秒一次更新，方便调试
+    };
+}
+```
+
+这里的网口名字对应你连接到路由器的网口，也要配置一个固定的 IP 地址，需要和路由器对应网口的 IP 在同一个网段内。配置固定 IP 地址的命令格式为 `ip a add IP地址/前缀长度 dev 网口名称`，你可以用 `ip a` 命令看到所有网口的信息。
+
+启动服务（如 `systemctl start bird`）后，你就可以开始抓包，同时查看 bird 打出的信息（`journalctl -f -u bird`），这对调试你的路由器实现很有帮助。
 
 ## FAQ（暗号：档）
 
