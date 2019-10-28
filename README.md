@@ -183,14 +183,25 @@ int main() {
             // 1. 检查是否是合法的 IP 包，可以用你编写的 validateIPChecksum 函数，还需要一些额外的检查
             // 2. 检查目的地址，如果是路由器自己的 IP，进入 3a；否则进入 3b
             // 3a.1 检查是否是合法的 RIP 包，可以用你编写的 disassemble 函数检查并从中提取出数据
-            // 3a.2 如果是 Response 包，就调用你编写的 query 和 update 函数进行查询和更新，注意此时的 RoutingTableEntry 可能要添加新的字段（如metric、timestamp），如果有路由更新的情况，可能需要构造出 RipPacket 结构体，调用你编写的 assemble 函数，再把 IP 和 UDP 头补充在前面，通过 HAL_SendIPPacket 把它发到别的网口上
-            // 3a.3 如果是 Request 包，就遍历本地的路由表，构造出一个 RipPacket 结构体，然后调用你编写的 assemble 函数，另外再把 IP 和 UDP 头补充在前面，通过 HAL_SendIPPacket 发回询问的网口
-            // 3b.1 此时目的 IP 地址不是路由器本身，则调用你编写的 query 函数查询，如果查到目的地址，用 HAL_ArpGetMacAddress 获取 nexthop 的 MAC 地址，如果找到了，就调用你编写的 forward 函数进行 TTL 和 Checksum 的更新，通过 HAL_SendIPPacket 发到指定的网口，在 TTL 减到 0 的时候建议构造一个 ICMP Time Exceeded 返回给发送者；如果没查到目的地址的路由，建议返回一个 ICMP Destination Network Unreachable；如果没查到下一跳的 MAC 地址，HAL 会自动发出 ARP 请求，在对方回复后，下次转发时就知道了
+            // 3a.2 如果是 Response 包，就调用你编写的 query 和 update 函数进行查询和更新，
+            //      注意此时的 RoutingTableEntry 可能要添加新的字段（如metric、timestamp），
+            //      如果有路由更新的情况，可能需要构造出 RipPacket 结构体，调用你编写的 assemble 函数，
+            //      再把 IP 和 UDP 头补充在前面，通过 HAL_SendIPPacket 把它发到别的网口上
+            // 3a.3 如果是 Request 包，就遍历本地的路由表，构造出一个 RipPacket 结构体，
+            //      然后调用你编写的 assemble 函数，另外再把 IP 和 UDP 头补充在前面，
+            //      通过 HAL_SendIPPacket 发回询问的网口
+            // 3b.1 此时目的 IP 地址不是路由器本身，则调用你编写的 query 函数查询，如果查到目的地址，
+            //      用 HAL_ArpGetMacAddress 获取 nexthop 的 MAC 地址，如果找到了，
+            //      就调用你编写的 forward 函数进行 TTL 和 Checksum 的更新，
+            //      通过 HAL_SendIPPacket 发到指定的网口，
+            //      在 TTL 减到 0 的时候建议构造一个 ICMP Time Exceeded 返回给发送者；
+            //      如果没查到目的地址的路由，建议返回一个 ICMP Destination Network Unreachable；
+            //      如果没查到下一跳的 MAC 地址，HAL 会自动发出 ARP 请求，在对方回复后，下次转发时就知道了
         } else if (res == 0) {
             // Timeout, ignore
         } else {
-        fprintf(stderr, "Error: %d\n", res);
-        break;
+            fprintf(stderr, "Error: %d\n", res);
+            break;
         }
     }
     return 0;
