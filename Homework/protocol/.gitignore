@@ -1,0 +1,6 @@
+*.o
+protocol
+std
+std.cpp
+!*_output*.out
+!Makefile

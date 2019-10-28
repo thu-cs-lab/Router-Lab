@@ -11,7 +11,7 @@
     uint32_t nexthop; // 下一跳的 IPv4 地址
   } RoutingTableEntry;
 
-  其中 addr 和 nexthop 以 **小端序** 存储。
+  约定 addr 和 nexthop 以 **小端序** 存储。
   这意味着 1.2.3.4 对应 0x01020304 而不是 0x04030201。
   保证 addr 仅最高 len 位可能出现非零。
   保证合法的表项里 nexthop 非零。
