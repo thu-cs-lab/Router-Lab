@@ -108,7 +108,17 @@ HAL 即 Hardware Abstraction Layer 硬件抽象层，顾名思义，是隐藏了
 
 在 `Homework` 目录下提供了若干个题目，通过数据测试你的路由器中核心功能的实现。你需要在被标记 TODO 的函数中补全它的功能，通过测试后，就可以更容易地完成后续的实践。
 
-每个子目录都有类似的结构（以 `checksum` 为例）：
+有这些目录：
+
+```
+checksum： 计算校验和
+forwarding： 转发逻辑
+lookup： 路由表查询和更新
+protocol： RIP 协议解析和封装
+boilerplate： 用以上代码实现一个路由器
+```
+
+每个题目都有类似的结构（以 `checksum` 为例）：
 
 ```
 data： 数据所在的目录
