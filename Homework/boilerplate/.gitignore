@@ -1,0 +1,6 @@
+*.o
+boilerplate
+std
+std.cpp
+!*_output*.out
+!Makefile

@@ -34,7 +34,7 @@
  * @param packet 接受到的 IP 包
  * @param len 即 packet 的长度
  * @param output 把解析结果写入 *output
- * @return 如果输入是一个合法的 RIP 包，把它的内容写入 RipPacket 并且返回 true；否则返回 else
+ * @return 如果输入是一个合法的 RIP 包，把它的内容写入 RipPacket 并且返回 true；否则返回 false
  * 
  * IP 包的 Total Length 长度可能和 len 不同，当 Total Length 大于 len 时，把传入的 IP 包视为不合法
  * 你不需要校验 IP 头中的校验和是否合法，那是 checksum 作业需要做的事情
