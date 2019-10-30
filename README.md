@@ -276,6 +276,22 @@ protocol rip {
 1. 使用虚拟机安装多个不同的操作系统，并将它们的网络按照需要的拓扑连接，在每一台虚拟机上运行一份你的程序。这一方法思路简单，并且可以做到与真实多机环境完全相同，但可能消耗较多的资源。
 2. 使用 Linux 提供的 network namespace 功能，在同一个系统上创建多个相互隔离的网络环境，并使用 veth 将它们恰当地连接起来，在其中运行多份你的程序。这一方法资源占用少，但是对 Linux 使用经验和网络配置知识有较高的需求。
 
+和 network namespace 相关的操作的子命令是 `ip netns`。例如我们想要创建两个 namespace 并让其能够互相通信：
+
+```
+ip netns add net0 # 创建名为 "net0" 的 namespace
+ip netns add net1
+ip link add veth0 type veth peer name veth1 # 创建 veth pair 作为 namespace 之间的通信渠道
+ip link set veth0 netns net0 # 将 veth 加入到 namespace 中
+ip link set veth1 netns net1
+ip netns exec net0 ip addr add 10.1.1.1/24 dev veth0 # 给 veth 配上 ip 地址
+ip netns exec net1 ip addr add 10.1.1.2/24 dev veth1
+```
+
+配置完成后你可以运行 `ip netns exec net0 ping 10.1.1.2` 来测试在 net0 上是否能够 ping 到 net1。
+
+你还可以运行 `ip netns exec net0 [command]` 来执行任何你想在 namespace 下执行的命令，甚至可以运行 `ip netns exec net0 bash` 打开一个网络环境为 net0 的 bash。
+
 ## FAQ（暗号：档）
 
 Q：暗号是干嘛的，为啥要搞这一出？
