@@ -298,7 +298,7 @@ A: 由于 WSL1 没有实现 pcap ，如果使用 Linux 后端，即使 sudo 运�
 
 Q: 有时候会出现 `pcap_inject failed with send: Message too long` ，这是什么情况？
 
-这一般是因为传给 `HAL_SendIPPacket` 的长度参数大于网口的 MTU，请检查你传递的参数是否正确。需要注意的是，在一些情况下，在 Linux 后端中， `HAL_ReceiveIPPacket` 有时候会返回一个长度大于 MTU 的包，这是因为 TSO(TCP Segment Offload) 或者类似的技术，在网卡中若干个 IP 包被合并为一个。你可以用 `ethtool -K 网口名称 tso off` 来尝试关闭 TSO 。
+这一般是因为传给 `HAL_SendIPPacket` 的长度参数大于网口的 MTU，请检查你传递的参数是否正确。需要注意的是，在一些情况下，在 Linux 后端中， `HAL_ReceiveIPPacket` 有时候会返回一个长度大于 MTU 的包，这是因为 TSO(TCP Segment Offload) 或者类似的技术，在网卡中若干个 IP 包被合并为一个。你可以用 `ethtool -K 网口名称 tso off` 来尝试关闭 TSO ，然后在 `ethtool -k 网口名称` 的输出中找到 `tcp-segmentation-offload: on/off` 确认一下是否成功关闭。
 
 ## 项目作者
 
@@ -306,4 +306,4 @@ Q: 有时候会出现 `pcap_inject failed with send: Message too long` ，这是
 
 后续维护： @Harry-Chen @jiegec
 
-提过建议： @NanoApe
+提过建议： @Konaoo
