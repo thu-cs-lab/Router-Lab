@@ -240,7 +240,7 @@ protocol kernel {
     learn;
     ipv4 {
         export all;
-    }
+    };
 }
 
 protocol static {
@@ -252,7 +252,7 @@ protocol rip {
     ipv4 {
         import all;
         export all;
-    }
+    };
     debug all;
     interface "网口名称" {
         version 2;
