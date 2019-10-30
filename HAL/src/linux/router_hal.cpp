@@ -1,4 +1,5 @@
 #include "router_hal.h"
+#include "router_hal_common.h"
 #include <stdio.h>
 
 #include <ifaddrs.h>
