@@ -40,7 +40,7 @@
  * 你不需要校验 IP 头中的校验和是否合法，那是 checksum 作业需要做的事情
  */
 bool disassemble(const uint8_t *packet, uint32_t len, RipPacket *output) {
-  // TODO
+  // TODO:
   return false;
 }
 
@@ -54,6 +54,6 @@ bool disassemble(const uint8_t *packet, uint32_t len, RipPacket *output) {
  * 你写入 buffer 的数据长度应该是四个字节的 RIP 头，加上每项 20 字节。
  */
 uint32_t assemble(const RipPacket *rip, uint8_t *buffer) {
-  // TODO
+  // TODO:
   return 0;
 }

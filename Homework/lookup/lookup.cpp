@@ -26,7 +26,7 @@
  * 如果已经存在一条 addr 和 len 都相同的表项，则替换掉原有的。
  */
 void update(RoutingTableEntry entry) {
-  // TODO
+  // TODO:
 }
 
 /**
@@ -36,7 +36,7 @@ void update(RoutingTableEntry entry) {
  * @return 查询到的表项的 nexthop ，如果没查到则返回 0
  */
 uint32_t query(uint32_t addr, uint32_t *if_index) {
-  // TODO
+  // TODO:
   *if_index = 0;
   return 0;
 }
