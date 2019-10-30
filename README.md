@@ -225,7 +225,7 @@ int main() {
 你可以用一台 Linux 机器，连接到你的路由器的一个网口上，一边抓包一边运行一个 RIP 的实现。我们提供一个 BIRD（BIRD Internet Routing Daemon，安装方法 `apt install bird`）v2.0 的参考配置，以 Debian 为例，修改文件 `/etc/bird.conf`：
 
 ```
-log "bird.log" all;
+# log "bird.log" all; # 可以将 log 输出到文件中
 # debug protocols all; # 如果要更详细的信息，可以打开这个
 
 router id 网口IP地址;
@@ -245,7 +245,7 @@ protocol kernel {
 
 protocol static {
     ipv4 { };
-    # route 10.0.2.2/32 via "网口名称"; # 如果你要添加静态路由的话
+    route 1.2.3.4/32 via "网口名称"; # 添加一个静态路由让路由表非空
 }
 
 protocol rip {
@@ -256,7 +256,6 @@ protocol rip {
     debug all;
     interface "网口名称" {
         version 2;
-        # mode broadcast; # 可以设置为广播模式
         update time 5; # 5秒一次更新，方便调试
     };
 }
@@ -267,6 +266,8 @@ protocol rip {
 这里的网口名字对应你连接到路由器的网口，也要配置一个固定的 IP 地址，需要和路由器对应网口的 IP 在同一个网段内。配置固定 IP 地址的命令格式为 `ip a add IP地址/前缀长度 dev 网口名称`，你可以用 `ip a` 命令看到所有网口的信息。
 
 启动服务（如 `systemctl start bird`）后，你就可以开始抓包，同时查看 bird 打出的信息（`journalctl -f -u bird`），这对调试你的路由器实现很有帮助。
+
+或者直接运行 BIRD（`bird -c /etc/bird.conf`），可在命令选项中加上 `-d` 方便直接退出进程。若想同时开多个 BIRD 则需要给每个进程指定单独的 socket。
 
 ### 如何在一台计算机上进行真实测试
 
