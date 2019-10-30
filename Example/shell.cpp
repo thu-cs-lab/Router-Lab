@@ -135,6 +135,7 @@ int main() {
       printf("\tcap: capture one packet\n");
       printf("\tout index: send random packet to interface\n");
       printf("\tloop: read packets until interrupted\n");
+      printf("\tquit: exit shell\n");
     }
     free(buffer);
   }
