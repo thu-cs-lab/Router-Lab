@@ -225,7 +225,7 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
       memcpy(dst_mac, &packet[0], sizeof(macaddr_t));
       memcpy(src_mac, &packet[6], sizeof(macaddr_t));
       *if_index = current_port;
-      return ip_len;
+      return real_length;
     } else if (packet && hdr.caplen >= IP_OFFSET && packet[12] == 0x08 &&
                packet[13] == 0x06) {
       // ARP

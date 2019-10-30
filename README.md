@@ -91,7 +91,7 @@ HAL 即 Hardware Abstraction Layer 硬件抽象层，顾名思义，是隐藏了
 2. Broadcaster：一个粗糙的“路由器”，把在每个网口上收到的 IP 包又转发到所有网口上（暗号：真）
 3. Capture：仅把抓到的 IP 包原样输出
 
-如果你使用 CMake，可以用类似上面编译 HAL 库的方法编译这三个例子。它们可能都需要 root 权限运行，并在运行的适合你可以打开 Wireshark 等抓包工具研究它的具体行为。
+如果你使用 CMake，可以用类似上面编译 HAL 库的方法编译这三个例子。如果不想使用 CMake，可以基于 `Homework/checksum/Makefile` 修改出适合例子的 Makefile 。它们可能都需要 root 权限运行，并在运行的适合你可以打开 Wireshark 等抓包工具研究它的具体行为。
 
 这些例子可以用于检验环境配置是否正确，如 Linux 下网卡名字的配置、是否编译成功等等。比如在上面的 Shell 程序中输入 `mac 0` `mac 1` `mac 2` 和 `mac 3`，它会输出对应网口的 MAC 地址，如果输出的数据和你用 `ip l`（macOS 可以用 `ifconfig`） 看到的内容一致，那基本说明你配置没有问题了。
 
