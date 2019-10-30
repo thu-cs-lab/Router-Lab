@@ -48,7 +48,7 @@ fn main() {
         let frame = match packet_type {
             0 => {
                 // good IP
-                let mut data = datagen::parse_string("74EAC8233333 001217122345 8100 0001 0800450000200000400040110000B7AD71B701020304E36E2766000C635A3132330A");
+                let mut data = datagen::parse_string("01005e000001c0562718cc8e81000001080046c00020000040000102041700000000e0000001940400001164ee9b00000000");
                 let extra_length = rng.gen_range(0, file_size);
                 for _ in 0..extra_length {
                     data.push(rng.gen());

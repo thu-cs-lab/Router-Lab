@@ -28,11 +28,12 @@ pub fn update_ip_checksum(mut data: Vec<u8>) -> Vec<u8> {
     // calculate ip checksum
     assert_eq!(data[16], 0x08);
     assert_eq!(data[17], 0x00);
-    assert_eq!(data[18], 0x45);
+    //assert_eq!(data[18], 0x45);
     data[28] = 0;
     data[29] = 0;
     let mut checksum = 0;
-    for i in 0..10 {
+    let mut len = ((data[18] & 0xF) * 2) as usize;
+    for i in 0..len {
         checksum += ((data[18 + i * 2] as u32) << 8) | (data[18 + i * 2 + 1] as u32);
     }
     while checksum >= 0x10000 {
