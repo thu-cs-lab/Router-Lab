@@ -63,14 +63,14 @@ int main(int argc, char *argv[]) {
     // TODO: Handle rip multicast address?
 
     if (dst_is_me) {
-      // RIP?
+      // TODO: RIP?
       RipPacket rip;
       if (disassemble(packet, res, &rip)) {
         if (rip.command == 1) {
           // request
           RipPacket resp;
-          // fill resp
-          // assemble
+          // TODO: fill resp
+          // TODO: assemble
           // IP
           output[0] = 0x45;
           // ...
@@ -85,7 +85,7 @@ int main(int argc, char *argv[]) {
           HAL_SendIPPacket(if_index, output, rip_len + 20 + 8, src_mac);
         } else {
           // response
-          // use query and update
+          // TODO: use query and update
         }
       } else {
         // forward
@@ -98,9 +98,9 @@ int main(int argc, char *argv[]) {
           if (HAL_ArpGetMacAddress(dest_if, nexthop, dest_mac) == 0) {
             // found
             memcpy(output, packet, res);
-            // update ttl and checksum
+            // TODO: update ttl and checksum
             forward(output, res);
-            // you might check ttl=0 case
+            // TODO: you might check ttl=0 case
             HAL_SendIPPacket(dest_if, output, res, dest_mac);
           } else {
             // not found
