@@ -228,7 +228,7 @@ int main() {
 log "bird.log" all;
 # debug protocols all; # 如果要更详细的信息，可以打开这个
 
-router id 网口IP地址；
+router id 网口IP地址;
 
 protocol device {
 }
@@ -240,7 +240,7 @@ protocol kernel {
     learn;
     ipv4 {
         export all;
-    }
+    };
 }
 
 protocol static {
@@ -252,7 +252,7 @@ protocol rip {
     ipv4 {
         import all;
         export all;
-    }
+    };
     debug all;
     interface "网口名称" {
         version 2;
