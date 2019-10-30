@@ -222,7 +222,7 @@ int main() {
 
 ### 如何启动并配置一个比较标准的 RIP 实现
 
-你可以用一台 Linux 机器，连接到你的路由器的一个网口上，一边抓包一边运行一个 RIP 的实现。我们提供一个 BIRD（BIRD Internet Routing Daemon）的参考配置，以 Debian 为例，修改文件 `/etc/bird.conf`：
+你可以用一台 Linux 机器，连接到你的路由器的一个网口上，一边抓包一边运行一个 RIP 的实现。我们提供一个 BIRD（BIRD Internet Routing Daemon，安装方法 `apt install bird`）的参考配置，以 Debian 为例，修改文件 `/etc/bird.conf`：
 
 ```
 log "bird.log" all;
