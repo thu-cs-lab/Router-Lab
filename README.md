@@ -228,7 +228,7 @@ int main() {
 log "bird.log" all;
 # debug protocols all; # 如果要更详细的信息，可以打开这个
 
-router id 网口IP地址；
+router id 网口IP地址;
 
 protocol device {
 }
