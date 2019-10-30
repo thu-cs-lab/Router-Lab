@@ -284,7 +284,9 @@ ip netns add net1
 ip link add veth0 type veth peer name veth1 # 创建 veth pair 作为 namespace 之间的通信渠道
 ip link set veth0 netns net0 # 将 veth 加入到 namespace 中
 ip link set veth1 netns net1
+ip netns exec net0 ip link set veth0 up
 ip netns exec net0 ip addr add 10.1.1.1/24 dev veth0 # 给 veth 配上 ip 地址
+ip netns exec net1 ip link set veth1 up
 ip netns exec net1 ip addr add 10.1.1.2/24 dev veth1
 ```
 
