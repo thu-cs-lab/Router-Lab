@@ -219,13 +219,14 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
                packet[13] == 0x00) {
       // IPv4
       // TODO: what if len != caplen
+      // Beware: might be larger than MTU
       size_t ip_len = hdr.caplen - IP_OFFSET;
       size_t real_length = length > ip_len ? ip_len : length;
       memcpy(buffer, &packet[IP_OFFSET], real_length);
       memcpy(dst_mac, &packet[0], sizeof(macaddr_t));
       memcpy(src_mac, &packet[6], sizeof(macaddr_t));
       *if_index = current_port;
-      return real_length;
+      return ip_len;
     } else if (packet && hdr.caplen >= IP_OFFSET && packet[12] == 0x08 &&
                packet[13] == 0x06) {
       // ARP
