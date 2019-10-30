@@ -191,7 +191,7 @@ int main() {
                                     dst_mac, 1000, &if_index); // 超时为 1s
         if (res > 0) {
             // 1. 检查是否是合法的 IP 包，可以用你编写的 validateIPChecksum 函数，还需要一些额外的检查
-            // 2. 检查目的地址，如果是路由器自己的 IP，进入 3a；否则进入 3b
+            // 2. 检查目的地址，如果是路由器自己的 IP（或者是 RIP 的组播地址），进入 3a；否则进入 3b
             // 3a.1 检查是否是合法的 RIP 包，可以用你编写的 disassemble 函数检查并从中提取出数据
             // 3a.2 如果是 Response 包，就调用你编写的 query 和 update 函数进行查询和更新，
             //      注意此时的 RoutingTableEntry 可能要添加新的字段（如metric、timestamp），

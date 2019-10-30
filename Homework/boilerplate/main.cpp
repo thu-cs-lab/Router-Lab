@@ -60,6 +60,7 @@ int main(int argc, char *argv[]) {
         break;
       }
     }
+    // TODO: Handle rip multicast address?
 
     if (dst_is_me) {
       // RIP?
