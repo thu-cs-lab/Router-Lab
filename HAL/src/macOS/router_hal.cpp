@@ -1,4 +1,5 @@
 #include "router_hal.h"
+#include "router_hal_common.h"
 #include <stdio.h>
 
 #include <ifaddrs.h>
@@ -63,7 +64,8 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
     int index;
     if ((index = if_nametoindex(interfaces[i])) == 0) {
       if (debugEnabled) {
-        fprintf(stderr, "HAL_Init: get MAC addr failed for interface %s\n", interfaces[i]);
+        fprintf(stderr, "HAL_Init: get MAC addr failed for interface %s\n",
+                interfaces[i]);
       }
       continue;
     }
@@ -80,7 +82,8 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
 
     if (sysctl(mib, 6, NULL, &len, NULL, 0) < 0) {
       if (debugEnabled) {
-        fprintf(stderr, "HAL_Init: get MAC addr failed for interface %s\n", interfaces[i]);
+        fprintf(stderr, "HAL_Init: get MAC addr failed for interface %s\n",
+                interfaces[i]);
       }
       continue;
     }
@@ -88,14 +91,16 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
 
     if ((buf = (char *)malloc(len)) == NULL) {
       if (debugEnabled) {
-        fprintf(stderr, "HAL_Init: get MAC addr failed for interface %s\n", interfaces[i]);
+        fprintf(stderr, "HAL_Init: get MAC addr failed for interface %s\n",
+                interfaces[i]);
       }
       continue;
     }
 
     if (sysctl(mib, 6, buf, &len, NULL, 0) < 0) {
       if (debugEnabled) {
-        fprintf(stderr, "HAL_Init: get MAC addr failed for interface %s\n", interfaces[i]);
+        fprintf(stderr, "HAL_Init: get MAC addr failed for interface %s\n",
+                interfaces[i]);
       }
       continue;
     }
@@ -143,6 +148,15 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
   memcpy(interface_addrs, if_addrs, sizeof(interface_addrs));
 
   inited = true;
+  for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
+    if (pcap_out_handles[i]) {
+      HAL_JoinIGMPGroup(i, if_addrs[i]);
+      if (debugEnabled) {
+        fprintf(stderr, "HAL_Init: Joining RIP multicast group 224.0.0.9 for %s\n",
+                interfaces[i]);
+      }
+    }
+  }
   return 0;
 }
 
