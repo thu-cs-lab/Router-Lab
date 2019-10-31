@@ -27,6 +27,22 @@ int main(int argc, char *argv[]) {
   if (res < 0) {
     return res;
   }
+  
+  // Add direct routes
+  // For example:
+  // 10.0.0.0/24 if 0
+  // 10.0.1.0/24 if 1
+  // 10.0.2.0/24 if 2
+  // 10.0.3.0/24 if 3
+  for (int i = 0; i < N_IFACE_ON_BOARD;i++) {
+    RoutingTableEntry entry = {
+      .addr = addrs[i],
+      .len = 24,
+      .if_index = i,
+      .nexthop = 0 // means direct
+    };
+  }
+
   uint64_t last_time = 0;
   while (1) {
     uint64_t time = HAL_GetTicks();
