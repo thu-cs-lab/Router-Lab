@@ -1,12 +1,14 @@
 #include "router_hal.h"
 #include "rip.h"
+#include "router.h"
 #include <stdint.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
 
 extern bool validateIPChecksum(uint8_t *packet, size_t len);
-extern uint32_t query(uint32_t addr, uint32_t *if_index);
+extern void update(bool insert, RoutingTableEntry entry);
+extern bool query(uint32_t addr, uint32_t *nexthop, uint32_t *if_index);
 extern bool forward(uint8_t *packet, size_t len);
 extern bool disassemble(const uint8_t *packet, uint32_t len, RipPacket *output);
 extern uint32_t assemble(const RipPacket *rip, uint8_t *buffer);
@@ -91,10 +93,13 @@ int main(int argc, char *argv[]) {
         // forward
         // beware of endianness
         uint32_t nexthop, dest_if;
-        nexthop = query(src_addr, &dest_if);
-        if (nexthop) {
+        if (query(src_addr, &nexthop, &dest_if)) {
           // found
           macaddr_t dest_mac;
+          // direct routing
+          if (nexthop == 0) {
+            nexthop = dst_addr;
+          }
           if (HAL_ArpGetMacAddress(dest_if, nexthop, dest_mac) == 0) {
             // found
             memcpy(output, packet, res);
