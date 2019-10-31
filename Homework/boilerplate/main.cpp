@@ -48,7 +48,8 @@ int main(int argc, char *argv[]) {
   while (1) {
     uint64_t time = HAL_GetTicks();
     if (time > last_time + 30 * 1000) {
-      printf("Timer \n");
+      // What to do?
+      printf("Timer\n");
     }
 
     int mask = (1 << N_IFACE_ON_BOARD) - 1;
@@ -64,7 +65,11 @@ int main(int argc, char *argv[]) {
     } else if (res == 0) {
       // Timeout
       continue;
+    } else if (res > sizeof(packet)) {
+      // packet is truncated, ignore it
+      continue;
     }
+
     if (!validateIPChecksum(packet, res)) {
       printf("Invalid IP Checksum\n");
       continue;
@@ -89,7 +94,7 @@ int main(int argc, char *argv[]) {
           // request
           RipPacket resp;
           // TODO: fill resp
-          // TODO: assemble
+          // assemble
           // IP
           output[0] = 0x45;
           // ...
@@ -120,9 +125,9 @@ int main(int argc, char *argv[]) {
           if (HAL_ArpGetMacAddress(dest_if, nexthop, dest_mac) == 0) {
             // found
             memcpy(output, packet, res);
-            // TODO: update ttl and checksum
+            // update ttl and checksum
             forward(output, res);
-            // TODO: you might check ttl=0 case
+            // TODO: you might want to check ttl=0 case
             HAL_SendIPPacket(dest_if, output, res, dest_mac);
           } else {
             // not found
