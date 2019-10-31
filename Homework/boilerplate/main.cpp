@@ -41,6 +41,7 @@ int main(int argc, char *argv[]) {
       .if_index = i,
       .nexthop = 0 // means direct
     };
+    update(true, entry);
   }
 
   uint64_t last_time = 0;

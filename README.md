@@ -171,12 +171,22 @@ make grade # 也可以运行评分脚本，实际上就是运行python3 grade.py
 
 ```cpp
 int main() {
-    // 初始化 HAL，打开调试信息
+    // 0a. 初始化 HAL，打开调试信息
     HAL_Init(1, addrs);
+    // 0b. 创建若干条 /24 直连路由
+    for (int i = 0; i < N_IFACE_ON_BOARD;i++) {
+        RoutingTableEntry entry = {
+            .addr = addrs[i],
+            .len = 24,
+            .if_index = i,
+            .nexthop = 0 // means direct
+        };
+        update(true, entry);
+    }
 
     uint64_t last_time = 0;
     while (1) {
-      // 获取当前时间，处理定时任务
+        // 获取当前时间，处理定时任务
         uint64_t time = HAL_GetTicks();
         if (time > last_time + 30 * 10000) {
             // 每 30s 做什么
