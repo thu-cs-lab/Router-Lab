@@ -10,9 +10,9 @@
 
 本文档默认你已经在软件工程、编译原理、程序设计训练等课程中已经学习到了足够的 Git 、Make 、Python3 和 Linux 的使用知识，如果用的是 Windows 系统，你可以在下发的树莓派上进行以下所有相关的操作。
 
-如果你运行的是 Debian 发行版，你可以一把梭地安装需要的依赖：
+如果你运行的是 Debian 系列发行版（包括 Ubuntu），你可以一把梭地安装需要的依赖：
 
-```shell
+```bash
 sudo apt install git make python3 python3-pip libpcap-dev wireshark iproute2
 pip3 install pyshark
 ```
@@ -21,7 +21,7 @@ pip3 install pyshark
 
 ## 如何使用框架
 
-这个框架主要分为两部分，一部分是硬件抽象库，即 HAL （Hardware Abstraction Layer），它提供了数个后端，可以在不修改用户代码的情况下把程序运行在不同的平台上；另一部分是数个小实验，它们对你所需要实现的路由器的几个关键功能进行了针对性的测试，采用文件输入输出的黑盒测试方法，在真机调试之前就可以进行解决很多问题。
+这个框架主要分为两部分，一部分是硬件抽象层，即 HAL （Hardware Abstraction Layer），它提供了数个后端，可以在不修改用户代码的情况下把程序运行在不同的平台上；另一部分是数个小实验，它们对你所需要实现的路由器的几个关键功能进行了针对性的测试，采用文件输入输出的黑盒测试方法，在真机调试之前就可以进行解决很多问题。
 
 （暗号：我）
 
@@ -39,7 +39,7 @@ git submodule update --init --recursive
 
 ### 如何使用 HAL 
 
-在 `HAL` 目录中，是完整的 `HAL` 的源代码。它包括一个头文件 `router_hal.h` 和若干后端的源代码。
+在 `HAL` 目录中，是完整的 HAL 的源代码。它包括一个头文件 `router_hal.h` 和若干后端的源代码。
 
 如果你有过使用 CMake 的经验，那么建议你采用 CMake 把 HAL 和你的代码链接起来。编译的时候，需要选择 HAL 的后端，可供选择的一共有：
 
@@ -50,7 +50,7 @@ git submodule update --init --recursive
 
 后端的选择方法如下：
 
-```shell
+```bash
 mkdir build
 cd build
 cmake .. -DBACKEND=Linux
@@ -59,7 +59,7 @@ make router_hal
 
 其它后端类似设置即可。
 
-如果你不想用 CMake ，你可以直接把 router_hal.h 放到你的 Header Include Path 中，然后把对应后端的文件（如 `HAL/src/linux/router_hal.cpp`）编译并链接进你的程序，同时在编译选项中写 `-DROUTER_BACKEND_LINUX` （即 ROUTER_BACKEND_ 加上后端的大写形式）。可以参考 `Homework/checksum/Makefile` 中相关部分。
+如果你不想用 CMake ，你可以直接把 `router_hal.h` 放到你的 Header Include Path 中，然后把对应后端的文件（如 `HAL/src/linux/router_hal.cpp`）编译并链接进你的程序，同时在编译选项中写 `-DROUTER_BACKEND_LINUX` （即 ROUTER_BACKEND_ 加上后端的大写形式）。可以参考 `Homework/checksum/Makefile` 中相关部分。
 
 在这个时候，你应该可以通过 HAL 的编译。
 
@@ -72,18 +72,18 @@ HAL 即 Hardware Abstraction Layer 硬件抽象层，顾名思义，是隐藏了
 1. 所有函数都设计为仅在单线程运行，不支持并行
 2. 从 IP 层开始暴露给用户，由框架处理 ARP 和收发以太网帧的具体细节
 3. 采用轮询的方式进行 IP 报文的收取
-4. 尽量用简单的方法实现，性能不是重点
+4. 尽量用简单的方法实现，而非追求极致性能
 
 它提供了以下这些函数：
 
-1. HAL_Init: 使用 HAL 库的第一步，必须调用且仅调用一次，需要提供每个网口上绑定的 IP 地址，第一个参数表示是否打开 HAL 的测试输出，十分建议在调试的时候打开它
-2. HAL_GetTicks：获取从启动到当前时刻的毫秒数
-3. HAL_ArpGetMacAddress：从 ARP 表中查询 IPv4 地址对应的 MAC 地址，在找不到的时候会发出 ARP 请求
-4. HAL_GetInterfaceMacAddress：获取指定网口上绑定的 MAC 地址
-5. HAL_ReceiveIPPacket：从指定的若干个网口中读取一个 IPv4 报文，并得到源 MAC 地址和目的 MAC 地址等信息
-6. HAL_SendIPPacket：向指定的网口发送一个 IPv4 报文
+1. `HAL_Init`: 使用 HAL 库的第一步，**必须调用且仅调用一次**，需要提供每个网口上绑定的 IP 地址，第一个参数表示是否打开 HAL 的测试输出，十分建议在调试的时候打开它
+2. `HAL_GetTicks`：获取从启动到当前时刻的毫秒数
+3. `HAL_ArpGetMacAddress`：从 ARP 表中查询 IPv4 地址对应的 MAC 地址，在找不到的时候会发出 ARP 请求
+4. `HAL_GetInterfaceMacAddress`：获取指定网口上绑定的 MAC 地址
+5. `HAL_ReceiveIPPacket`：从指定的若干个网口中读取一个 IPv4 报文，并得到源 MAC 地址和目的 MAC 地址等信息
+6. `HAL_SendIPPacket`：向指定的网口发送一个 IPv4 报文
 
-这些函数的定义和功能都在 `router_hal.h` 详细地解释了，请阅读函数前的文档。为了易于调试，HAL 没有实现 ARP 表的老化，你可以自己在代码中实现，不难。
+这些函数的定义和功能都在 `router_hal.h` 详细地解释了，请阅读函数前的文档。为了易于调试，HAL 没有实现 ARP 表的老化，你可以自己在代码中实现，并不困难。
 
 仅通过这些函数，就可以实现一个软路由。我们在 `Example` 目录下提供了一些例子，它们会告诉你 HAL 库的一些基本使用范式：
 
@@ -99,9 +99,9 @@ HAL 即 Hardware Abstraction Layer 硬件抽象层，顾名思义，是隐藏了
 
 #### 各后端的自定义配置
 
-各后端有一个公共的设置  `N_IFACE_ON_BOARD` ，它表示 HAL 需要支持的最大的接口数，一般取 4 就是足够了。
+各后端有一个公共的设置  `N_IFACE_ON_BOARD` ，它表示 HAL 需要支持的最大的接口数，一般取 4 就足够了。
 
-在 Linux 后端中，一个很重要的是 `interfaces` 数组，它记录了 HAL 内接口下标与 Linux 系统中的网口的对应关系，你可以用 `ip a` 来列出系统中存在的所有的网口。为了方便开发，我们提供了 `HAL/src/linux/platform/{standard,testing}.h` 两个文件（形如 a{b,c}d 的语法代表的是 abd 或者 acd），你可以通过 HAL_PLATFORM_TESTING 选项来控制选择哪一个。
+在 Linux 后端中，一个很重要的是 `interfaces` 数组，它记录了 HAL 内接口下标与 Linux 系统中的网口的对应关系，你可以用 `ip l` 来列出系统中存在的所有的网口。为了方便开发，我们提供了 `HAL/src/linux/platform/{standard,testing}.h` 两个文件（形如 a{b,c}d 的语法代表的是 abd 或者 acd），你可以通过 HAL_PLATFORM_TESTING 选项来控制选择哪一个，或者修改/新增文件以适应你的需要。
 
 在 macOS 后端中，类似地你也需要修改 `HAL/src/macOS/router_hal.cpp` 中的 `interfaces` 数组，不过实际上 `macOS` 的网口命名方式比较简单，所以一般不用改也可以碰上对的。
 
@@ -131,7 +131,7 @@ Makefile：用于编译并链接 HAL 、交互库和你实现的代码
 
 使用方法：
 
-```shell
+```bash
 pip install pyshark # 仅第一次，一些平台下要用 pip3 install pyshark
 # 修改 checksum.cpp（暗号：读）
 make # 编译，得到可以执行的 checksum
@@ -168,6 +168,7 @@ make grade # 也可以运行评分脚本，实际上就是运行python3 grade.py
 3. 运行一些成熟的软件，然后抓包看它们的输出是怎样的，特别是调试 RIP 协议的时候，可以自己用 BIRD（BIRD Internet Routing Daemon）跑 RIP 协议然后抓包，有条件的同学也可以自己找一台企业级的路由器进行配置（选计算机网络专题训练体验一下），当你的程序写好了也可以让你的路由器和它进行互通测试。当大家都和标准实现兼容的时候，大家之间兼容的机会就更高了。
 
 关于第四步，一个可能的大概的框架如下：
+
 ```cpp
 int main() {
     // 初始化 HAL，打开调试信息
@@ -267,32 +268,32 @@ protocol rip {
 
 启动服务（如 `systemctl start bird`）后，你就可以开始抓包，同时查看 bird 打出的信息（`journalctl -f -u bird`），这对调试你的路由器实现很有帮助。
 
-或者直接运行 BIRD（`bird -c /etc/bird.conf`），可在命令选项中加上 `-d` 方便直接退出进程。若想同时开多个 BIRD 则需要给每个进程指定单独的 socket。
+你也可以直接运行 BIRD（`bird -c /etc/bird.conf`），可在命令选项中加上 `-d` 方便直接退出进程。若想同时开多个 BIRD，则需要给每个进程指定单独的 socket。
 
 ### 如何在一台计算机上进行真实测试
 
 如果你使用软件实现了路由器，你可以用以下的方法只使用一台计算机进行测试：
 
 1. 使用虚拟机安装多个不同的操作系统，并将它们的网络按照需要的拓扑连接，在每一台虚拟机上运行一份你的程序。这一方法思路简单，并且可以做到与真实多机环境完全相同，但可能消耗较多的资源。
-2. 使用 Linux 提供的 network namespace 功能，在同一个系统上创建多个相互隔离的网络环境，并使用 veth 将它们恰当地连接起来，在其中运行多份你的程序。这一方法资源占用少，但是对 Linux 使用经验和网络配置知识有较高的需求，建议看下面的 FAQ 避开一些常见问题。
+2. 使用 Linux 提供的 network namespace 功能，在同一个系统上创建多个相互隔离的网络环境，并使用 veth （每对 veth 有两个接口，可以处在不同的 namespace 中，可以理解为一条虚拟的网线）将它们恰当地连接起来，在其中运行多份你的程序。这一方法资源占用少，但是对 Linux 使用经验和网络配置知识有较高的需求。我们在下面提供了一些简单的指导：
 
-和 network namespace 相关的操作的子命令是 `ip netns`。例如我们想要创建两个 namespace 并让其能够互相通信：
+和 network namespace 相关的操作的命令是 `ip netns`。例如我们想要创建两个 namespace 并让其能够互相通信：
 
-```
+```bash
 ip netns add net0 # 创建名为 "net0" 的 namespace
 ip netns add net1
-ip link add veth0 type veth peer name veth1 # 创建 veth pair 作为 namespace 之间的通信渠道
-ip link set veth0 netns net0 # 将 veth 加入到 namespace 中
-ip link set veth1 netns net1
-ip netns exec net0 ip link set veth0 up
-ip netns exec net0 ip addr add 10.1.1.1/24 dev veth0 # 给 veth 配上 ip 地址
-ip netns exec net1 ip link set veth1 up
-ip netns exec net1 ip addr add 10.1.1.2/24 dev veth1
+ip link add veth-net0 type veth peer name veth-net1 # 创建一对相互连接的 veth pair
+ip link set veth-net0 netns net0 # 将 veth 一侧加入到一个 namespace 中
+ip link set veth-net1 netns net1 # 配置 veth 另一侧
+ip netns exec net0 ip link set veth-net0 up
+ip netns exec net0 ip addr add 10.1.1.1/24 dev veth-net0 # 给 veth 一侧配上 ip 地址
+ip netns exec net1 ip link set veth-net1 up
+ip netns exec net1 ip addr add 10.1.1.2/24 dev veth-net1
 ```
 
 配置完成后你可以运行 `ip netns exec net0 ping 10.1.1.2` 来测试在 net0 上是否能够 ping 到 net1。
 
-你还可以运行 `ip netns exec net0 [command]` 来执行任何你想在 namespace 下执行的命令，甚至可以运行 `ip netns exec net0 bash` 打开一个网络环境为 net0 的 bash。
+你还可以运行 `ip netns exec net0 [command]` 来执行任何你想在特定 namespace 下执行的命令，也可以运行 `ip netns exec net0 bash` 打开一个网络环境为 net0 的 bash。
 
 ## FAQ（暗号：档）
 
@@ -304,17 +305,17 @@ Q：我用的是纯命令行环境，没有 Wireshark 图形界面可以用，�
 
 A：你可以用 tcpdump 代替 Wireshark，它的特点是一次性输出所有内容；或者用 tshark，是 Wireshark 官方的 CLI 版本；也可以用 termshark ，它是 Wireshark 的 TUI 版，操作方式和 Wireshark 是一致的
 
-Q: 运行 grade.py 的时候，提示找不到 tshark ，怎么办？
+Q: 运行 `grade.py` 的时候，提示找不到 tshark ，怎么办？
 
 A: 用你的包管理器安装 wireshark 或者 tshark 都行。如果你在使用 Windows，需要注意 Windows 版的 Wireshark 和 WSL 内部的 Wireshark 是需要分别安装的。
 
 Q: tshark 好像默认不会检查 IP Header Checksum 等各种 Checksum，我怎么让它进行校验？
 
-A: 给它命令行参数 `-o ip.check_checksum:TRUE` `-o tcp.check_checksum:TRUE` 和 `-o udp.check_checksum:TRUE` 就可以打开它的校验功能。在 Wireshark 中直接在 Protocol Preferences 选择即可。
+A: 给它命令行参数 `-o ip.check_checksum:TRUE` `-o tcp.check_checksum:TRUE` 和 `-o udp.check_checksum:TRUE` 就可以打开它的校验功能。如果你使用 Wireshark，直接在 Protocol Preferences 中选择即可。
 
 Q：为啥要搞 HAL 啊，去年让大家用 Linux 的 Raw Socket ，不也有人搞出来了吗？
 
-A：我们认为去年的 Linux 的 Raw Socket 是比较古老而且需要同学编写很多人冗余代码的一套 API，另外比较复杂的 Quagga 的交互接口也让很多同学遇到了困难，结果就是只有少数同学很顺利地完成了所有任务，一些同学在不理解这些 API 的工作方式的情况下直接拿代码来就用，出现一些问题后就一筹莫展，这是我们不希望看到的一种情况，况且这部分知识与网络原理课程关系不大，日后也基本不会接触。今年我们采用的 libpcap 以一个更底层的方式进行收发，绕过了操作系统的 IP 层，这样可以避开 Raw Socket 的一些限制，不过也多了自行维护 ARP 的负担。同时今年新增了硬件路由器实验的组，为了把二者统一，我们设计了 HAL 库，它维护了 ARP 的信息，在 Linux 等平台下用 libpcap，在 Xilinx 平台下用 IP 核的寄存器，和 stdio 后端用于在线评测。我们期望通过这些方法减少大家的负担。
+A：我们认为去年的 Linux 的 Raw Socket 是比较古老而且需要同学编写很多人冗余代码的一套 API，另外比较复杂的 Quagga 的交互接口也让很多同学遇到了困难，结果就是只有少数同学很顺利地完成了所有任务，一些同学在不理解这些 API 的工作方式的情况下直接拿代码来就用，出现一些问题后就一筹莫展，这是我们不希望看到的一种情况，况且这部分知识与网络原理课程关系不大，日后也基本不会接触。今年我们采用的 `libpcap` 以一个更底层的方式进行收发，绕过了操作系统的 IP 层，这样可以避开 Raw Socket 的一些限制，不过也多了自行维护 ARP 的负担。同时今年新增了硬件路由器实验的组，为了把二者统一，我们设计了 HAL 库，它维护了 ARP 的信息，在 Linux 等平台下用 `libpcap`，在 Xilinx 平台下用 IP 核的寄存器，和 stdio 后端用于在线评测。我们期望通过这些方法减少大家的负担。
 
 Q: 我没有趁手的 Linux 环境，我可以用 WSL 吗
 
@@ -322,15 +323,15 @@ A: 由于 WSL1 没有实现 pcap ，如果使用 Linux 后端，即使 sudo 运�
 
 Q: 有时候会出现 `pcap_inject failed with send: Message too long` ，这是什么情况？
 
-A: 这一般是因为传给 `HAL_SendIPPacket` 的长度参数大于网口的 MTU，请检查你传递的参数是否正确。需要注意的是，在一些情况下，在 Linux 后端中， `HAL_ReceiveIPPacket` 有时候会返回一个长度大于 MTU 的包，这是因为 TSO(TCP Segment Offload) 或者类似的技术，在网卡中若干个 IP 包被合并为一个。你可以用 `ethtool -K 网口名称 tso off` 来尝试关闭 TSO ，然后在 `ethtool -k 网口名称` 的输出中找到 `tcp-segmentation-offload: on/off` 确认一下是否成功关闭。
+A: 这一般是因为传给 `HAL_SendIPPacket` 的长度参数大于网口的 MTU，请检查你传递的参数是否正确。需要注意的是，在一些情况下，在 Linux 后端中， `HAL_ReceiveIPPacket` 有时候会返回一个长度大于 MTU 的包，这是 TSO (TCP Segment Offload) 或者类似的技术导致的（在网卡中若干个 IP 包被合并为一个）。你可以用 `ethtool -K 网口名称 tso off` 来尝试关闭 TSO ，然后在 `ethtool -k 网口名称` 的输出中找到 `tcp-segmentation-offload: on/off` 确认一下是否成功关闭。
 
 Q: RIP 协议用的是组播地址，但组播是用 IGMP 协议进行维护的，这个框架是怎么解决这个问题的？
 
-A: 在 Linux 和 macOS 后端的 `HAL_Init` 函数中，它会向所有网口都发一份 `IGMP Membership Join group 224.0.0.9` 表示本机进入了 RIP 协议的组之中。为了简化，并没有发 Leave Group 的消息。
+A: 在 Linux 和 macOS 后端的 `HAL_Init` 函数中，它会向所有网口都发一份 `IGMP Membership Join group 224.0.0.9` 表示本机进入了 RIP 协议的对应组播组之中。为了简化流程，退出时不会发送 Leave Group 的消息，你可以选择手动发送。
 
 Q: 我通过 `veth` 建立了两个 netns 之间的连接，路由器也写好了， RIP 可以通， ICMP 也没问题，但就是 TCP 不工作，抓包也能看到 SYN 但是看不到 SYN+ACK ，这是为啥？
 
-A: 这是因为 `veth` 会跳过 TX 的 Checksum ，然后在转发的时候，TCP Checksum 就不正确，对方虽然收到了，但是并不会回应。解决方案和上面类似，用 `ethtool -K veth名称 tx off` 即可，注意两个网口都要配置。
+A: 这是因为 Linux 对于网卡有 TX Offload 机制，对于传输层协议的 Checksum 可以交由硬件计算；因此在经过 `veth` 转发时，TCP Checksum 一般是不正确的，这有可能引起一些问题。解决方案和上面类似，用 `ethtool -K veth名称 tx off` 即可，注意 veth 的两侧都要配置。
 
 ## 项目作者
 
