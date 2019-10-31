@@ -211,7 +211,8 @@ int main() {
             // 3a.3 如果是 Request 包，就遍历本地的路由表，构造出一个 RipPacket 结构体，
             //      然后调用你编写的 assemble 函数，另外再把 IP 和 UDP 头补充在前面，
             //      通过 HAL_SendIPPacket 发回询问的网口
-            // 3b.1 此时目的 IP 地址不是路由器本身，则调用你编写的 query 函数查询，如果查到目的地址，
+            // 3b.1 此时目的 IP 地址不是路由器本身，则调用你编写的 query 函数查询，
+            //      如果查到目的地址，如果是直连路由， nexthop 改为目的 IP 地址，
             //      用 HAL_ArpGetMacAddress 获取 nexthop 的 MAC 地址，如果找到了，
             //      就调用你编写的 forward 函数进行 TTL 和 Checksum 的更新，
             //      通过 HAL_SendIPPacket 发到指定的网口，
