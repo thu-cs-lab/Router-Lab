@@ -538,7 +538,7 @@ Receiving objects: 100% (803/803), 205.12 KiB | 54.00 KiB/s, done.
 Resolving deltas: 100% (388/388), done.
 ```
 
-然后按照本文最前面描述的命令把所需的依赖都安装好，可能会弹出一些选项，直接按回车继续即可。进入 `Router-Lab/Homework/checksum` 目录，然后用 `make` 编译以确认环境都没有问题：
+之后如果仓库有一些改动，你可以用 `git pull` 命令来获取更新。然后按照本文最前面描述的命令把所需的依赖都安装好，可能会弹出一些选项，直接按回车继续即可。进入 `Router-Lab/Homework/checksum` 目录，然后用 `make` 编译以确认环境都没有问题：
 
 ```bash
 pi@raspberrypi:~ $ cd Router-Lab/Homework/checksum/
@@ -626,6 +626,43 @@ pi@raspberrypi:~/Router-Lab/build $ cmake .. -DBACKEND=Linux
 pi@raspberrypi:~/Router-Lab/build $ make
 ...
 pi@raspberrypi:~/Router-Lab/build $ sudo ./Example/capture
+HAL_Init: found MAC addr of interface eth1
+HAL_Init: pcap capture enabled for eth1
+HAL_Init: pcap capture disabled for eth2, either the interface does not exist or permission is denied
+HAL_Init: pcap capture disabled for eth3, either the interface does not exist or permission is denied
+HAL_Init: pcap capture disabled for eth4, either the interface does not exist or permission is denied
+HAL_Init: Joining RIP multicast group 224.0.0.9 for eth1
+HAL init: 0
+0: 40:3C:FC:01:12:D8
+1: 00:00:00:00:00:00
+2: 00:00:00:00:00:00
+3: 00:00:00:00:00:00
+Got IP packet of length 1230 from port 0
+Src MAC: 48:BF:6B:ED:1B:F8 Dst MAC: 01:00:5E:00:00:FB
+Data: 45 00 04 CE 04 D5 00 00 FF 11 F9 38 C0 A8 17 6D E0 00 00 FB 14 E9 14 E9 04 BA 6B 6B 00 00 84 00 00 00 00 16 00 00 00 00 04 5F 68 61 70 04 5F 74 63 70 05 6C 6F 63 61 6C 00 00 0C 00 01 00 00 70 80 00 21 0F 48
+...
+```
+
+可以看到，HAL 成功获取了 eth1 的 MAC 地址信息，并且从中抓到了数据。当你插上更多 USB 网卡的时候，可以获取到 eth2 eth3 eth4 的 MAC 地址信息，也能从它们收发以太网帧。
+
+如果这一步失败了，可能是你的 USB 网卡对应的网口名称并不是 eth1-4 ，这时候你可以编辑 `HAL/src/linux/platform/standard.h` ，把对应的替换掉，然后重新编译。
+
+如果你想基于 `Homework/boilerplate` 来实现你最终的路由器，在完成作业题后，到 `Homework/boilerplate` 目录下修改代码、编译并运行即可：
+
+```bash
+pi@raspberrypi:~/Router-Lab $ cd Homework/boilerplate/
+pi@raspberrypi:~/Router-Lab/Homework/boilerplate $ make
+...
+pi@raspberrypi:~/Router-Lab/Homework/boilerplate $ sudo ./boilerplate
+HAL_Init: found MAC addr of interface eth1
+HAL_Init: pcap capture enabled for eth1
+HAL_Init: pcap capture disabled for eth2, either the interface does not exist or permission is denied
+HAL_Init: pcap capture disabled for eth3, either the interface does not exist or permission is denied
+HAL_Init: pcap capture disabled for eth4, either the interface does not exist or permission is denied
+HAL_Init: Joining RIP multicast group 224.0.0.9 for eth1
+Timer
+Timer
+Timer
 ```
 
 ## 项目作者
