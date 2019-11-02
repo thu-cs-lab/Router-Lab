@@ -489,7 +489,7 @@ default via another_ip dev interface 这里 default 代表 0.0.0.0/0 ，其实�
 
 网上有很多现成的详细的教程，这里还是简单地描述一遍过程，一些细节如果有不一样的地方，请查阅其他文档或者咨询助教。
 
-首先下载 Raspbian 的镜像文件，如果想免流量，可以从[TUNA 镜像地址下载](https://mirrors.tuna.tsinghua.edu.cn/raspbian-images/raspbian/images/raspbian-2019-09-30/2019-09-26-raspbian-buster.zip)。下载得到的是 zip 格式的压缩包，解压以后得到 img 文件。然后用镜像烧录工具（如 Balena Etcher）把 img 文件写入到 SD 卡中。这个时候你的电脑上应该有一个名为 boot 的盘符，进入它的根目录，新建一个名为 `ssh` 的空文件，注意不要有后缀，它的功能是让树莓派自动启动 SSH 服务器。给树莓派插入 SD 卡，接通电源，应该可以看到红灯常亮，绿灯闪烁，表示正在读取 SD 卡。
+首先下载 Raspbian 的镜像文件，推荐从[TUNA 镜像地址](https://mirrors.tuna.tsinghua.edu.cn/raspbian-images/raspbian/images/raspbian-2019-09-30/2019-09-26-raspbian-buster.zip)下载。下载完成后会得到一个 zip 格式的压缩包，解压后得到 img 文件。接着使用镜像烧录工具（如 Balena Etcher）把 img 文件写入到 SD 卡中。这个时候你的电脑上应该有一个名为 boot 的盘符，进入它的根目录，新建一个名为 `ssh` 的空文件，注意不要有后缀，它的功能是让树莓派自动启动 SSH 服务器。给树莓派插入 SD 卡，接通电源，应该可以看到红灯常亮，绿灯闪烁，表示正在读取 SD 卡。
 
 接着，拿一条网线，连接你的电脑（或者路由器）和树莓派的网口，这时候应该可以看到网口下面的状态灯亮起。以电脑为例，请打开网络共享，让树莓派可以上网，然后要找到树莓派分配到的 IP 地址，可以用 `arp -a` 命令列出各个网口上通过 ARP 发现过的设备，找到其中的树莓派的 IP 地址。记住它，然后用 SSH 的客户端，如 `ssh pi@$raspi_addr` ，其中 `$raspi_addr` 是树莓派的 IP 地址，如 `ssh pi@192.168.2.5` ，密码是 raspberry ，应该就可以登录进去了：
 
@@ -526,7 +526,7 @@ PING www.d.tsinghua.edu.cn (166.111.4.100) 56(84) bytes of data.
 rtt min/avg/max/mdev = 71.744/110.426/148.365/27.896 ms
 ```
 
-这时候可以克隆下本仓库（如果找不到 `git` ，可以通过 `sudo apt install git` 解决）：
+这时候可以克隆下本仓库（如果提示找不到 `git` 可以通过 `sudo apt install git` 解决）：
 
 ```bash
 pi@raspberrypi:~ $ git clone https://github.com/z4yx/Router-Lab.git
@@ -616,7 +616,7 @@ pi@raspberrypi:~ $ ip l
     link/ether 40:3c:fc:01:12:d8 brd ff:ff:ff:ff:ff:ff
 ```
 
-接着编译 `Example` ，来确认 `HAL` 可以正确收发数据：
+接着编译 `Example`，来确认 `HAL` 可以正确收发数据：
 
 ```bash
 pi@raspberrypi:~ $ cd ~/Router-Lab
@@ -644,11 +644,11 @@ Data: 45 00 04 CE 04 D5 00 00 FF 11 F9 38 C0 A8 17 6D E0 00 00 FB 14 E9 14 E9 04
 ...
 ```
 
-可以看到，HAL 成功获取了 eth1 的 MAC 地址信息，并且从中抓到了数据。当你插上更多 USB 网卡的时候，可以获取到 eth2 eth3 eth4 的 MAC 地址信息，也能从它们收发以太网帧。
+可以看到，HAL 成功获取了 eth1 的 MAC 地址信息，并且从中抓取到了数据。当你插上更多 USB 网卡的时候，可以获取到 eth2 eth3 eth4 的 MAC 地址信息，也能从它们收发以太网帧。
 
-如果这一步失败了，可能是你的 USB 网卡对应的网口名称并不是 eth1-4 ，这时候你可以编辑 `HAL/src/linux/platform/standard.h` ，把对应的替换掉，然后重新编译。
+如果这一步失败了，可能是你的 USB 网卡对应的网口名称并不是 eth1-4 ，这时候你可以编辑 `HAL/src/linux/platform/standard.h`，选择一个无用的网口名称替换掉，然后重新编译。
 
-如果你想基于 `Homework/boilerplate` 来实现你最终的路由器，在完成作业题后，到 `Homework/boilerplate` 目录下修改代码、编译并运行即可：
+如果你想基于 `Homework/boilerplate` 来实现最终的路由器，在完成作业题后，到 `Homework/boilerplate` 目录下修改代码、编译并运行即可：
 
 ```bash
 pi@raspberrypi:~/Router-Lab $ cd Homework/boilerplate/
