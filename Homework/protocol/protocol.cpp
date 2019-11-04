@@ -18,7 +18,7 @@
   typedef struct {
     uint32_t numEntries;
     // all fields below are big endian
-    uint8_t command;
+    uint8_t command; // 1 for request, 2 for response, otherwsie invalid
     // we don't store 'version', as it is always 2
     // we don't store 'zero', as it is always 0
     RipEntry entries[RIP_MAX_ENTRY];
@@ -37,7 +37,7 @@
  * @return 如果输入是一个合法的 RIP 包，把它的内容写入 RipPacket 并且返回 true；否则返回 false
  * 
  * IP 包的 Total Length 长度可能和 len 不同，当 Total Length 大于 len 时，把传入的 IP 包视为不合法
- * 你不需要校验 IP 头中的校验和是否合法，那是 checksum 作业需要做的事情
+ * 你不需要校验 IP 头和 UDP 中的校验和是否合法，那是 checksum 作业需要做的事情
  */
 bool disassemble(const uint8_t *packet, uint32_t len, RipPacket *output) {
   // TODO:
