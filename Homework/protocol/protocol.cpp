@@ -38,6 +38,10 @@
  * 
  * IP 包的 Total Length 长度可能和 len 不同，当 Total Length 大于 len 时，把传入的 IP 包视为不合法。
  * 你不需要校验 IP 头和 UDP 的校验和是否合法。
+ * 你需要检查 Command 是否为 1 或 2，Version 是否为 2， Zero 是否为 0，
+ * Family 和 Command 是否有正确的对应关系，Tag 是否为 0，
+ * Metric 转换成小端序后是否在 [1,16] 的区间内，
+ * Mask 的二进制是不是连续的 1 与连续的 0 组成等等。
  */
 bool disassemble(const uint8_t *packet, uint32_t len, RipPacket *output) {
   // TODO:
