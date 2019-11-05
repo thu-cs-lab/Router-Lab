@@ -57,7 +57,7 @@ int main(int argc, char *argv[]) {
     macaddr_t dst_mac;
     int if_index;
     res = HAL_ReceiveIPPacket(mask, packet, sizeof(packet), src_mac,
-                                  dst_mac, -1, &if_index);
+                                  dst_mac, 1000, &if_index);
     if (res == HAL_ERR_EOF) {
       break;
     } else if (res < 0) {
