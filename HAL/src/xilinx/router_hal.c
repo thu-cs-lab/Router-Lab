@@ -197,6 +197,12 @@ int HAL_ArpGetMacAddress(int if_index, in_addr_t ip, macaddr_t o_mac) {
     return HAL_ERR_INVALID_PARAMETER;
   }
 
+  if ((ip & 0xe0) == 0xe0) {
+    uint8_t multicasting_mac[6] = {0x01, 0, 0x5e, (uint8_t)((ip >> 8) & 0x7f), (uint8_t)(ip >> 16), (uint8_t)(ip >> 24)};
+    memcpy(o_mac, multicasting_mac, sizeof(macaddr_t));
+    return 0;
+  }
+
   for (int i = 0; i < ARP_TABLE_SIZE; i++) {
     if (arpTable[i].if_index == if_index && arpTable[i].ip == ip) {
       memcpy(o_mac, arpTable[i].mac, sizeof(macaddr_t));
