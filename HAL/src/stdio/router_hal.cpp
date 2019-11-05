@@ -76,6 +76,12 @@ int HAL_ArpGetMacAddress(int if_index, in_addr_t ip, macaddr_t o_mac) {
     return HAL_ERR_INVALID_PARAMETER;
   }
 
+  if ((ip & 0xe0) == 0xe0) {
+    uint8_t multicasting_mac[6] = {0x01, 0, 0x5e, (uint8_t)((ip >> 8) & 0x7f), (uint8_t)(ip >> 16), (uint8_t)(ip >> 24)};
+    memcpy(o_mac, multicasting_mac, sizeof(macaddr_t));
+    return 0;
+  }
+
   auto it = arp_table.find(std::pair<in_addr_t, int>(ip, if_index));
   if (it != arp_table.end()) {
     memcpy(o_mac, &it->second, sizeof(macaddr_t));
