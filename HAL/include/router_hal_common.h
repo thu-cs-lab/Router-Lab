@@ -24,7 +24,7 @@ void HAL_JoinIGMPGroup(int if_index, in_addr_t ip) {
   memcpy(&buffer[12], &ip, sizeof(in_addr_t));
   uint32_t ip_chksum = 0;
   for (int i = 0; i < 12; i++) {
-    ip_chksum += (((uint32_t)buffer[i * 2]) << 8) + buffer[i * 2 + 1];
+    ip_chksum += ((uint16_t *)buffer)[i];
   }
   while (ip_chksum >= 0x10000) {
     ip_chksum -= 0x10000;
