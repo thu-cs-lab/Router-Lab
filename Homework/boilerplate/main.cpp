@@ -36,10 +36,10 @@ int main(int argc, char *argv[]) {
   // 10.0.3.0/24 if 3
   for (uint32_t i = 0; i < N_IFACE_ON_BOARD;i++) {
     RoutingTableEntry entry = {
-      .addr = addrs[i],
-      .len = 24,
-      .if_index = i,
-      .nexthop = 0 // means direct
+      .addr = addrs[i], // big endian
+      .len = 24, // small endian
+      .if_index = i, // small endian
+      .nexthop = 0 // big endian, means direct
     };
     update(true, entry);
   }
@@ -76,6 +76,7 @@ int main(int argc, char *argv[]) {
     }
     in_addr_t src_addr, dst_addr;
     // extract src_addr and dst_addr from packet
+    // big endian
 
     bool dst_is_me = false;
     for (int i = 0; i < N_IFACE_ON_BOARD;i++) {
