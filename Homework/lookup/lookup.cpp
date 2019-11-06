@@ -24,6 +24,7 @@
  * @param entry 要插入/删除的表项
  * 
  * 插入时如果已经存在一条 addr 和 len 都相同的表项，则替换掉原有的。
+ * 删除时按照 addr 和 len 匹配。
  */
 void update(bool insert, RoutingTableEntry entry) {
   // TODO:
