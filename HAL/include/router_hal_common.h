@@ -5,6 +5,7 @@
 #include "router_hal.h"
 #include <string.h>
 
+// send igmp join to the multicast address
 void HAL_JoinIGMPGroup(int if_index, in_addr_t ip) {
   uint8_t buffer[40] = {
       0x46, 0xc0, 0x00, 0x28, 0x00, 0x00, 0x40, 0x00, 0x01, 0x02, // Header

@@ -42,6 +42,7 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
   }
   debugEnabled = debug;
 
+  // find matching interfaces and get their MAC address
   struct ifaddrs *ifaddr, *ifa;
   if (getifaddrs(&ifaddr) < 0) {
     if (debugEnabled) {
@@ -72,6 +73,7 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
   }
   freeifaddrs(ifaddr);
 
+  // init pcap handles
   char error_buffer[PCAP_ERRBUF_SIZE];
   for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
     pcap_in_handles[i] =
@@ -97,6 +99,7 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
   memcpy(interface_addrs, if_addrs, sizeof(interface_addrs));
 
   inited = true;
+  // send igmp to join RIP multicast group
   for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
     if (pcap_out_handles[i]) {
       HAL_JoinIGMPGroup(i, if_addrs[i]);
@@ -112,6 +115,7 @@ int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
 uint64_t HAL_GetTicks() {
   struct timespec tp = {0};
   clock_gettime(CLOCK_MONOTONIC, &tp);
+  // millisecond
   return (uint64_t)tp.tv_sec * 1000 + (uint64_t)tp.tv_nsec / 1000000;
 }
 
@@ -123,12 +127,14 @@ int HAL_ArpGetMacAddress(int if_index, in_addr_t ip, macaddr_t o_mac) {
     return HAL_ERR_INVALID_PARAMETER;
   }
 
+  // handle multicast
   if ((ip & 0xe0) == 0xe0) {
     uint8_t multicasting_mac[6] = {0x01, 0, 0x5e, (uint8_t)((ip >> 8) & 0x7f), (uint8_t)(ip >> 16), (uint8_t)(ip >> 24)};
     memcpy(o_mac, multicasting_mac, sizeof(macaddr_t));
     return 0;
   }
 
+  // lookup arp table
   auto it = arp_table.find(std::pair<in_addr_t, int>(ip, if_index));
   if (it != arp_table.end()) {
     memcpy(o_mac, it->second, sizeof(macaddr_t));
@@ -136,6 +142,8 @@ int HAL_ArpGetMacAddress(int if_index, in_addr_t ip, macaddr_t o_mac) {
   } else if (pcap_out_handles[if_index] &&
              arp_timer[std::pair<in_addr_t, int>(ip, if_index)] + 1000 <
                  HAL_GetTicks()) {
+    // not found, send arp request
+    // rate limit arp request by 1 req/s
     arp_timer[std::pair<in_addr_t, int>(ip, if_index)] = HAL_GetTicks();
     if (debugEnabled) {
       fprintf(
@@ -195,7 +203,7 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
     return HAL_ERR_CALLED_BEFORE_INIT;
   }
   if ((if_index_mask & ((1 << N_IFACE_ON_BOARD) - 1)) == 0 ||
-      (timeout < 0 && timeout != -1) || (if_index == NULL)) {
+      (timeout < 0 && timeout != -1) || (if_index == NULL) || (buffer == NULL)) {
     return HAL_ERR_INVALID_PARAMETER;
   }
 
@@ -235,7 +243,7 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
                packet[13] == 0x00) {
       // IPv4
       // TODO: what if len != caplen
-      // Beware: might be larger than MTU
+      // Beware: might be larger than MTU because of offloading
       size_t ip_len = hdr.caplen - IP_OFFSET;
       size_t real_length = length > ip_len ? ip_len : length;
       memcpy(buffer, &packet[IP_OFFSET], real_length);
@@ -246,6 +254,7 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
     } else if (packet && hdr.caplen >= IP_OFFSET && packet[12] == 0x08 &&
                packet[13] == 0x06) {
       // ARP
+      // learn it
       macaddr_t mac;
       memcpy(mac, &packet[22], sizeof(macaddr_t));
       in_addr_t ip;
@@ -259,6 +268,7 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
 
       in_addr_t dst_ip;
       memcpy(&dst_ip, &packet[38], sizeof(in_addr_t));
+      // ask me: reply
       if (dst_ip == interface_addrs[current_port]) {
         // reply
         uint8_t buffer[64] = {0};
@@ -294,6 +304,7 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
                   inet_ntoa(in_addr{ip}));
         }
       }
+      // otherwise: learn and ignore
       continue;
     }
 
