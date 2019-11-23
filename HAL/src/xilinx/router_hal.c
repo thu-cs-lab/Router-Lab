@@ -347,7 +347,7 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
 
         in_addr_t dst_ip;
         memcpy(&dst_ip, &data[42], sizeof(in_addr_t));
-        if (vlan < N_IFACE_ON_BOARD && dst_ip == interface_addrs[vlan]) {
+        if (vlan < N_IFACE_ON_BOARD && dst_ip == interface_addrs[vlan] && data[25] == 0x01) {
           // reply
           XAxiDma_Bd *bd;
           WaitTxBdAvailable();
