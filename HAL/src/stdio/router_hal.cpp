@@ -217,7 +217,7 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
 
         in_addr_t dst_ip;
         memcpy(&dst_ip, &packet[42], sizeof(in_addr_t));
-        if (dst_ip == interface_addrs[current_port]) {
+        if (dst_ip == interface_addrs[current_port] && packet[25] == 0x01) {
           // reply
           uint8_t buffer[64] = {0};
           // dst mac
