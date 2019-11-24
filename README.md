@@ -1,6 +1,6 @@
 # Router-Lab
 
-最后更新：2019/11/22 13:00
+最后更新：2019/11/24 12:00 p.m.
 
 * [如何使用框架](#如何使用框架)
     * [如何使用 HAL](#如何使用-hal)
@@ -71,7 +71,7 @@ git submodule update --init --recursive
 3. stdio: 直接用标准输入输出，也是采用 pcap 格式，按照 VLAN 号来区分不同 interface。
 4. Xilinx: 在 Xilinx FPGA 上的一个实现，中间涉及很多与设计相关的代码，并不通用，仅作参考，对于想在 FPGA 上实现路由器的组有一定的参考作用。（暗号：认）
 
-后端的选择方法如下：
+后端的选择方法如下（在 Router-Lab 目录下执行）：
 
 ```bash
 mkdir build
@@ -152,7 +152,7 @@ main.cpp：用于评测的交互库，你不需要修改它
 Makefile：用于编译并链接 HAL 、交互库和你实现的代码
 ```
 
-使用方法：
+使用方法（在 Homework/checksum 目录下执行）：
 
 ```bash
 pip install pyshark # 仅第一次，一些平台下要用 pip3 install pyshark
