@@ -1,6 +1,6 @@
 # Router-Lab
 
-最后更新：2019/11/26 12:00 p.m.
+最后更新：2019/11/27 10:30 p.m.
 
 * [如何使用框架](#如何使用框架)
     * [如何使用 HAL](#如何使用-hal)
@@ -77,7 +77,9 @@ git submodule update --init --recursive
 mkdir build
 cd build
 cmake .. -DBACKEND=Linux
-make router_hal
+make router_hal # 编译 HAL 库，生成 ./HAL/librouter_hal.a
+make capture # 编译 Example 中的 capture，生成 ./Example/capture
+make # 编译 HAL 库和所有 Example
 ```
 
 其它后端类似设置即可。
@@ -114,7 +116,7 @@ HAL 即 Hardware Abstraction Layer 硬件抽象层，顾名思义，是隐藏了
 2. Broadcaster：一个粗糙的“路由器”，把在每个网口上收到的 IP 包又转发到所有网口上（暗号：真）
 3. Capture：仅把抓到的 IP 包原样输出
 
-如果你使用 CMake，可以用类似上面编译 HAL 库的方法编译这三个例子。如果不想使用 CMake，可以基于 `Homework/checksum/Makefile` 修改出适合例子的 Makefile 。它们可能都需要 root 权限运行，并在运行的时候你可以打开 Wireshark 等抓包工具研究它的具体行为。
+如果你使用 CMake，可以从上面编译 HAL 库的部分找到编译这三个例子的方法。如果不想使用 CMake，可以基于 `Homework/checksum/Makefile` 修改出适合例子的 Makefile 。它们可能都需要 root 权限运行，并在运行的时候你可以打开 Wireshark 等抓包工具研究它的具体行为。
 
 这些例子可以用于检验环境配置是否正确，如 Linux 下网卡名字的配置、是否编译成功等等。比如在上面的 Shell 程序中输入 `mac 0` `mac 1` `mac 2` 和 `mac 3`，它会输出对应网口的 MAC 地址，如果输出的数据和你用 `ip l`（macOS 可以用 `ifconfig`） 看到的内容一致，那基本说明你配置没有问题了。
 
