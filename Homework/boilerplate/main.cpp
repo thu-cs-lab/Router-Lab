@@ -24,12 +24,13 @@ in_addr_t addrs[N_IFACE_ON_BOARD] = {0x0100000a, 0x0101000a, 0x0102000a,
                                      0x0103000a};
 
 int main(int argc, char *argv[]) {
+  // 0a.
   int res = HAL_Init(1, addrs);
   if (res < 0) {
     return res;
   }
 
-  // Add direct routes
+  // 0b. Add direct routes
   // For example:
   // 10.0.0.0/24 if 0
   // 10.0.1.0/24 if 1
@@ -74,6 +75,7 @@ int main(int argc, char *argv[]) {
       continue;
     }
 
+    // 1. validate
     if (!validateIPChecksum(packet, res)) {
       printf("Invalid IP Checksum\n");
       continue;
@@ -82,6 +84,7 @@ int main(int argc, char *argv[]) {
     // extract src_addr and dst_addr from packet
     // big endian
 
+    // 2. check whether dst is me
     bool dst_is_me = false;
     for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
       if (memcmp(&dst_addr, &addrs[i], sizeof(in_addr_t)) == 0) {
@@ -92,11 +95,12 @@ int main(int argc, char *argv[]) {
     // TODO: Handle rip multicast address(224.0.0.9)?
 
     if (dst_is_me) {
+      // 3a.1
       RipPacket rip;
       // check and validate
       if (disassemble(packet, res, &rip)) {
         if (rip.command == 1) {
-          // request, ref. RFC2453 3.9.1
+          // 3a.3 request, ref. RFC2453 3.9.1
           // only need to respond to whole table requests in the lab
           RipPacket resp;
           // TODO: fill resp
@@ -116,7 +120,7 @@ int main(int argc, char *argv[]) {
           // send it back
           HAL_SendIPPacket(if_index, output, rip_len + 20 + 8, src_mac);
         } else {
-          // response, ref. RFC2453 3.9.2
+          // 3a.2 response, ref. RFC2453 3.9.2
           // update routing table
           // new metric = ?
           // update metric, if_index, nexthop
@@ -126,7 +130,7 @@ int main(int argc, char *argv[]) {
         }
       }
     } else {
-      // dst is not me
+      // 3b.1 dst is not me
       // forward
       // beware of endianness
       uint32_t nexthop, dest_if;
