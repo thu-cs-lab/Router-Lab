@@ -52,7 +52,8 @@ int main(int argc, char *argv[]) {
       // What to do?
       // send complete routing table to every interface
       // ref. RFC2453 3.8
-      printf("Timer\n");
+      printf("30s Timer\n");
+      last_time = time;
     }
 
     int mask = (1 << N_IFACE_ON_BOARD) - 1;
@@ -129,7 +130,7 @@ int main(int argc, char *argv[]) {
       // forward
       // beware of endianness
       uint32_t nexthop, dest_if;
-      if (query(src_addr, &nexthop, &dest_if)) {
+      if (query(dst_addr, &nexthop, &dest_if)) {
         // found
         macaddr_t dest_mac;
         // direct routing
@@ -146,10 +147,12 @@ int main(int argc, char *argv[]) {
         } else {
           // not found
           // you can drop it
+          printf("ARP not found for %x", nexthop);
         }
       } else {
         // not found
         // optionally you can send ICMP Host Unreachable
+        printf("IP not found for %x", src_addr);
       }
     }
   }
