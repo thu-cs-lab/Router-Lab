@@ -1,6 +1,6 @@
 # Router-Lab
 
-最后更新：2019/12/02 7:50 p.m.
+最后更新：2019/12/04 10:35 a.m.
 
 * [如何使用框架](#如何使用框架)
     * [如何使用 HAL](#如何使用-hal)
@@ -248,7 +248,7 @@ R3:
 1. 开启 R1 R3 上的 BIRD 和 R2 上运行的路由器实现
 2. 使用 ping 进行了若干次连通性测试
 
-注意，这个例子中，路由器只实现了 split horizon，没有实现 reverse poisoning，你的实现不需要和它完全一样。
+注意，这个例子中，路由器只实现了 split horizon，没有实现 reverse poisoning，你的实现不需要和它完全一样。实现方法见 [RFC2452 3.4.3 Split horizon 第一段](https://tools.ietf.org/html/rfc2453#page-15)。
 
 举个例子，从 PC1 到 PC2 进行 ping 连通性测试的网络活动（忽略 RIP）：
 
@@ -357,7 +357,7 @@ int main() {
 }
 ```
 
-你可以直接基于 `Homework/boilerplate` 下的代码，把上面的代码实现完全。
+你可以直接基于 `Homework/boilerplate` 下的代码，把上面的代码实现完全。代码中在发送 RIP 包的时候，会涉及到 IP 头的构造，由于不需要用各种高级特性，可以这么设定：V=4，HL=5，TOS=0，ID=0，OFF=0，TTL=1，其余按照要求实现即可。
 
 ### 如何启动并配置一个比较标准的 RIP 实现
 
