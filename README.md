@@ -1,6 +1,6 @@
 # Router-Lab
 
-最后更新：2019/12/04 4:40 p.m.
+最后更新：2019/12/04 4:50 p.m.
 
 * [如何使用框架](#如何使用框架)
     * [如何使用 HAL](#如何使用-hal)
@@ -317,7 +317,8 @@ int main() {
         uint64_t time = HAL_GetTicks();
         if (time > last_time + 30 * 1000) {
             // 每 30s 做什么
-            // 例如：超时？发 RIP Request？
+            // 例如：超时？发 RIP Request/Response？
+            last_time = time;
         }
 
         // 轮询
