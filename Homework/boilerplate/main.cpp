@@ -147,12 +147,12 @@ int main(int argc, char *argv[]) {
         } else {
           // not found
           // you can drop it
-          printf("ARP not found for %x", nexthop);
+          printf("ARP not found for %x\n", nexthop);
         }
       } else {
         // not found
         // optionally you can send ICMP Host Unreachable
-        printf("IP not found for %x", src_addr);
+        printf("IP not found for %x\n", src_addr);
       }
     }
   }
