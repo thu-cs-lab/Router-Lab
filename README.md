@@ -1,6 +1,6 @@
 # Router-Lab
 
-最后更新：2019/12/06 11:50 p.m.
+最后更新：2019/12/07 12:20 a.m.
 
 * [如何使用框架](#如何使用框架)
     * [如何使用 HAL](#如何使用-hal)
@@ -495,7 +495,7 @@ A: 可以拿 HDMI 线把树莓派接到显示器上，然后插上 USB 的键盘
 
 Q: 我在 macOS 上安装了 Wireshark，但是报错找不到 tshark ？
 
-A: tshark 可能被安装到了 /Applications/Wireshark.app/MacOS/Contents/tshark 路径下，如果存在这个文件，把目录放到 PATH 环境变量里就可以了。
+A: tshark 可能被安装到了 /Applications/Wireshark.app/Contents/MacOS/tshark 路径下，如果存在这个文件，把目录放到 PATH 环境变量里就可以了。
 
 ## 附录：`ip` 命令的使用 
 
