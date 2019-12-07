@@ -1,6 +1,6 @@
 # Router-Lab
 
-最后更新：2019/12/07 10:20 a.m.
+最后更新：2019/12/07 05:10 a.m.
 
 * [如何使用框架](#如何使用框架)
     * [如何使用 HAL](#如何使用-hal)
@@ -401,7 +401,34 @@ protocol rip {
 }
 ```
 
-如果你用的是 v1.6 版本，上面有一些字段需要修改。
+如果你用的是 v1.6 版本，有一些字段需要修改：
+
+```
+router id 网口IP地址;
+
+protocol device {
+}
+
+protocol kernel {
+    learn;
+    persist off;
+    export all;
+}
+
+protocol static {
+    route 1.2.3.4/32 via "网口名称";
+}
+
+protocol rip {
+    import all;
+    export all;
+    debug all;
+    interface "网口名称" {
+        version 2;
+        update time 5;
+    };
+}
+```
 
 这里的网口名字对应你连接到路由器的网口，也要配置一个固定的 IP 地址，需要和路由器对应网口的 IP 在同一个网段内。配置固定 IP 地址的命令格式为 `ip a add IP地址/前缀长度 dev 网口名称`，你可以用 `ip a` 命令看到所有网口的信息。
 
