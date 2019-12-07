@@ -1,6 +1,6 @@
 # Router-Lab
 
-最后更新：2019/12/07 05:10 a.m.
+最后更新：2019/12/07 06:30 a.m.
 
 * [如何使用框架](#如何使用框架)
     * [如何使用 HAL](#如何使用-hal)
@@ -235,11 +235,11 @@ R3:
 
 我们将会逐项检查下列内容：
 
-* PC1 是否与 PC2 能够正常通信（使用 `ping` 测试 ICMP、`curl` 测试 TCP 连接）
-* R2 的转发是否通过 HAL 完成，而非 Linux 自带的路由转发功能
-* R1、R3 上的 RIP 转发表是否正确（包括 RIP metric 等信息）
-* R2 向 R1、R3 发出的 RIP 协议报文是否正确（包括是否进行询问、响应请求，以及是否实现了水平分裂算法）
-* R2 上的 RIP 路由表、转发表是否正确（需要你定期或者每次收到报文时打印最新的 RIP 路由表、系统转发表）
+* PC1 是否与 PC2 能够正常通信：使用 `ping` 测试 ICMP、`curl` 测试 TCP 连接
+* R2 的转发是否通过 HAL 完成，而非 Linux 自带的路由转发功能：使用 `ip a` 命令确认连接 R1 和 R3 的网口上没有配置 IP 地址
+* R1、R3 上的 RIP 转发表是否正确：包括 RIP metric 等信息，从 R1 和 R3 上 运行的 BIRD 输出得到
+* R2 向 R1、R3 发出的 RIP 协议报文是否正确：包括是否进行询问、响应请求，以及是否实现了水平分裂（split horizon）算法，在 R1 和 R3 上用 Wireshark 抓包检查
+* R2 上的 RIP 路由表、转发表是否正确：需要你定期或者每次收到报文时打印最新的 RIP 路由表、系统转发表（见 FAQ 中对于路由表和转发表的讨论），格式自定
 
 此外，我们还将使用 `iperf3` 工具分别测试 PC1 和 PC2 双向进行 TCP 和 UDP 传输的速率。如果你的转发性能较高，可以获得额外的加分。同时，我们可能会进行代码和知识点的抽查。
 
@@ -248,7 +248,7 @@ R3:
 1. 开启 R1 R3 上的 BIRD 和 R2 上运行的路由器实现
 2. 使用 ping 进行了若干次连通性测试
 
-注意，这个例子中，路由器只实现了 split horizon，没有实现 reverse poisoning，你的实现不需要和它完全一样。实现方法见 [RFC2452 3.4.3 Split horizon 第一段](https://tools.ietf.org/html/rfc2453#page-15)。
+注意，这个例子中，路由器只实现了 split horizon，没有实现 reverse poisoning，你的实现不需要和它完全一样。Split horizon 的实现方法见 [RFC2452 3.4.3 Split horizon 第一段](https://tools.ietf.org/html/rfc2453#page-15)。
 
 举个例子，从 PC1 到 PC2 进行 ping 连通性测试的网络活动（忽略 RIP）：
 
