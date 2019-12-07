@@ -13,7 +13,7 @@ clean:
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $^ -o $@
 
-hal.o: $(LAB_ROOT)/HAL/src/linux/router_hal.cpp
+hal.o: $(LAB_ROOT)/HAL/src/linux/router_hal.cpp $(LAB_ROOT)/HAL/src/linux/platform/standard.h
 	$(CXX) $(CXXFLAGS) -c $^ -o $@
 
 boilerplate: main.o hal.o protocol.o checksum.o lookup.o forwarding.o
