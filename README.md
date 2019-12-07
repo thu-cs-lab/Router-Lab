@@ -809,4 +809,4 @@ Make 通过 `%.o` 的格式来支持 wildcard，如 `%.o: %.cpp` 就可以针对
 
 后续维护： @Harry-Chen @jiegec
 
-提交贡献： @Konaoo @nzh63
+提交贡献： @Konaoo @nzh63 @linusboyle
