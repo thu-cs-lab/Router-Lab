@@ -114,7 +114,7 @@ int main(int argc, char *argv[]) {
           output[21] = 0x08;
           // ...
           // RIP
-          uint32_t rip_len = assemble(&rip, &output[20 + 8]);
+          uint32_t rip_len = assemble(&resp, &output[20 + 8]);
           // checksum calculation for ip and udp
           // if you don't want to calculate udp checksum, set it to zero
           // send it back
