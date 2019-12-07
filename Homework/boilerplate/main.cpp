@@ -53,6 +53,7 @@ int main(int argc, char *argv[]) {
       // What to do?
       // send complete routing table to every interface
       // ref. RFC2453 3.8
+      // multicast MAC for 224.0.0.9 is 01:00:5e:00:00:09
       printf("30s Timer\n");
       last_time = time;
     }
