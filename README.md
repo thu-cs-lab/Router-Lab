@@ -1,6 +1,6 @@
 # Router-Lab
 
-最后更新：2019/12/08 01:20 p.m.
+最后更新：2019/12/08 06:20 p.m.
 
 * [如何使用框架](#如何使用框架)
     * [如何使用 HAL](#如何使用-hal)
@@ -373,7 +373,7 @@ int main() {
 # log "bird.log" all; # 可以将 log 输出到文件中
 # debug protocols all; # 如果要更详细的信息，可以打开这个
 
-router id 网口IP地址;
+router id 网口IP地址; # 随便写一个，保证唯一性即可
 
 protocol device {
 }
@@ -390,7 +390,7 @@ protocol kernel {
 
 protocol static {
     ipv4 { };
-    route 1.2.3.4/32 via "网口名称"; # 添加一个静态路由让路由表非空
+    route 1.2.3.4/32 via "网口名称"; # 可以手动添加一个静态路由方便调试
 }
 
 protocol rip {
@@ -409,7 +409,7 @@ protocol rip {
 如果你用的是 v1.6 版本，有一些字段需要修改：
 
 ```
-router id 网口IP地址;
+router id 网口IP地址; # 随便写一个，保证唯一性即可
 
 protocol device {
 }
