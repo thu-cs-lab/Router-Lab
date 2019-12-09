@@ -1,6 +1,6 @@
 # Router-Lab
 
-最后更新：2019/12/09 05:15 p.m.
+最后更新：2019/12/09 11:35 p.m.
 
 * [如何使用框架](#如何使用框架)
     * [如何使用 HAL](#如何使用-hal)
@@ -245,6 +245,33 @@ R3:
 * R1、R3 上的 RIP 转发表是否正确：包括 RIP metric 等信息，从 R1 和 R3 上 运行的 BIRD 输出得到
 * R2 向 R1、R3 发出的 RIP 协议报文是否正确：包括是否进行询问、响应请求，以及是否实现了水平分裂（split horizon）算法，在 R1 和 R3 上用 Wireshark 抓包检查
 * R2 上的 RIP 路由表、转发表是否正确：需要你定期或者每次收到报文时打印最新的 RIP 路由表、系统转发表（见 FAQ 中对于路由表和转发表的讨论），格式自定
+
+必须实现的有：
+
+1. 转发功能，支持直连路由和间接路由，包括查表，TTL 减一，Checksum 更新并转到正确的 interface 出去。
+2. 周期性地向所有端口发送 RIP Response （建议在测试和验收时调为 5s），目标地址为 RIP 的组播地址。
+3. 对收到的 RIP Request 有相应的 RIP Response 进行回复，目标地址为 RIP Request 的源地址。
+4. 实现水平分割（split horizon）。
+5. 收到 RIP Response 时，对路由表进行维护。
+6. 定期或者在更新的时候向 stdout/stderr 打印最新的 RIP 路由表。
+
+可选实现的有（不加分，但对调试有帮助）：
+
+1. 对 ICMP Echo Request 进行 ICMP Echo Reply 的回复。
+2. 在查不到路由表的时候，回复 ICMP Host Unreachable。
+3. 在 TTL 减为 0 时，回复 ICMP Time Exceeded。
+4. 支持 RIP Entry 中 nexthop 不为 0 的情况。
+5. 在路由表出现更新的时候发送 RIP Response（完整或者增量），目标地址为 RIP 的组播地址。
+6. 在 split horizon 基础上实现 reverse poisoning 。
+7. 路由的失效（Invalid）和删除（Flush）计时器。
+8. 在发送的 RIP Response 出现不止 25 条 Entry 时拆分。
+9. 程序启动时向所有 interface 发送 RIP Request，目标地址为 RIP 的组播地址。
+
+不需要实现的有：
+
+1. ARP 的处理。
+2. IGMP 的处理。
+3. interface 状态的跟踪（UP/DOWN 切换）。
 
 此外，我们还将使用 `iperf3` 工具分别测试 PC1 和 PC2 双向进行 TCP 和 UDP 传输的速率。如果你的转发性能较高，可以获得额外的加分。同时，我们可能会进行代码和知识点的抽查。
 
