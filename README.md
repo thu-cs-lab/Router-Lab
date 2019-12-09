@@ -1,6 +1,6 @@
 # Router-Lab
 
-最后更新：2019/12/08 06:20 p.m.
+最后更新：2019/12/09 05:15 p.m.
 
 * [如何使用框架](#如何使用框架)
     * [如何使用 HAL](#如何使用-hal)
@@ -465,6 +465,14 @@ ip netns exec net1 ip addr add 10.1.1.2/24 dev veth-net1
 配置完成后你可以运行 `ip netns exec net0 ping 10.1.1.2` 来测试在 net0 上是否能够 ping 到 net1。
 
 你还可以运行 `ip netns exec net0 [command]` 来执行任何你想在特定 namespace 下执行的命令，也可以运行 `ip netns exec net0 bash` 打开一个网络环境为 net0 的 bash。
+
+如果你在一个 netns 中用 Linux 自带的功能做转发，需要运行如下命令（root 身份，重启后失效）：
+
+```
+echo 1 > /proc/sys/net/ipv4/conf/all/forwarding
+```
+
+上面的 all 可以替换为 interface 的名字。在用这种方法的时候需要小心 Linux 自带的转发和你编写的转发的冲突，在 R2 上不要用 `ip a` 命令配置 IP 地址。
 
 
 ## FAQ（暗号：档）
