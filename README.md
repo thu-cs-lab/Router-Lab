@@ -1,6 +1,9 @@
 # Router-Lab
 
-最后更新：2019/12/10 12:20 p.m.
+最后更新：2019/12/10 3:50 p.m.
+
+<details>
+    <summary> 目录 </summary>
 
 * [如何使用框架](#如何使用框架)
     * [如何使用 HAL](#如何使用-hal)
@@ -21,6 +24,8 @@
 * [附录： make 命令的使用和 Makefile 的编写](#附录-make-命令的使用和-makefile-的编写)
 * [名词解释](#名词解释)
 * [项目作者](#项目作者)
+
+</details>
 
 
 这里是 2019 年网络原理课程原理课程实验采用的框架。它有以下的设计目标：
@@ -180,17 +185,21 @@ make grade # 也可以运行评分脚本，实际上就是运行python3 grade.py
 
 一般来说，你只需要把你修改的函数的整个文件提交到对应题目即可，如 `Homework/checksum/checksum.cpp` 提交到 `checksum` 题目中。如果通过了测试，你实现的这个函数之后就可以继续用在你的路由器的实现之中。
 
-
 需要注意的是，测试采用的数据并不会面面俱到，为了减少在真实硬件（如树莓派、FPGA）上调试的困难，建议同学们自行设计测试样例，这样最终成功的可能性会更高。
 
 ## 实验验收的流程
 
 实验一共有三个部分的要求，第一部分是实现 `Homework` 下面的几个题目，要求在 OJ 上提交并通过；第二部分是针对个人的测试，主要测试转发和RIP协议的细节；第三部分是针对组队的测试，只要保证连通性，即可通过，如果采用更加复杂的网络拓扑也能达到预期目标，可以得到加分。
 
+<details>
+    <summary> CIDR 表示方法 </summary>
+
 下面多次用到了 CIDR 的表示方法，格式是 a.b.c.d/len ，可能表示以下两种意义之一：
 
 1. 地址是 a.b.c.d ，并且最高 len 位和 a.b.c.d 相同的 IP 地址都在同一个子网中，常见于对于一个网口的 IP 地址的描述。如 192.168.100.14/24 表示 192.168.100.14 的地址，地址掩码为 255.255.255.0 ，183.173.233.233/17 表示 183.173.233.233 的地址，地址掩码为 255.255.128.0 。
 2. 描述一个地址段，此时 a.b.c.d 除了最高 len 位都为零，表示一个 IP 地址范围，常见于路由表。如 192.168.100.0/24 表示从 192.168.100.0 到 192.168.100.255 的地址范围，183.173.128.0/17 表示从 183.173.128.0 到 183.173.255.255 的地址范围。
+
+</details>
 
 ### 实验第一部分
 
@@ -275,6 +284,9 @@ R3:
 
 此外，我们还将使用 `iperf3` 工具分别测试 PC1 和 PC2 双向进行 TCP 和 UDP 传输的速率。如果你的转发性能较高，可以获得额外的加分。同时，我们可能会进行代码和知识点的抽查。
 
+<details>
+    <summary> 可供参考的例子 </summary>
+
 我们提供了 `host0.pcap` 和 `host1.pcap` ，分别是在 R1 和 R3 抓包的结果，模拟了实验的过程：
 
 1. 开启 R1 R3 上的 BIRD 和 R2 上运行的路由器实现
@@ -304,6 +316,8 @@ R3:
 18. R2 把 ICMP 包发给 R1，目标 MAC 地址为 192.168.3.1 对应的 MAC 地址，源 MAC 地址为 192.168.3.2 对应的 MAC 地址。
 19. R1 把 ICMP 包发给 PC1，目标 MAC 地址为 192.168.1.2 对应的 MAC 地址，源 MAC 地址为 192.168.1.1 对应的 MAC 地址。
 20. PC1 上 ping 显示成功。
+
+</details>
 
 ### 实验第三部分
 
@@ -335,7 +349,7 @@ int main() {
     // 0b. 创建若干条 /24 直连路由
     for (int i = 0; i < N_IFACE_ON_BOARD;i++) {
         RoutingTableEntry entry = {
-            .addr = addrs[i],
+            .addr = addrs[i] & 0x00FFFFFF, // big endian
             .len = 24,
             .if_index = i,
             .nexthop = 0 // means direct
@@ -394,7 +408,10 @@ int main() {
 
 ### 如何启动并配置一个比较标准的 RIP 实现
 
-你可以用一台 Linux 机器，连接到你的路由器的一个网口上，一边抓包一边运行一个 RIP 的实现。我们提供一个 BIRD（BIRD Internet Routing Daemon，安装方法 `apt install bird`）v2.0 的参考配置，以 Debian 为例，修改文件 `/etc/bird.conf`：
+你可以用一台 Linux 机器，连接到你的路由器的一个网口上，一边抓包一边运行一个 RIP 的实现。我们提供一个 BIRD（BIRD Internet Routing Daemon，安装方法 `apt install bird`）的参考配置，以 Debian 为例，如下修改文件 `/etc/bird.conf` 即可。
+
+<details>
+    <summary> BIRD v2.0 配置 </summary>
 
 ```
 # log "bird.log" all; # 可以将 log 输出到文件中
@@ -433,6 +450,11 @@ protocol rip {
 }
 ```
 
+</details>
+
+<details>
+    <summary> BIRD v1.6 配置 </summary>
+
 如果你用的是 v1.6 版本，有一些字段需要修改：
 
 ```
@@ -461,6 +483,8 @@ protocol rip {
     };
 }
 ```
+
+</details>
 
 这里的网口名字对应你连接到路由器的网口，也要配置一个固定的 IP 地址，需要和路由器对应网口的 IP 在同一个网段内。配置固定 IP 地址的命令格式为 `ip a add IP地址/前缀长度 dev 网口名称`，你可以用 `ip a` 命令看到所有网口的信息。
 
@@ -493,7 +517,7 @@ ip netns exec net1 ip addr add 10.1.1.2/24 dev veth-net1
 
 你还可以运行 `ip netns exec net0 [command]` 来执行任何你想在特定 namespace 下执行的命令，也可以运行 `ip netns exec net0 bash` 打开一个网络环境为 net0 的 bash。
 
-如果你在一个 netns 中用 Linux 自带的功能做转发，需要运行如下命令（root 身份，重启后失效）：
+如果你在一个 netns 中用 Linux 自带的功能做转发（例如 R1 和 R3），需要运行如下命令（root 身份，重启后失效）：
 
 ```
 echo 1 > /proc/sys/net/ipv4/conf/all/forwarding
