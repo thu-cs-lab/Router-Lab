@@ -1,6 +1,7 @@
 #!/bin/sh
 echo "Raspbian buster is expected with bird installed"
 echo "Assume eth1 is the interface to R2"
+ip netns delete PC2
 ip netns add PC2
 ip l add veth-r3 type veth peer name veth-pc2
 ip l set veth-pc2 netns PC2
