@@ -1,6 +1,11 @@
 #!/bin/sh
 echo "Raspbian buster is expected with bird installed"
 echo "Assume eth1 is the interface to R2"
+dir=$(dirname -- "$(readlink -f -- "$BASH_SOURCE")")
+cp $(dir)/bird.conf /etc/bird/bird.conf
+cp $(dir)/dhcpcd-r1.conf /etc/dhcpcd.conf
+systemctl restart bird
+systemctl restart dhcpcd
 ip netns delete PC1
 ip netns add PC1
 ip l add veth-r1 type veth peer name veth-pc1
