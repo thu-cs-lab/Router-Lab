@@ -4,7 +4,7 @@ echo "Assume eth1 is the interface to R2"
 set -v
 dir=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 cp $dir/bird.conf /etc/bird/bird.conf
-cp $dir/dhcpcd-r1.conf /etc/dhcpcd.conf
+cp $dir/dhcpcd-r3.conf /etc/dhcpcd.conf
 systemctl restart bird
 systemctl restart dhcpcd
 ip netns delete PC2
