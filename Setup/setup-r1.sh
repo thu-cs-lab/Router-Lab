@@ -8,6 +8,7 @@ cp $dir/dhcpcd-r1.conf /etc/dhcpcd.conf
 systemctl restart bird
 systemctl restart dhcpcd
 ip netns delete PC1
+sleep 1
 ip netns add PC1
 ip l add veth-r1 type veth peer name veth-pc1
 ip l set veth-pc1 netns PC1
