@@ -1,6 +1,6 @@
 # Router-Lab
 
-最后更新：2019/12/11 12:40 p.m.
+最后更新：2019/12/12 9:20 a.m.
 
 <details>
     <summary> 目录 </summary>
@@ -255,7 +255,7 @@ R3:
 * R2 向 R1、R3 发出的 RIP 协议报文是否正确：包括是否响应了请求，以及是否实现了水平分裂（split horizon）算法，在 R1 和 R3 上用 Wireshark 抓包检查
 * R2 上的 RIP 路由表、转发表是否正确：需要你定期或者每次收到报文时打印最新的 RIP 路由表、系统转发表（见 FAQ 中对于路由表和转发表的讨论），格式自定，可以模仿 `ip route` 的输出格式
 
-在 `Setup` 目录下存放了验收时在 R1 和 R3 上配置的脚本。
+在 `Setup` 目录下存放了验收时在 R1 和 R3 上配置的脚本。简单起见，它采用了 netns 来模拟 PC1 和 PC2，这样只需要两个设备就可以进行联调和验收。
 
 <details>
     <summary>为何不在 R2 上配置 IP 地址：192.168.3.2 和 192.168.4.1 </summary>
@@ -272,7 +272,7 @@ R3:
 2. 周期性地向所有端口发送 RIP Response （建议在测试和验收时调为 5s），目标地址为 RIP 的组播地址。
 3. 对收到的 RIP Request 有相应的 RIP Response 进行回复，目标地址为 RIP Request 的源地址。
 4. 实现水平分割（split horizon）。
-5. 收到 RIP Response 时，对路由表进行维护。
+5. 收到 RIP Response 时，对路由表进行维护。需要注意的是，BIRD 实现了 reverse poisoning ，你需要注意这种情况。
 6. 定期或者在更新的时候向 stdout/stderr 打印最新的 RIP 路由表。
 
 可选实现的有（不加分，但对调试有帮助）：
