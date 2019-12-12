@@ -16,6 +16,7 @@ sleep 1
 
 # Setup PC1 as a netns
 ip netns add PC1
+ip l del veth-r1
 ip l add veth-r1 type veth peer name veth-pc1
 ip l set veth-pc1 netns PC1
 ip netns exec PC1 ip a add 192.168.1.2/24 dev veth-pc1
