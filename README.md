@@ -1,6 +1,6 @@
 # Router-Lab
 
-最后更新：2019/12/12 9:20 a.m.
+最后更新：2019/12/12 11:00 a.m.
 
 <details>
     <summary> 目录 </summary>
@@ -71,7 +71,7 @@ git submodule update --init --recursive
 
 之后如果这个仓库的代码有什么更新，请运行 `git pull` 进行更新。
 
-### 如何使用 HAL 
+### 如何使用 HAL
 
 在 `HAL` 目录中，是完整的 HAL 的源代码。它包括一个头文件 `router_hal.h` 和若干后端的源代码。
 
@@ -293,7 +293,7 @@ R3:
 2. IGMP 的处理。
 3. interface 状态的跟踪（UP/DOWN 切换）。
 
-此外，我们还将使用 `iperf3` 工具分别测试 PC1 和 PC2 双向进行 TCP 和 UDP 传输的速率。如果你的转发性能较高，可以获得额外的加分。同时，我们可能会进行代码和知识点的抽查。
+此外，我们还将使用 `iperf3` 工具分别测试 PC1 和 PC2 双向进行 TCP 传输的速率。如果你的转发性能较高，可以获得额外的加分。同时，我们可能会进行代码和知识点的抽查。
 
 <details>
     <summary> 可供参考的例子 </summary>
