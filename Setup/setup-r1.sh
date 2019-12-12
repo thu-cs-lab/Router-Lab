@@ -14,7 +14,7 @@ systemctl restart dhcpcd
 ip netns delete PC1
 sleep 1
 
-# Setup PC1
+# Setup PC1 as a netns
 ip netns add PC1
 ip l add veth-r1 type veth peer name veth-pc1
 ip l set veth-pc1 netns PC1

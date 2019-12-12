@@ -1,4 +1,6 @@
 #!/bin/bash
+# See setup-r1.sh for comments
+
 echo "Raspbian buster is expected with bird installed"
 echo "Assume eth1 is the interface to R2"
 set -v
