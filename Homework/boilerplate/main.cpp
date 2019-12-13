@@ -101,7 +101,7 @@ int main(int argc, char *argv[]) {
       // check and validate
       if (disassemble(packet, res, &rip)) {
         if (rip.command == 1) {
-          // 3a.3 request, ref. RFC2453 3.9.1
+          // 3a.3 request, ref. RFC2453 Section 3.9.1
           // only need to respond to whole table requests in the lab
 
           RipPacket resp;
@@ -124,7 +124,7 @@ int main(int argc, char *argv[]) {
           // send it back
           HAL_SendIPPacket(if_index, output, rip_len + 20 + 8, src_mac);
         } else {
-          // 3a.2 response, ref. RFC2453 3.9.2
+          // 3a.2 response, ref. RFC2453 Section 3.9.2
           // TODO: update routing table
           // new metric = ?
           // update metric, if_index, nexthop

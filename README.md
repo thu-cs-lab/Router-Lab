@@ -1,6 +1,6 @@
 # Router-Lab
 
-最后更新：2019/12/12 9:45 p.m.
+最后更新：2019/12/13 10:25 p.m.
 
 <details>
     <summary> 目录 </summary>
@@ -295,6 +295,12 @@ R3:
 3. interface 状态的跟踪（UP/DOWN 切换）。
 
 此外，我们还将使用 `iperf3` 工具分别测试 PC1 和 PC2 双向进行 TCP 传输的速率。如果你的转发性能较高，可以获得额外的加分。同时，我们可能会进行代码和知识点的抽查。
+
+容易出现错误的地方：
+
+1. Metric 计算和更新方式不正确或者不在 [1,16] 的范围内
+2. 没有正确处理 RIP Response 特别是 nexthop=0 的处理和 metric=16 的处理，参考 [RFC 2453 Section 4.4 Next Hop](https://tools.ietf.org/html/rfc2453#section-4.4) 和 [RFC 2453 Section 3.9.2 Response Messages](https://tools.ietf.org/html/rfc2453#page-26)
+3. 转发的时候查表 not found ，还是路由表有问题
 
 <details>
     <summary> 可供参考的例子 </summary>
@@ -893,7 +899,7 @@ Make 通过 `%.o` 的格式来支持 wildcard，如 `%.o: %.cpp` 就可以针对
 对于实验的第二阶段，验收测试里第一项就是 ICMP 的连通性测试，一个 ICMP Echo Request 经过 PC1 - R1 - R2 - R3 - PC2 ，再一个对应的 ICMP Echo Reply 经过 PC2 - R3 - R2 - R1 - PC1，这么多步骤错了一个都会导致不能连通，下面介绍一个调试的思路：
 
 1. 在 PC1 上一直开着 ping 到 PC2
-2. 从 PC1 开始，一跳一跳地抓包，即 pc1r1，r1r2，r2r3，r3pc2 一次抓包，找到第一次没有出现 Echo Request 的地方，比如 pc1r1 和 r1r2 可以抓到，而 r2r3 抓不到，那说明问题可能在 r2；如果一直到 PC2 都能抓到 Echo Request，就反过来抓 Echo Reply，一样可以定位到出问题的点。
+2. 从 PC1 开始，一跳一跳地抓包，即 pc1r1，r1r2，r2r3，r3pc2 依次抓包，找到第一次没有出现 Echo Request 的地方，比如 pc1r1 和 r1r2 可以抓到，而 r2r3 抓不到，那说明问题可能在 r2；如果一直到 PC2 都能抓到 Echo Request，就反过来抓 Echo Reply，一样可以定位到出问题的点。
 3. 找到可能出问题的点后，首先检查进入这个点的包的格式对不对，比如 IP 头的 checksum 和 length 是否正确（打开 Wireshark 的 IP Header Checksum 检查）
 4. 如果进入的包格式是错的，那出问题的点是这个点的前一个，一般来说前一个就是 R2，这种情况一般是转发的时候Checksum 更新有问题；如果前一个不是 R2，并且你采用了 netns ，请在上面的 FAQ 找到相应的问题
 5. 如果进入的包格式是对的，如果这个点是：
