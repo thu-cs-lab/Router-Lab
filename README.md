@@ -1,6 +1,6 @@
 # Router-Lab
 
-最后更新：2019/12/13 10:25 p.m.
+最后更新：2019/12/13 11:50 a.m.
 
 <details>
     <summary> 目录 </summary>
@@ -301,6 +301,7 @@ R3:
 1. Metric 计算和更新方式不正确或者不在 [1,16] 的范围内
 2. 没有正确处理 RIP Response 特别是 nexthop=0 的处理和 metric=16 的处理，参考 [RFC 2453 Section 4.4 Next Hop](https://tools.ietf.org/html/rfc2453#section-4.4) 和 [RFC 2453 Section 3.9.2 Response Messages](https://tools.ietf.org/html/rfc2453#page-26)
 3. 转发的时候查表 not found ，还是路由表有问题
+4. 更新路由表的时候，查询应该用精确匹配，但是错误地使用了最长前缀长度匹配
 
 <details>
     <summary> 可供参考的例子 </summary>
