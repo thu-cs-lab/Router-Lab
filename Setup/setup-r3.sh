@@ -7,6 +7,7 @@ set -v
 dir=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 cp $dir/bird.conf /etc/bird/bird.conf
 cp $dir/dhcpcd-r3.conf /etc/dhcpcd.conf
+systemctl disable bird
 systemctl restart bird
 systemctl restart dhcpcd
 ip netns delete PC2
