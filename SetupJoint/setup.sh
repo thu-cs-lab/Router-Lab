@@ -80,6 +80,7 @@ ip netns exec R2 bird -d -c bird2.conf -P bird2.pid -s bird2.socket 2> bird2.log
 ip netns exec R3 bird -d -c bird3.conf -P bird3.pid -s bird3.socket 2> bird3.log &
 ip netns exec R4 bird -d -c bird4.conf -P bird4.pid -s bird4.socket 2> bird4.log &
  
+tmux kill-session
 tmux new-session -d 'ip netns exec PC1 fish'
 tmux split-window -v 'ip netns exec PC3 fish'
 tmux split-window -h 'ip netns exec PC4 fish'
