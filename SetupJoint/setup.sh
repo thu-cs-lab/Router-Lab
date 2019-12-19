@@ -43,6 +43,7 @@ ip l set veth-R3-PC3 netns R3
 ip l set veth-PC4-R4 netns PC4
 ip l set veth-R4-PC4 netns R4
 
+
 ip netns exec PC1 ip a add 192.168.5.3/24 dev veth-PC1-R1
 ip netns exec PC1 ip l set veth-PC1-R1 up
 ip netns exec PC2 ip a add 192.168.6.3/24 dev veth-PC2-R2
@@ -84,7 +85,14 @@ tmux kill-session
 tmux new-session -d 'ip netns exec PC1 fish'
 tmux split-window -v 'ip netns exec PC3 fish'
 tmux split-window -h 'ip netns exec PC4 fish'
+tmux split-window -v 'ip netns exec R4 fish'
+tmux select-pane -U
 tmux select-pane -U
 tmux split-window -h 'ip netns exec PC2 fish'
+tmux split-window -v 'ip netns exec R2 fish'
+tmux select-pane -L
+tmux split-window -v 'ip netns exec R1 fish'
+tmux select-pane -D
+tmux split-window -v 'ip netns exec R3 fish'
 tmux setw -g mouse on
 tmux attach-session
