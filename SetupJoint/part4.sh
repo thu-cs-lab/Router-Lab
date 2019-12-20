@@ -11,6 +11,6 @@ ip netns exec PC2 iperf3 -c 192.168.5.3 &
 ip netns exec PC3 iperf3 -c 192.168.8.3 &
 ip netns exec PC4 iperf3 -c 192.168.7.3 &
 
-sleep 11
+sleep 12
 
 killall iperf3
