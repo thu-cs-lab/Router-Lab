@@ -1,6 +1,6 @@
 # Router-Lab
 
-最后更新：2019/12/22 3:50 a.m.
+最后更新：2019/12/22 4:20 p.m.
 
 <details>
     <summary> 目录 </summary>
@@ -387,7 +387,7 @@ ip a dd 192.168.5.1/24 dev eth1
 ip r add 192.168.1.0/24 via 192.168.5.2 dev eth1
 ```
 
-对于路由表的压力测试，可以在 PC1 上使用 `Setup/bird1.conf` 覆盖 `/etc/bird/bird.conf` ，然后用 `sudo systemctl restart bird` 来启动 BIRD。这个配置文件中有三个 part，分别对应上面流程中的 7 8 9 三步，可以通过 `sudo birdc disable part7` 和 `sudo birdc enable part7` 来启用/禁用某一组路由表，路由表的具体内容见 `conf-part{7,8,9}.conf` 文件。
+对于路由表的压力测试，可以在 PC1 上使用 `Setup/bird1.conf` 覆盖 `/etc/bird/bird.conf` ，然后用 `sudo systemctl restart bird` 来启动 BIRD，如果你在 netns 中或者非树莓派的环境使用，可能需要修改 `Setup/bird1.conf` 和 `Setup/conf-part{7,8,9}.conf` 相关的网卡名字。这个配置文件中有三个 part，分别对应上面流程中的 7 8 9 三步，可以通过 `sudo birdc disable part7` 和 `sudo birdc enable part7` 来启用/禁用某一组路由表，路由表的具体内容见 `conf-part{7,8,9}.conf` 文件。
 
 容易出错的地方：
 
