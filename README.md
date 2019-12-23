@@ -1,6 +1,6 @@
 # Router-Lab
 
-最后更新：2019/12/22 4:20 p.m.
+最后更新：2019/12/23 10:20 a.m.
 
 <details>
     <summary> 目录 </summary>
@@ -383,7 +383,7 @@ PC1:
 ip a add 192.168.1.2/24 dev eth1
 ip r add 192.168.5.0/24 via 192.168.1.1 dev eth1
 PC2:
-ip a dd 192.168.5.1/24 dev eth1
+ip a add 192.168.5.1/24 dev eth1
 ip r add 192.168.1.0/24 via 192.168.5.2 dev eth1
 ```
 
