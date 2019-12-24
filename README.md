@@ -1,6 +1,6 @@
 # Router-Lab
 
-最后更新：2019/12/23 10:20 a.m.
+最后更新：2019/12/24 3:40 p.m.
 
 <details>
     <summary> 目录 </summary>
@@ -387,7 +387,7 @@ ip a add 192.168.5.1/24 dev eth1
 ip r add 192.168.1.0/24 via 192.168.5.2 dev eth1
 ```
 
-对于路由表的压力测试，可以在 PC1 上使用 `Setup/bird1.conf` 覆盖 `/etc/bird/bird.conf` ，然后用 `sudo systemctl restart bird` 来启动 BIRD，如果你在 netns 中或者非树莓派的环境使用，可能需要修改 `Setup/bird1.conf` 和 `Setup/conf-part{7,8,9}.conf` 相关的网卡名字。这个配置文件中有三个 part，分别对应上面流程中的 7 8 9 三步，可以通过 `sudo birdc disable part7` 和 `sudo birdc enable part7` 来启用/禁用某一组路由表，路由表的具体内容见 `conf-part{7,8,9}.conf` 文件。
+对于路由表的压力测试，可以在 PC1 上使用 `Setup/bird1.conf` 覆盖 `/etc/bird/bird.conf` ，然后用 `sudo systemctl restart bird` 来启动 BIRD，如果你在 netns 中或者非树莓派的环境使用，可能需要修改 `Setup/bird1.conf` 和 `Setup/conf-part{7,8,9}.conf` 相关的网卡名字。这个配置文件中有三个 part，分别对应上面流程中的 7 8 9 三步，可以通过 `sudo birdc disable part7` 和 `sudo birdc enable part7` 来启用/禁用某一组路由表，路由表的具体内容见 `conf-part{7,8,9}.conf` 文件。想要查看 BIRD 是否配置正确，可以运行 `sudo birdc show route` 来查看 BIRD 的完整路由表。
 
 容易出错的地方：
 
@@ -397,6 +397,7 @@ ip r add 192.168.1.0/24 via 192.168.5.2 dev eth1
 4. 直连路由配置不正确
 5. PC1 和 PC2 配置不正确，ICMP 包根本没有发给 R1 和 R3
 6. Windows 默认不响应 ICMP Echo Request，[解决方法](https://kb.iu.edu/d/aopy)
+7. BIRD 配置不正确，如网卡名称和实际情况对不上
 
 提升转发性能的方法：
 
@@ -589,6 +590,10 @@ protocol rip {
 你也可以直接运行 BIRD（`bird -c /etc/bird.conf`），可在命令选项中加上 `-d` 把程序放到前台，方便直接退出进程。若想同时开多个 BIRD，则需要给每个进程指定单独的 PID 文件和 socket，如 `bird -d -c bird1.conf -P bird1.pid -s bird1.socket` 。
 
 在安装 BIRD（`sudo apt install bird`）之后，它默认是已经启动并且开机自启动。如果要启动 BIRD，运行 `sudo systemctl start bird`；停止 BIRD： `sudo systemctl stop bird`；重启 BIRD：`sudo systemctl restart bird`；打开开机自启动：`sudo systemctl enable bird`；关闭开机自启动：`sudo systemctl disable bird`。
+
+配合 BIRD 使用的还有它的客户端程序 `birdc`，它可以连接到 BIRD 服务并且控制它的行为。默认情况下 birdc 会连接系统服务（systemctl 启动）的 BIRD，如果启动 BIRD 时采用了 `-s` 参数，那么 birdc 也要指定同样的 socket 路径。
+
+对于一条静态路由（如 `route 1.2.3.0/24 via "abcd"`），它只有在 `abcd` 处于 UP 状态时才会生效，如果你只是想让 BIRD 向外宣告这一条路由，可以用 `lo` （本地环回）代替 `abcd` 并且运行 `ip l set lo up`。你可以用 `birdc show route` 来确认这件事情。
 
 ### 如何在一台计算机上进行真实测试
 
