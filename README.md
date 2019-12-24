@@ -518,14 +518,15 @@ protocol kernel {
     # 从系统学习路由
     learn;
     ipv4 {
-        # 导出路由到系统
+        # 导出路由到系统，可以用 `ip r` 看到
+        # 也可以用 `export none` 表示不导出，用 birdc show route 查看路由
         export all;
     };
 }
 
 protocol static {
     ipv4 { };
-    route 1.2.3.4/32 via "网口名称"; # 可以手动添加一个静态路由方便调试
+    route 1.2.3.4/32 via "网口名称"; # 可以手动添加一个静态路由方便调试，只有在这个网口存在并且为 UP 时才生效
 }
 
 protocol rip {
@@ -534,7 +535,7 @@ protocol rip {
         export all;
     };
     debug all;
-    interface "网口名称" {
+    interface "网口名称" { # 网口名称必须存在，否则 BIRD 会直接退出
         version 2;
         update time 5; # 5秒一次更新，方便调试
     };
@@ -562,19 +563,20 @@ protocol kernel {
     persist off;
     # 从系统学习路由
     learn;
-    # 导出路由到系统
+    # 导出路由到系统，可以用 `ip r` 看到
+    # 也可以用 `export none` 表示不导出，用 birdc show route 查看路由
     export all;
 }
 
 protocol static {
-    route 1.2.3.4/32 via "网口名称"; # 可以手动添加一个静态路由方便调试
+    route 1.2.3.4/32 via "网口名称"; # 可以手动添加一个静态路由方便调试，只有在这个网口存在并且为 UP 时才生效
 }
 
 protocol rip {
     import all;
     export all;
     debug all;
-    interface "网口名称" {
+    interface "网口名称" { # 网口名称必须存在，否则 BIRD 会直接退出
         version 2;
         update time 5; # 5秒一次更新，方便调试
     };
