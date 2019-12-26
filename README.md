@@ -1025,16 +1025,17 @@ Make 通过 `%.o` 的格式来支持 wildcard，如 `%.o: %.cpp` 就可以针对
             5. Nexthop 要么为 0 ，要么和 IP 源地址在同一个网段
             6. Metric 在 [1,16] 的范围内
 
-
 ## 名词解释
 
 - apt：debian 发行版的包管理器
+- brd：broadcast 的缩写
 - cmake：一个编译构建系统，可以生成 make、vs 等可以构建的项目文件
 - debian：一个操作系统及自由软件的发行版
 - dev：device 的缩写，表示设备
 - git：一个版本控制系统
 - g++：GCC 的一部分，是一个 C++ 语言的编译器
 - HAL：硬件抽象层，表示对一类硬件或者平台进行抽象得到的统一的接口
+- iface：interface 的缩写
 - interface：Linux 下的一个网口，可以是真实的，也可以是虚拟的
 - iproute2: Linux 系统下一个网络管理工具
 - journalctl：systemd 的查看服务日志的工具
