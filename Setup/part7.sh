@@ -2,7 +2,7 @@
 echo "Enable part7 and disable part{8,9}"
 set -v
 
-systemctl start bird
+systemctl restart bird
 birdc restart all
 birdc enable part7
 birdc disable part8
