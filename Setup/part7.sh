@@ -7,3 +7,4 @@ birdc restart all
 birdc enable part7
 birdc disable part8
 birdc disable part9
+tcpdump -i eth1 -n -l icmp
