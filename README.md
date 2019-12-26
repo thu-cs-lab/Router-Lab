@@ -1,6 +1,6 @@
 # Router-Lab
 
-最后更新：2019/12/24 11:30 p.m.
+最后更新：2019/12/26 11:10 a.m.
 
 <details>
     <summary> 目录 </summary>
@@ -402,7 +402,7 @@ ip r add 192.168.1.0/24 via 192.168.5.2 dev eth1
 提升转发性能的方法：
 
 1. 去掉转发时的调试输出
-2. 增量更新 Checksum
+2. 增量更新 Checksum，[参考](https://tools.ietf.org/html/rfc1624)
 3. 优化路由表查询算法
 
 支持较大路由表的方法：
