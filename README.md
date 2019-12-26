@@ -1,6 +1,6 @@
 # Router-Lab
 
-最后更新：2019/12/26 11:10 a.m.
+最后更新：2019/12/26 12:25 p.m.
 
 <details>
     <summary> 目录 </summary>
@@ -122,6 +122,12 @@ HAL 即 Hardware Abstraction Layer 硬件抽象层，顾名思义，是隐藏了
 
 这些函数的定义和功能都在 `router_hal.h` 详细地解释了，请阅读函数前的文档。为了易于调试，HAL 没有实现 ARP 表的老化，你可以自己在代码中实现，并不困难。
 
+你可以利用 HAL 本身的调试输出，只需要在运行 `HAL_Init` 的时候设置 `debug` 标志 ，你就可以在 stderr 上看到一些有用的输出。
+
+
+<details>
+    <summary>用 HAL 库编写的例子</summary>
+
 仅通过这些函数，就可以实现一个软路由。我们在 `Example` 目录下提供了一些例子，它们会告诉你 HAL 库的一些基本使用范式：
 
 1. Shell：提供一个可交互的 shell ，可能需要用 root 权限运行，展示了 HAL 库几个函数的使用方法，可以输出当前的时间，查询 ARP 表，查询端口的 MAC 地址，进行一次抓包并输出它的内容，向网口写随机数据等等；它需要 `libncurses-dev` 和 `libreadline-dev` 两个额外的包来编译
@@ -132,7 +138,7 @@ HAL 即 Hardware Abstraction Layer 硬件抽象层，顾名思义，是隐藏了
 
 这些例子可以用于检验环境配置是否正确，如 Linux 下网卡名字的配置、是否编译成功等等。比如在上面的 Shell 程序中输入 `mac 0` `mac 1` `mac 2` 和 `mac 3`，它会输出对应网口的 MAC 地址，如果输出的数据和你用 `ip l`（macOS 可以用 `ifconfig`） 看到的内容一致，那基本说明你配置没有问题了。
 
-你也可以利用 HAL 本身的调试输出，只需要在运行 `HAL_Init` 的时候设置 `debug` 标志 ，你就可以在 stderr 上看到一些有用的输出。
+</details>
 
 #### 各后端的自定义配置
 
@@ -250,6 +256,9 @@ R3:
 
 实际情况下，树莓派的网卡名字的分配规则是插入时选择最小的位被分配的数字，所以在验收的时候先插的是到 R1 的 USB 网卡，对应 eth1 ，然后再插到 R3 的 USB 网卡，对应 eth2 。
 
+<details>
+    <summary>检查内容和方法</summary>
+
 我们将会逐项检查下列内容：
 
 * PC1 是否与 PC2 能够正常通信：使用 `ping` 测试 ICMP、在一个 PC 上运行 `nc -l 80`，另一个 PC 上运行 `nc $pc_addr 80` 并输入内容回车测试 TCP 连接
@@ -258,7 +267,9 @@ R3:
 * R2 向 R1、R3 发出的 RIP 协议报文是否正确：包括是否响应了请求，以及是否实现了水平分裂（split horizon）算法，在 R1 和 R3 上用 Wireshark 抓包检查
 * R2 上的 RIP 路由表、转发表是否正确：需要你定期或者每次收到报文时打印最新的 RIP 路由表、系统转发表（见 FAQ 中对于路由表和转发表的讨论），格式自定，可以模仿 `ip route` 的输出格式
 
-在 `Setup` 目录下存放了验收时在 R1 和 R3 上配置的脚本，还有恢复它的改动的脚本，注意它采用了树莓派中管理网络的 dhcpcd 进行地址的配置，所以可能不适用于树莓派以外的环境。如果运行过配置脚本，请在验收前恢复它的改动，运行恢复脚本即可，也可以手动删除 `/etc/dhcpcd.conf` 最后的几行内容然后用 `sudo systemctl restart dhcpcd` 来重启 dhcpcd。简单起见，它采用了 netns 来模拟 PC1 和 PC2，这样只需要两个树莓派就可以进行联调和验收。
+在 `Setup` 目录下存放了验收时在 R1 和 R3 上配置的脚本，还有恢复它的改动的脚本，注意它采用了树莓派中管理网络的 dhcpcd 进行地址的配置，所以可能不适用于树莓派以外的环境。 如果运行过配置脚本，请在验收前恢复它的改动，运行恢复脚本 `Setup/restore.sh` 即可，也可以手动删除 `/etc/dhcpcd.conf` 最后的几行内容然后用 `sudo systemctl restart dhcpcd` 来重启 dhcpcd 。简单起见，它采用了 netns 来模拟 PC1 和 PC2，这样只需要两个树莓派就可以进行联调和验收。
+
+</details>
 
 <details>
     <summary>为何不在 R2 上配置 IP 地址：192.168.3.2 和 192.168.4.1 </summary>
@@ -268,6 +279,9 @@ R3:
 3. 为了保证确实是你编写的路由器在工作而不是 Linux 网络栈在工作，所以不在 R2 上配置这两个 IP 地址
 
 </details>
+
+<details>
+    <summary> 功能实现的要求 </summary>
 
 必须实现的有：
 
@@ -296,9 +310,12 @@ R3:
 2. IGMP 的处理。
 3. interface 状态的跟踪（UP/DOWN 切换）。
 
+</details>
+
 此外，我们还将使用 `iperf3` 工具分别测试 PC1 和 PC2 双向进行 TCP 传输的速率。如果你的转发性能较高，可以获得额外的加分。同时，我们可能会进行代码和知识点的抽查。
 
-容易出现错误的地方：
+<details>
+    <summary> 容易出错的地方 </summary>
 
 1. Metric 计算和更新方式不正确或者不在 [1,16] 的范围内
 2. 没有正确处理 RIP Response 特别是 nexthop=0 的处理和 metric=16 的处理，参考 [RFC 2453 Section 4.4 Next Hop](https://tools.ietf.org/html/rfc2453#section-4.4) 和 [RFC 2453 Section 3.9.2 Response Messages](https://tools.ietf.org/html/rfc2453#page-26)
@@ -306,6 +323,8 @@ R3:
 4. 更新路由表的时候，查询应该用精确匹配，但是错误地使用了最长前缀长度匹配
 5. 没有对所有发出的 RIP Response 正确地实现水平分割
 6. 端序不正确，可以通过 Wireshark 看出
+
+</details>
 
 <details>
     <summary> 可供参考的例子 </summary>
@@ -346,7 +365,10 @@ R3:
 
 第三部分是针对组队的测试，一个组一般是三个人，网络拓扑与单人测试相同，只不过此时 R1、R2、R3 分别是三位同学的树莓派，我们会在验收前几天的某一时刻随机定下每组中哪一位同学分别对应 R1 R2 R3 的哪一个，所以同学们在测试的时候尽量测试各种组合。请注意，在实验中第三部分，在 PC1 R1 R2 R3 PC2 上都不需要运行 BIRD（如果安装了 BIRD 可以运行 `sudo systemctl disable --now bird` 以禁用 BIRD），也不需要打开 Linux 的转发功能。
 
-测试方法（2019.12.20 更新，同学可以选择跳过部分选项，满足部分即可拿到满分，超过满分部分舍去）：
+<details>
+    <summary> 测试和评分标准 </summary>
+
+测试方法（2019.12.26 更新，同学可以选择跳过部分选项，满足部分即可拿到满分，超过满分部分舍去）：
 
 1. 稳定性（15%）：对于下面的测试过程（3-9），如果测试过程中程序没有崩溃，即使没有通过测试，也可以得到每个测试 3% 的分数，15% 封顶
 2. 协议基本实现（10%）：R1 可以学到 192.168.5.0/24 的路由，R3 可以学到 192.168.1.0/24 的路由，通过程序输出判断
@@ -360,6 +382,8 @@ R3:
 10. 其他扩展功能：经助教和老师同意可以获得每项不高于 10% 的分数
 
 为了方便理解，你可以打开 `score.xlsx` 并在里面填入你的数据以计算出你能得到的分数。
+
+</details>
 
 PC1 和 PC2 的路由：
 
@@ -387,7 +411,10 @@ ip a add 192.168.5.1/24 dev eth1
 ip r add 192.168.1.0/24 via 192.168.5.2 dev eth1
 ```
 
-对于路由表的压力测试，可以在 PC1 上使用 `Setup/bird1.conf` 覆盖 `/etc/bird/bird.conf` ，然后用 `sudo systemctl restart bird` 来启动 BIRD，如果你在 netns 中或者非树莓派的环境使用，可能需要修改 `Setup/bird1.conf` 和 `Setup/conf-part{7,8,9}.conf` 相关的网卡名字。这个配置文件中有三个 part，分别对应上面流程中的 7 8 9 三步，可以通过 `sudo birdc disable part7` 和 `sudo birdc enable part7` 来启用/禁用某一组路由表，路由表的具体内容见 `conf-part{7,8,9}.conf` 文件。想要查看 BIRD 是否配置正确，可以运行 `sudo birdc show route` 来查看 BIRD 的完整路由表。
+对于路由表的压力测试，可以在 PC1 上使用 `Setup/bird1.conf` 覆盖 `/etc/bird/bird.conf` ，然后用 `sudo systemctl restart bird` 来启动 BIRD，如果你在 netns 中或者非树莓派的环境使用，可能需要修改 `Setup/bird1.conf` 和 `Setup/conf-part{7,8,9}.conf` 相关的网卡名字，并保证网卡处于 UP 状态。这个配置文件中有三个 part，分别对应上面流程中的 7 8 9 三步，可以通过 `sudo birdc disable part7` 和 `sudo birdc enable part7` 来启用/禁用某一组路由表，路由表的具体内容见 `conf-part{7,8,9}.conf` 文件。想要查看 BIRD 是否配置正确，可以运行 `sudo birdc show route` 来查看 BIRD 的完整路由表。
+
+<details>
+    <summary> 温馨提示 </summary>
 
 容易出错的地方：
 
@@ -410,6 +437,8 @@ ip r add 192.168.1.0/24 via 192.168.5.2 dev eth1
 1. 发送 RIP Response 时按照 25 条为一组进行切分
 2. 完善路由表更新算法
 3. 完善路由表查询算法
+
+</details>
 
 如果想尝试更加复杂的网络拓扑，同学可以选择在 R1 和 R3 直接再连一条线（组成了环形网络，配置的 IP 地址自定），如果在这种情况下仍然可以实现 PC1 和 PC2 的连通，可以得到一定的加分，加分方法参考上面测试方法的最后一点。
 
