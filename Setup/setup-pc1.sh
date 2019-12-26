@@ -6,6 +6,7 @@ set -v
 # Setup dhcpcd config
 dir=$( cd "$(dirname "${BASH_SOURCE[0]}")" ; pwd -P )
 cp $dir/dhcpcd-pc1.conf /etc/dhcpcd.conf
+cp $dir/bird1.conf /etc/bird/bird.conf
 systemctl disable bird
 systemctl stop bird
 systemctl restart dhcpcd
