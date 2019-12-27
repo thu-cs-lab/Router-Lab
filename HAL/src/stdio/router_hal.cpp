@@ -31,7 +31,7 @@ struct macaddr_wrap {
 std::map<std::pair<in_addr_t, int>, macaddr_wrap> arp_table;
 
 extern "C" {
-int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
+int HAL_Init(HAL_IN int debug, HAL_IN in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
   if (inited) {
     return 0;
   }
@@ -283,8 +283,8 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
   return 0;
 }
 
-int HAL_SendIPPacket(int if_index, uint8_t *buffer, size_t length,
-                     macaddr_t dst_mac) {
+int HAL_SendIPPacket(HAL_IN int if_index, HAL_IN uint8_t *buffer, HAL_IN size_t length,
+                     HAL_IN macaddr_t dst_mac) {
   if (!inited) {
     return HAL_ERR_CALLED_BEFORE_INIT;
   }
