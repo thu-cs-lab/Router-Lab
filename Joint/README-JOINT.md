@@ -1,5 +1,41 @@
 # 计算机网络原理与计算机组成原理联合实验
 
+## 实验要求
+
+本联合实验要求在 ThinRouter 平台上实现一个 CPU + 路由器，路由器要求支持 RIP 协议和转发。
+
+## 实验平台
+
+ThinRouter 的样例工程在 [z4yx/thinpad_top#thinrouter.1](https://github.com/z4yx/thinpad_top/branches/thinrouter.1) ，克隆后就可以得到一个样例工程，引脚约束和基本的 testbench 已经提供好，KSZ 8795 芯片也会通过 SPI 协议自动配置。
+
+## 实验指导
+
+### 第一阶段：学习 AXI-Stream 协议、 RGMII 接口和基本的网络知识
+
+#### 学习 AXI-Stream 协议
+
+在本次实验中，我们已经把以太网 MAC 配置好，以太网帧的内容会通过 AXI-Stream 协议与其余逻辑进行交互。通过在 Vivado 中运行 testbench，可以找到接受到的以太网帧对应在 AXI-Stream 上的波形，把它和 testbench 中编写的以太网帧进行比较。
+
+#### 学习 RGMII 接口
+
+实际在 FPGA 芯片 和以太网 PHY 芯片之间通信的是 RGMII 接口，请观察仿真中 RGMII 的波形，和上面 AXI-Stream 的进行比较，应该可以找到一些相同点和不同点。
+
+#### 学习基础的网络知识
+
+了解 IP 和 ARP 协议的基本功能和转发的概念，理解 KSZ8795 的 VLAN 配置，然后自己用 Linux 系统搭建一个网络，用 Linux 自带的转发功能，学会用 tcpdump 和 Wireshark 进行抓包分析。
+
+了解转发的概念以后，可以基于 HAL 编写一个固定转发方式的路由器，比如只有 A B C三个结点，B 只处理 A 发给 C 和 C 发给 A的，检验 ping 是否成功。
+
+阅读 testbench 中提供的样例以太网帧，估计一下路由器应该做出如何的反应。
+
+#### 尝试在仿真中实现 Loopback
+
+Loopback 就是环回的意思，在 testbench 中，仿真代码会向 RGMII 不断发以太网帧，你要做的就是原样地发回去。你需要理解 AXI-Stream 接口的使用方式，主要是信号的握手和数据的传输过程。建议用一个单独的时钟域编写你的环回逻辑，通过一个异步 FIFO 把 MAC 的 125M 和单独的时钟隔开，这样你的逻辑有更多的时序自由度。
+
+如果 Loopback 实现正确，你应该可以在仿真中看到 TX 的 RGMII 上有波形，并且它的内容和 RX 的内容是一样的。进一步，你可以尝试修改测试的以太网帧的内容，让它接受到不同长度的内容，并观察在 FCS 正确与错误时的表现。
+
+如果在实现上遇到了困难，可以打开 IP 的 Example Design，里面有一个 Loopback 的实现，但比较复杂，不容易理解。
+
 ## 实验验收基础要求
 
 ![](topology_joint.png)
