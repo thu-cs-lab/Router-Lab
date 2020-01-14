@@ -192,10 +192,9 @@ Tag 的填写。
 
 路由表相比于转发表，主要多了路由协议相关的字段，如 metric。在写入转发表的时候，硬件并不需要这些信息。
 
-
 ## 实验验收基础要求
 
-![Topology](topology_joint.png)
+![Topology](./topology_joint.png)
 
 测试方法（满足部分即可拿到满分，超过满分部分舍去）：
 

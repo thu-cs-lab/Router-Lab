@@ -14,18 +14,18 @@
     <summary> 目录 </summary>
 
 * [如何使用框架](#如何使用框架)
-    * [如何使用 HAL](#如何使用-hal)
-    * [HAL 提供了什么](#hal-提供了什么)
-    * [各后端的自定义配置](#各后端的自定义配置)
+  * [如何使用 HAL](#如何使用-hal)
+  * [HAL 提供了什么](#hal-提供了什么)
+  * [各后端的自定义配置](#各后端的自定义配置)
 * [如何进行本地自测](#如何进行本地自测)
 * [如何进行在线测试（暗号：框）](#如何进行在线测试暗号框)
 * [实验验收的流程](#实验验收的流程)
-    * [实验第一部分](#实验第一部分)
-    * [实验第二部分](#实验第二部分)
-    * [实验第三部分](#实验第三部分)
+  * [实验第一部分](#实验第一部分)
+  * [实验第二部分](#实验第二部分)
+  * [实验第三部分](#实验第三部分)
 * [建议的实验思路](#建议的实验思路)
-    * [如何启动并配置一个比较标准的 RIP 实现](#如何启动并配置一个比较标准的-rip-实现)
-    * [如何在一台计算机上进行真实测试](#如何在一台计算机上进行真实测试)
+  * [如何启动并配置一个比较标准的 RIP 实现](#如何启动并配置一个比较标准的-rip-实现)
+  * [如何在一台计算机上进行真实测试](#如何在一台计算机上进行真实测试)
 * [FAQ（暗号：档）](#faq暗号档)
 * [附录：ip 命令的使用](#附录ip-命令的使用)
 * [附录：树莓派系统的配置和使用](#附录树莓派系统的配置和使用)
@@ -61,7 +61,6 @@ pip3 install pyshark
 ```
 
 其他发行版也有类似的包管理器安装方法。
-
 
 ## 如何使用框架
 
@@ -133,7 +132,6 @@ HAL 即 Hardware Abstraction Layer 硬件抽象层，顾名思义，是隐藏了
 
 你可以利用 HAL 本身的调试输出，只需要在运行 `HAL_Init` 的时候设置 `debug` 标志 ，你就可以在 stderr 上看到一些有用的输出。
 
-
 <details>
     <summary>用 HAL 库编写的例子</summary>
 
@@ -163,7 +161,7 @@ HAL 即 Hardware Abstraction Layer 硬件抽象层，顾名思义，是隐藏了
 
 有这些目录：
 
-```
+```text
 checksum： 计算校验和
 forwarding： 转发逻辑
 lookup： 路由表查询和更新
@@ -173,7 +171,7 @@ boilerplate： 用以上代码实现一个路由器
 
 每个题目都有类似的结构（以 `checksum` 为例）：
 
-```
+```text
 data： 数据所在的目录
 checksum.cpp：你需要修改的地方
 grade.py：一个简单的评分脚本，它会编译并运行你的代码，进行评测
@@ -225,11 +223,11 @@ make grade # 也可以运行评分脚本，实际上就是运行python3 grade.py
 
 实验的第二部分是针对个人的测试，你需要把你的软件运行在树莓派上，和我们提供的机器组成如下的拓扑：
 
-![](topology.png)
+![Topology](topology.png)
 
 这一阶段，PC1、R1、R3、PC2 都由助教提供，两台路由器上均运行 BIRD 作为标准的路由软件实现。你的树莓派在 R2 的位置。其中 R2 实际用到的只有两个口，剩余两个口配置为 `10.0.2.1/24` 和 `10.0.3.1/24` 。初始情况下，R1 和 R3 先不启动 RIP 协议处理程序，这些机器的系统路由表如下：
 
-```
+```text
 PC1:
 default via 192.168.1.1 dev pc1r1
 192.168.1.0/24 dev pc1r1 scope link
@@ -246,7 +244,7 @@ default via 192.168.5.2 dev pc2r3
 
 上面的每个网口名称格式都是两个机器拼接而成，如 `pc1r1` 代表 pc1 上通往 r1 的网口。此时，接上你的树莓派，按照图示连接两侧的 R1 和 R3 后，从 PC1 到 PC2 是不通的。接着，在 R1 和 R3 上都开启 RIP 协议处理程序，它们分别会在自己的 RIP 包中宣告 `192.168.1.0/24` 和 `192.168.5.0/24` 的路由。一段时间后它们的转发表（即直连路由 + RIP 收到的路由）应该变成这样：
 
-```
+```text
 R1:
 10.0.2.0/24 via 192.168.3.2 dev r1r2
 10.0.3.0/24 via 192.168.3.2 dev r1r2
@@ -396,7 +394,7 @@ R3:
 
 PC1 和 PC2 的路由：
 
-```
+```text
 PC1:
 192.168.5.0/24 via 192.168.1.1 dev pc1r1
 192.168.1.0/24 dev pc1r1 scope link
@@ -411,7 +409,7 @@ PC2:
 
 同学在自己测试时，PC1 和 PC2 可以用自己的笔记本电脑，按照上面要求配置两条路由即可测试。配置静态路由的方法参考：[Windows](https://tekbloq.com/2018/10/24/how-to-add-a-static-route-to-the-windows-routing-table/) [macOS](https://blog.remibergsma.com/2012/03/04/howto-quickly-add-a-route-in-mac-osx/) [Linux](https://www.cyberciti.biz/faq/linux-route-add/) 。一般来说，在配置 IP 地址和子网掩码的时候直连路由自动就添加好了，只需要在 PC1 上添加 192.168.5.0/24 via 192.168.1.1 和在 PC2 上添加 192.168.1.0/24 via 192.168.5.2 即可。具体到 Linux 的命令，就是（假如 USB 网卡是 eth1）：
 
-```
+```text
 PC1:
 ip a add 192.168.1.2/24 dev eth1
 ip r add 192.168.5.0/24 via 192.168.1.1 dev eth1
@@ -539,7 +537,7 @@ int main() {
 <details>
     <summary> BIRD v2.0 配置 </summary>
 
-```
+```conf
 # log "bird.log" all; # 可以将 log 输出到文件中
 # debug protocols all; # 如果要更详细的信息，可以打开这个
 
@@ -585,7 +583,7 @@ protocol rip {
 <details>
     <summary> BIRD v1.6 配置 </summary>
 
-```
+```conf
 # log "bird.log" all; # 可以将 log 输出到文件中
 # debug protocols all; # 如果要更详细的信息，可以打开这个
 
@@ -662,12 +660,11 @@ ip netns exec net1 ip addr add 10.1.1.2/24 dev veth-net1
 
 如果你在一个 netns 中用 Linux 自带的功能做转发（例如 R1 和 R3），需要运行如下命令（root 身份，重启后失效）：
 
-```
+```shell
 echo 1 > /proc/sys/net/ipv4/conf/all/forwarding
 ```
 
 上面的 all 可以替换为 interface 的名字。在用这种方法的时候需要小心 Linux 自带的转发和你编写的转发的冲突，在 R2 上不要用 `ip a` 命令配置 IP 地址。
-
 
 ## FAQ（暗号：档）
 
@@ -741,11 +738,11 @@ A: 这是因为在 Windows 里 git clone 的符号链接在 WSL 内看到的是�
 
 ## 附录：`ip` 命令的使用
 
-在本文中几次提到了 `ip` 命令的使用，它的全名为 iproute2，是当前管理 Linux 操作系统网络最常用的命令之一。需要注意的是，涉及到更改的命令都需要 root 权限，所以需要在命令前加一个 `sudo ` （注意空格）表示用 root 权限运行。
+在本文中几次提到了 `ip` 命令的使用，它的全名为 iproute2，是当前管理 Linux 操作系统网络最常用的命令之一。需要注意的是，涉及到更改的命令都需要 root 权限，所以需要在命令前加一个 `sudo` （注意空格）表示用 root 权限运行。
 
 第一个比较重要的子命令是 `ip a`，它是 `ip addr` 的简写，意思是列出所有网口信息和地址信息，如：
 
-```
+```text
 2: enp14s0: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state DOWN group default qlen 1000
     link/ether 12:34:56:78:9a:bc brd ff:ff:ff:ff:ff:ff
 ```
@@ -754,7 +751,7 @@ A: 这是因为在 Windows 里 git clone 的符号链接在 WSL 内看到的是�
 
 每个网口可以有自己的 IP 地址，如：
 
-```
+```text
 2: enp14s0: <BROADCAST,MULTICAST> mtu 1500 qdisc noop state UP group default qlen 1000
     link/ether 12:34:56:78:9a:bc brd ff:ff:ff:ff:ff:ff
     inet 1.2.3.4/26 brd 1.2.3.127 scope global dynamic enp14s0
@@ -773,14 +770,14 @@ A: 这是因为在 Windows 里 git clone 的符号链接在 WSL 内看到的是�
 
 第三个重要的子命令是 `ip r`，是 `ip route` 的简写，它会显示 Linux 系统中的路由表：
 
-```
+```text
 default via 1.2.3.1 dev enp14s0 proto static
 1.2.3.0/26 dev enp14s0 proto kernel scope link src 1.2.3.4
 ```
 
 我们也在上文中数次用了类似的语法表示一个路由表。每一项的格式如下：
 
-```
+```text
 ip/prefix dev interface scope link 表示在这个子网中，所有的 IP 都是直连可达
 ip/prefix via another_ip dev interface 表示去往目标子网的 IP 包，下一跳都是 another_ip ，通过 interface 出去
 default via another_ip dev interface 这里 default 代表 0.0.0.0/0 ，其实是上一种格式
@@ -999,7 +996,7 @@ hal.o: $(LAB_ROOT)/HAL/src/linux/router_hal.cpp
 	$(CXX) $(CXXFLAGS) -c $^ -o $@
 
 boilerplate: main.o hal.o protocol.o checksum.o lookup.o forwarding.o
-	$(CXX) $^ -o $@ $(LDFLAGS) 
+	$(CXX) $^ -o $@ $(LDFLAGS)
 ```
 
 这里出现了一个格式： `xxx: aaa bbb ccc` ，它代表如果要生成 `xxx` ，首先要生成 `aaa` `bbb` 和 `ccc` ，代表了依赖关系，只有 `aaa` `bbb` `ccc` 都生成了，才会生成 `xxx`，另一方面，如果 `xxx` 的更新时间比 `aaa` `bbb` `ccc` 都新，那么就不会重新生成 `xxx` 。紧接着这一行的就是生成的具体过程。
@@ -1036,40 +1033,40 @@ Make 通过 `%.o` 的格式来支持 wildcard，如 `%.o: %.cpp` 就可以针对
 
 ## 名词解释
 
-- apt：debian 发行版的包管理器
-- brd：broadcast 的缩写
-- cmake：一个编译构建系统，可以生成 make、vs 等可以构建的项目文件
-- debian：一个操作系统及自由软件的发行版
-- dev：device 的缩写，表示设备
-- git：一个版本控制系统
-- g++：GCC 的一部分，是一个 C++ 语言的编译器
-- HAL：硬件抽象层，表示对一类硬件或者平台进行抽象得到的统一的接口
-- iface：interface 的缩写
-- interface：Linux 下的一个网口，可以是真实的，也可以是虚拟的
-- iproute2: Linux 系统下一个网络管理工具
-- journalctl：systemd 的查看服务日志的工具
-- lab：实验，可以理解为需要实践的作业。
-- link：一条链路，比如一条网线连接两台设备
-- linux：由 Linus Torvalds 最初编写并主导开发的操作系统内核
-- macOS：苹果公司的操作系统，前身是 Mac OS X
-- make：一个编译构建系统
-- pcap：1. 是一种格式，存储了网络数据 2. 是一个库/工具，提供了从真实网卡上抓取网络数据包的途径
-- pip：python 语言的包管理器
-- pyshark：在 Python 中使用 tshark 的一个库
-- python3：一个编程语言
-- raw socket：Linux 提供的一套接口，可以抓取满足特定条件的数据包
-- raspbian：基于 debian 的针对树莓派的发行版
-- router：路由器，它主要的工作是在网络层上进行 IP 协议的转发。
-- submodule：git 在一个仓库中包括另一个仓库的一种方法
-- sudo：以 root 权限运行某个程序
-- systemctl：systemd 的一个管理程序，可以控制服务的启动和停止
-- tcpdump：一个命令行的抓报工具
-- tick：时钟滴答的一下响声
-- tshark：Wireshark 的 CLI 版本，可以直接在命令行环境下运行
-- ubuntu：基于 debian 的以桌面应用为主的发行版
-- windows：微软公司的操作系统
-- wireshark：一个用户友好的抓包工具，可以对抓到的数据进行深入的解析
-- xilinx：赛灵思公司，计算机组成原理课程使用的 FPGA 来自这个公司
+* apt：debian 发行版的包管理器
+* brd：broadcast 的缩写
+* cmake：一个编译构建系统，可以生成 make、vs 等可以构建的项目文件
+* debian：一个操作系统及自由软件的发行版
+* dev：device 的缩写，表示设备
+* git：一个版本控制系统
+* g++：GCC 的一部分，是一个 C++ 语言的编译器
+* HAL：硬件抽象层，表示对一类硬件或者平台进行抽象得到的统一的接口
+* iface：interface 的缩写
+* interface：Linux 下的一个网口，可以是真实的，也可以是虚拟的
+* iproute2: Linux 系统下一个网络管理工具
+* journalctl：systemd 的查看服务日志的工具
+* lab：实验，可以理解为需要实践的作业。
+* link：一条链路，比如一条网线连接两台设备
+* linux：由 Linus Torvalds 最初编写并主导开发的操作系统内核
+* macOS：苹果公司的操作系统，前身是 Mac OS X
+* make：一个编译构建系统
+* pcap：1. 是一种格式，存储了网络数据 2. 是一个库/工具，提供了从真实网卡上抓取网络数据包的途径
+* pip：python 语言的包管理器
+* pyshark：在 Python 中使用 tshark 的一个库
+* python3：一个编程语言
+* raw socket：Linux 提供的一套接口，可以抓取满足特定条件的数据包
+* raspbian：基于 debian 的针对树莓派的发行版
+* router：路由器，它主要的工作是在网络层上进行 IP 协议的转发。
+* submodule：git 在一个仓库中包括另一个仓库的一种方法
+* sudo：以 root 权限运行某个程序
+* systemctl：systemd 的一个管理程序，可以控制服务的启动和停止
+* tcpdump：一个命令行的抓报工具
+* tick：时钟滴答的一下响声
+* tshark：Wireshark 的 CLI 版本，可以直接在命令行环境下运行
+* ubuntu：基于 debian 的以桌面应用为主的发行版
+* windows：微软公司的操作系统
+* wireshark：一个用户友好的抓包工具，可以对抓到的数据进行深入的解析
+* xilinx：赛灵思公司，计算机组成原理课程使用的 FPGA 来自这个公司
 
 ## 项目作者
 
