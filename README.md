@@ -1,6 +1,8 @@
 # Router-Lab
 
-最后更新：2019/12/27 20:30 p.m.
+最后更新：2020/04/05 15:30 p.m.
+
+![C/C++ CI](https://github.com/z4yx/Router-Lab/workflows/C/C++%20CI/badge.svg)
 
 ## 版权声明
 
