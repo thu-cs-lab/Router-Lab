@@ -19,7 +19,7 @@ jobs:
     - name: Install dependencies
       if: runner.os == 'Linux'
       run: |
-        sudo apt install -y libpcap-dev
+        sudo apt install -y libpcap-dev libreadline-dev libncurses-dev
     - name: CMake
       run: |
         mkdir -p build
