@@ -9,13 +9,17 @@ on:
 jobs:
   build:
 
-    runs-on: ubuntu-latest
+    runs-on: [ubuntu-latest, macos-latest]
 
     steps:
     - uses: actions/checkout@v2
-    - name: Cmake
+    - name: Install dependencies
+      if: runner.os == 'Linux'
+      run: |
+        sudo apt install -y libpcap-dev
+    - name: CMake
       run: |
         mkdir -p build
         cd build
-        cmake .. -DBACKEND=Linux
+        cmake .. -DBACKEND=${{ runner.os }}
         make
