@@ -60,7 +60,6 @@ int HAL_GetInterfaceMacAddress(int if_index, macaddr_t o_mac) {
 
 extern size_t read_packet(uint8_t *buffer);
 
-
 int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
                         macaddr_t src_mac, macaddr_t dst_mac, int64_t timeout,
                         int *if_index) {
@@ -78,6 +77,7 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
   return read_packet(buffer);
 }
 
+extern void send_packet(HAL_IN int if_index, HAL_IN uint8_t *buffer, HAL_IN size_t length, HAL_IN macaddr_t dst_mac);
 int HAL_SendIPPacket(HAL_IN int if_index, HAL_IN uint8_t *buffer,
                      HAL_IN size_t length, HAL_IN macaddr_t dst_mac) {
   if (!inited) {
@@ -86,6 +86,7 @@ int HAL_SendIPPacket(HAL_IN int if_index, HAL_IN uint8_t *buffer,
   if (if_index >= N_IFACE_ON_BOARD || if_index < 0) {
     return HAL_ERR_INVALID_PARAMETER;
   }
+  send_packet(if_index, buffer, length, dst_mac);
   return 0;
 }
 }
