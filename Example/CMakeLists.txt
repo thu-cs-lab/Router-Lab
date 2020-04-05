@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 2.8)
 
+if(${BACKEND} STREQUAL EMCC)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --pre-js ${CMAKE_CURRENT_SOURCE_DIR}/../HAL/src/emcc/preamble.js")
+endif()
+
 if(NOT ${BACKEND} STREQUAL EMCC)
 add_executable(shell shell.cpp)
 target_include_directories(shell PRIVATE ../HAL/include)
