@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <time.h>
+#include <emscripten.h>
 
 const int IP_OFFSET = 14;
 
@@ -57,6 +58,9 @@ int HAL_GetInterfaceMacAddress(int if_index, macaddr_t o_mac) {
   return 0;
 }
 
+extern size_t read_packet(uint8_t *buffer);
+
+
 int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
                         macaddr_t src_mac, macaddr_t dst_mac, int64_t timeout,
                         int *if_index) {
@@ -71,7 +75,7 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
 
   int64_t begin = HAL_GetTicks();
   int64_t current_time = 0;
-  return 0;
+  return read_packet(buffer);
 }
 
 int HAL_SendIPPacket(HAL_IN int if_index, HAL_IN uint8_t *buffer,

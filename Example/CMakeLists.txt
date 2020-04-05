@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8)
 
 if(${BACKEND} STREQUAL EMCC)
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --pre-js ${CMAKE_CURRENT_SOURCE_DIR}/../HAL/src/emcc/preamble.js")
+	    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} --pre-js ${CMAKE_CURRENT_SOURCE_DIR}/../HAL/src/emcc/preamble.js --js-library ${CMAKE_CURRENT_SOURCE_DIR}/../HAL/src/emcc/library.js -s ASYNCIFY -s 'ASYNCIFY_IMPORTS=[\"read_packet\"]'")
 endif()
 
 if(NOT ${BACKEND} STREQUAL EMCC)
