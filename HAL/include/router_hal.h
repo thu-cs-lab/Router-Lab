@@ -11,6 +11,8 @@
 #include <arpa/inet.h>
 #elif defined ROUTER_BACKEND_XILINX
 typedef uint32_t in_addr_t;
+#elif defined ROUTER_BACKEND_EMCC
+typedef uint32_t in_addr_t;
 #endif
 // in_addr_t 是以大端序存储的，意味着 1.2.3.4 对应 0x04030201
 
