@@ -104,7 +104,8 @@ int HAL_Init(HAL_IN int debug, HAL_IN in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
     if (pcap_out_handles[i]) {
       HAL_JoinIGMPGroup(i, if_addrs[i]);
       if (debugEnabled) {
-        fprintf(stderr, "HAL_Init: Joining RIP multicast group 224.0.0.9 for %s\n",
+        fprintf(stderr,
+                "HAL_Init: Joining RIP multicast group 224.0.0.9 for %s\n",
                 interfaces[i]);
       }
     }
@@ -119,7 +120,8 @@ uint64_t HAL_GetTicks() {
   return (uint64_t)tp.tv_sec * 1000 + (uint64_t)tp.tv_nsec / 1000000;
 }
 
-int HAL_ArpGetMacAddress(int if_index, in_addr_t ip, macaddr_t o_mac) {
+int HAL_ArpGetMacAddress(HAL_IN int if_index, HAL_IN in_addr_t ip,
+                         HAL_OUT macaddr_t o_mac) {
   if (!inited) {
     return HAL_ERR_CALLED_BEFORE_INIT;
   }
@@ -129,7 +131,12 @@ int HAL_ArpGetMacAddress(int if_index, in_addr_t ip, macaddr_t o_mac) {
 
   // handle multicast
   if ((ip & 0xe0) == 0xe0) {
-    uint8_t multicasting_mac[6] = {0x01, 0, 0x5e, (uint8_t)((ip >> 8) & 0x7f), (uint8_t)(ip >> 16), (uint8_t)(ip >> 24)};
+    uint8_t multicasting_mac[6] = {0x01,
+                                   0,
+                                   0x5e,
+                                   (uint8_t)((ip >> 8) & 0x7f),
+                                   (uint8_t)(ip >> 16),
+                                   (uint8_t)(ip >> 24)};
     memcpy(o_mac, multicasting_mac, sizeof(macaddr_t));
     return 0;
   }
@@ -184,7 +191,7 @@ int HAL_ArpGetMacAddress(int if_index, in_addr_t ip, macaddr_t o_mac) {
   return HAL_ERR_IP_NOT_EXIST;
 }
 
-int HAL_GetInterfaceMacAddress(int if_index, macaddr_t o_mac) {
+int HAL_GetInterfaceMacAddress(HAL_IN int if_index, HAL_OUT macaddr_t o_mac) {
   if (!inited) {
     return HAL_ERR_CALLED_BEFORE_INIT;
   }
@@ -196,14 +203,16 @@ int HAL_GetInterfaceMacAddress(int if_index, macaddr_t o_mac) {
   return 0;
 }
 
-int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
-                        macaddr_t src_mac, macaddr_t dst_mac, int64_t timeout,
-                        int *if_index) {
+int HAL_ReceiveIPPacket(HAL_IN int if_index_mask, HAL_OUT uint8_t *buffer,
+                        HAL_IN size_t length, HAL_OUT macaddr_t src_mac,
+                        HAL_OUT macaddr_t dst_mac, HAL_IN int64_t timeout,
+                        HAL_OUT int *if_index) {
   if (!inited) {
     return HAL_ERR_CALLED_BEFORE_INIT;
   }
   if ((if_index_mask & ((1 << N_IFACE_ON_BOARD) - 1)) == 0 ||
-      (timeout < 0 && timeout != -1) || (if_index == NULL) || (buffer == NULL)) {
+      (timeout < 0 && timeout != -1) || (if_index == NULL) ||
+      (buffer == NULL)) {
     return HAL_ERR_INVALID_PARAMETER;
   }
 
@@ -314,8 +323,8 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
   return 0;
 }
 
-int HAL_SendIPPacket(HAL_IN int if_index, HAL_IN uint8_t *buffer, HAL_IN size_t length,
-                     HAL_IN macaddr_t dst_mac) {
+int HAL_SendIPPacket(HAL_IN int if_index, HAL_IN uint8_t *buffer,
+                     HAL_IN size_t length, HAL_IN macaddr_t dst_mac) {
   if (!inited) {
     return HAL_ERR_CALLED_BEFORE_INIT;
   }

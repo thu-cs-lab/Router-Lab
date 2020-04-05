@@ -167,7 +167,8 @@ uint64_t HAL_GetTicks() {
   return (uint64_t)tp.tv_sec * 1000 + (uint64_t)tp.tv_nsec / 1000000;
 }
 
-int HAL_ArpGetMacAddress(int if_index, in_addr_t ip, macaddr_t o_mac) {
+int HAL_ArpGetMacAddress(HAL_IN int if_index, HAL_IN in_addr_t ip,
+                         HAL_OUT macaddr_t o_mac) {
   if (!inited) {
     return HAL_ERR_CALLED_BEFORE_INIT;
   }
@@ -235,7 +236,7 @@ int HAL_ArpGetMacAddress(int if_index, in_addr_t ip, macaddr_t o_mac) {
   return HAL_ERR_IP_NOT_EXIST;
 }
 
-int HAL_GetInterfaceMacAddress(int if_index, macaddr_t o_mac) {
+int HAL_GetInterfaceMacAddress(HAL_IN int if_index, HAL_OUT macaddr_t o_mac) {
   if (!inited) {
     return HAL_ERR_CALLED_BEFORE_INIT;
   }
@@ -247,9 +248,10 @@ int HAL_GetInterfaceMacAddress(int if_index, macaddr_t o_mac) {
   return 0;
 }
 
-int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
-                        macaddr_t src_mac, macaddr_t dst_mac, int64_t timeout,
-                        int *if_index) {
+int HAL_ReceiveIPPacket(HAL_IN int if_index_mask, HAL_OUT uint8_t *buffer,
+                        HAL_IN size_t length, HAL_OUT macaddr_t src_mac,
+                        HAL_OUT macaddr_t dst_mac, HAL_IN int64_t timeout,
+                        HAL_OUT int *if_index) {
   if (!inited) {
     return HAL_ERR_CALLED_BEFORE_INIT;
   }
