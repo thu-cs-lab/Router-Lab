@@ -1,0 +1,79 @@
+<svg width="800" height="600" stroke="black">
+    <g transform="translate(0, 0)">
+        <rect width="100" height="100" x="10" y="10" fill="white" stroke-width="3" />
+        <text x="12" y="25">
+            Rpi #1
+        </text>
+        <line x1="20" y1="110" x2="20" y2="150" stroke-width="3"/>
+        <text x="20" y="105" font-size="7px">
+            VLAN 3
+        </text>
+        <line x1="50" y1="110" x2="50" y2="150" stroke-width="3"/>
+        <text x="50" y="105" font-size="7px">
+            VLAN 4
+        </text>
+        <line x1="80" y1="110" x2="80" y2="150" stroke-width="3"/>
+        <text x="80" y="105" font-size="7px">
+            VLAN 5
+        </text>
+    </g>
+    <g transform="translate(120, 0)">
+        <rect width="100" height="100" x="10" y="10" fill="white" stroke-width="3" />
+        <text x="12" y="25">
+            Rpi #2
+        </text>
+        <line x1="20" y1="110" x2="20" y2="150" stroke-width="3"/>
+        <text x="20" y="105" font-size="7px">
+            VLAN 3
+        </text>
+        <line x1="50" y1="110" x2="50" y2="150" stroke-width="3"/>
+        <text x="50" y="105" font-size="7px">
+            VLAN 5
+        </text>
+        <line x1="80" y1="110" x2="80" y2="150" stroke-width="3"/>
+        <text x="80" y="105" font-size="7px">
+            VLAN 6
+        </text>
+    </g>
+    <g transform="translate(240, 0)">
+        <rect width="100" height="100" x="10" y="10" fill="white" stroke-width="3" />
+        <text x="12" y="25">
+            Rpi #3
+        </text>
+        <line x1="20" y1="110" x2="20" y2="150" stroke-width="3"/>
+        <text x="20" y="105" font-size="7px">
+            VLAN 3
+        </text>
+        <line x1="50" y1="110" x2="50" y2="150" stroke-width="3"/>
+        <text x="50" y="105" font-size="7px">
+            VLAN 6
+        </text>
+        <line x1="80" y1="110" x2="80" y2="150" stroke-width="3"/>
+        <text x="80" y="105" font-size="7px">
+            VLAN 7
+        </text>
+    </g>
+    <g>
+        <rect width="470" height="100" x="5" y="150" fill="white" stroke-width="3" />
+        <text x="12" y="170">
+            <tspan x="12" dy="0">Switch</tspan>
+            <tspan x="12" dy="1.2em">VLAN 2: management for switch</tspan>
+            <tspan x="12" dy="1.2em">VLAN 3: management for rpi</tspan>
+            <tspan x="12" dy="1.2em">VLAN 4-6: lab</tspan>
+        </text>
+    </g>
+    <g transform="translate(360, 0)">
+        <rect width="100" height="100" x="10" y="10" fill="white" stroke-width="3" />
+        <text x="12" y="25">
+            Server
+        </text>
+        <line x1="20" y1="110" x2="20" y2="150" stroke-width="3"/>
+        <text x="20" y="105" font-size="7px">
+            VLAN 2
+        </text>
+        <line x1="80" y1="110" x2="80" y2="150" stroke-width="3"/>
+        <text x="80" y="105" font-size="7px">
+            VLAN 3
+        </text>
+    </g>
+</svg>
