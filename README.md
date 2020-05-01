@@ -10,4 +10,4 @@
 
 ## 文档
 
-文档源码见 [Router-Lab-Docs](https://github.com/thu-cs-lab/Router-Lab-Docs) 仓库，编译后的版本在 [此处](https://lab.cs.tsinghua.edu.cn/router/doc) 发布。
+文档源码见 [Router-Lab-Docs](https://github.com/thu-cs-lab/Router-Lab-Docs) 仓库，编译后的版本在 [此处](https://lab.cs.tsinghua.edu.cn/router/doc/) 发布。
