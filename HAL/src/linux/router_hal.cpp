@@ -16,11 +16,7 @@
 #include <time.h>
 #include <utility>
 
-#ifndef HAL_PLATFORM_TESTING
 #include "platform/standard.h"
-#else
-#include "platform/testing.h"
-#endif
 
 const int IP_OFFSET = 14;
 

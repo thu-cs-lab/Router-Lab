@@ -17,8 +17,3 @@ endif()
 add_library(router_hal ${SOURCES} ${HEADERS})
 target_include_directories(router_hal PUBLIC include)
 target_link_libraries(router_hal ${LIBRARIES})
-
-option(HAL_TESTING "Use testing parameters for HAL" OFF)
-if(${HAL_TESTING} STREQUAL ON)
-    add_definitions("-DHAL_PLATFORM_TESTING")
-endif()
