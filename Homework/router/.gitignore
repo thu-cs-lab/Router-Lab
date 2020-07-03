@@ -1,5 +1,5 @@
 *.o
-boilerplate
+router
 std
 std.cpp
 !*_output*.out
