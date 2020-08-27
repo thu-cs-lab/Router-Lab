@@ -1,7 +1,7 @@
 default:
     before_script:
-        - sudo apt update
-        - sudo apt install -y python3-pip
+        - apt update
+        - apt install -y python3-pip
         - pip3 install pyshark
 
 homework:
