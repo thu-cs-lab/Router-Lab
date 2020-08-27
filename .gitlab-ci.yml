@@ -8,13 +8,13 @@ homework:
     script:
         - mkdir logs
         - make -C Homework/checksum
-        - cd Homework/checksum && python3 grade.py | tee logs/checksum.log
+        - cd Homework/checksum && python3 grade.py | tee ../../logs/checksum.log
         - make -C Homework/forwarding
-        - cd Homework/forwarding && python3 grade.py | tee logs/forwarding.log
+        - cd Homework/forwarding && python3 grade.py | tee ../../logs/forwarding.log
         - make -C Homework/lookup
-        - cd Homework/lookup && python3 grade.py | tee logs/lookup.log
+        - cd Homework/lookup && python3 grade.py | tee ../../logs/lookup.log
         - make -C Homework/protocol
-        - cd Homework/protocol && python3 grade.py | tee logs/protocol.log
+        - cd Homework/protocol && python3 grade.py | tee ../../logs/protocol.log
     artifacts:
         paths:
             - logs
