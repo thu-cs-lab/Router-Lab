@@ -1,0 +1,19 @@
+default:
+    before_script:
+        - pip3 install pyshark
+
+homework:
+    script:
+        - make -C Homework/checksum
+        - cd Homework/checksum && python3 grade.py | tee checksum.log
+        - make -C Homework/forwarding
+        - cd Homework/forwarding && python3 grade.py | tee forwarding.log
+        - make -C Homework/lookup
+        - cd Homework/lookup && python3 grade.py | tee lookup.log
+        - make -C Homework/protocol
+        - cd Homework/protocol && python3 grade.py | tee protocol.log
+    artifacts:
+        paths:
+            - *.log
+        when: always
+        expire_in: 1 year

@@ -2,6 +2,7 @@ build/
 .vscode/
 .idea/
 cmake-build-*/
+*.log
 
 # Created by https://www.gitignore.io/api/c++,cmake
 # Edit at https://www.gitignore.io/?templates=c++,cmake
