@@ -1,7 +1,7 @@
 default:
     before_script:
         - apt update
-        - apt install -y python3-pip
+        - apt install -y python3-pip libpcap-dev
         - pip3 install pyshark
 
 homework:
