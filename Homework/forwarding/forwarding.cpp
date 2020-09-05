@@ -1,6 +1,9 @@
 #include <stdint.h>
 #include <stdlib.h>
 
+// 在 checksum.cpp 中定义
+extern bool validateIPChecksum(uint8_t *packet, size_t len);
+
 /**
  * @brief 进行转发时所需的 IP 头的更新：
  *        你需要先检查 IP 头校验和的正确性，如果不正确，直接返回 false ；
