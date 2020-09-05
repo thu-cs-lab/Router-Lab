@@ -171,7 +171,16 @@ int main(int argc, char *argv[]) {
         }
       } else {
         // not a rip packet
-        // check icmp echo request packet
+        // handle icmp echo request packet
+        // TODO: how to determine?
+        if (false) {
+          // construct icmp echo reply
+          // reply is mostly the same as request,
+          // you need to:
+          // 1. swap src ip addr and dst ip addr
+          // 2. change icmp `type` in header
+          // 3. re-calculate icmp checksum and ip checksum
+        }
       }
     } else {
       // 3b.1 dst is not me
