@@ -187,10 +187,20 @@ int main(int argc, char *argv[]) {
       // 3b.1 dst is not me
       // check ttl
       uint8_t ttl = packet[8];
-      if (ttl == 0) {
+      if (ttl <= 1) {
         // send icmp time to live exceeded to src addr
-      } else {
+        // fill IP header
+        output[0] = 0x45;
+        // ttl = 64
 
+        // fill icmp header
+        // icmp type = Time Exceeded
+        // icmp code = 0
+        // fill unused fields with zero
+        // append "ip header and first 8 bytes of the original payload"
+
+        // calculate icmp checksum and ip checksum
+      } else {
         // forward
         // beware of endianness
         uint32_t nexthop, dest_if;
