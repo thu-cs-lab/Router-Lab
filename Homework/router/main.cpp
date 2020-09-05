@@ -225,8 +225,20 @@ int main(int argc, char *argv[]) {
           }
         } else {
           // not found
-          // TODO(optional): send ICMP Host Unreachable
+          // TODO: send ICMP Destination Network Unreachable
           printf("IP not found for src %x dst %x\n", src_addr, dst_addr);
+          // send icmp destination net unreachable to src addr
+          // fill IP header
+          output[0] = 0x45;
+          // ttl = 64
+
+          // fill icmp header
+          // icmp type = Destination Unreachable
+          // icmp code = Destination Network Unreachable
+          // fill unused fields with zero
+          // append "ip header and first 8 bytes of the original payload"
+
+          // calculate icmp checksum and ip checksum
         }
       }
     }
