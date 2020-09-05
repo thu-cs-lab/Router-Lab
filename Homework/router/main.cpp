@@ -164,9 +164,9 @@ int main(int argc, char *argv[]) {
           // update metric, if_index, nexthop
           // HINT: handle nexthop = 0 case
           // HINT: what is missing from RoutingTableEntry?
-          // you might want to use `prefix_query` and `update` but beware of the
-          // difference between exact match and longest prefix match optional:
-          // triggered updates? ref. RFC2453 3.10.1
+          // you might want to use `prefix_query` and `update`, but beware of
+          // the difference between exact match and longest prefix match.
+          // optional: triggered updates ref. RFC2453 3.10.1
         }
       } else {
         // not a rip packet
