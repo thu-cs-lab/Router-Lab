@@ -2,7 +2,7 @@ CXX ?= g++
 LAB_ROOT ?= ../..
 BACKEND ?= LINUX
 LDFLAGS = -lpcap
-override CXXFLAGS += --std=c++11 -I $(LAB_ROOT)/HAL/include -DROUTER_BACKEND_$(BACKEND) -Wno-psabi
+override CXXFLAGS += --std=c++11 -I $(LAB_ROOT)/HAL/include -DROUTER_BACKEND_$(BACKEND) -Wno-psabi -O2
 
 .PHONY: all clean
 all: router
