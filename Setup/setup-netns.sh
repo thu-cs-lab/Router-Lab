@@ -1,0 +1,54 @@
+#!/bin/bash
+
+# netns
+for ns in PC1 R1 R2 R3 PC2
+do
+    ip netns delete $ns 2>/dev/null
+    sleep 1
+    ip netns add $ns
+done
+echo 'Netns created'
+
+# PC1 <-> R1
+ip l del pc1r1 2>/dev/null
+ip l add pc1r1 type veth peer name r1pc1
+ip l set pc1r1 netns PC1
+ip l set r1pc1 netns R1
+ip netns exec PC1 ip a add 192.168.1.2/24 dev pc1r1
+ip netns exec PC1 ip l set pc1r1 up
+ip netns exec PC1 ip r add default via 192.168.1.1
+ip netns exec R1 ip a add 192.168.1.2/24 dev r1pc1
+ip netns exec R1 ip l set r1pc1 up
+echo 'PC1 <-> R1 done'
+
+# R1 <-> R2
+ip l del r1r2 2>/dev/null
+ip l add r1r2 type veth peer name r2r1
+ip l set r1r2 netns R1
+ip l set r2r1 netns R2
+ip netns exec R1 ip a add 192.168.3.1/24 dev r1r2
+ip netns exec R1 ip l set r1r2 up
+ip netns exec R2 ip l set r2r1 up
+echo 'R1 <-> R2 done'
+
+# R2 <-> R3
+ip l del r2r3 2>/dev/null
+ip l add r2r3 type veth peer name r3r2
+ip l set r2r3 netns R2
+ip l set r3r2 netns R3
+ip netns exec R3 ip a add 192.168.4.2/24 dev r3r2
+ip netns exec R3 ip l set r3r2 up
+ip netns exec R2 ip l set r2r3 up
+echo 'R2 <-> R3 done'
+
+# R3 <-> PC2
+ip l del r3pc2 2>/dev/null
+ip l add r3pc2 type veth peer name pc2r3
+ip l set r3pc2 netns R3
+ip l set pc2r3 netns PC2
+ip netns exec PC2 ip a add 192.168.5.1/24 dev pc2r3
+ip netns exec PC2 ip l set pc2r3 up
+ip netns exec PC2 ip r add default via 192.168.5.2
+ip netns exec R3 ip a add 192.168.5.2/24 dev r3pc2
+ip netns exec R3 ip l set r3pc2 up
+echo 'R3 <-> PC2 done'
