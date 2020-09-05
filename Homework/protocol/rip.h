@@ -1,9 +1,9 @@
 #include <stdint.h>
 #define RIP_MAX_ENTRY 25
 typedef struct {
-  // all fields are big endian
-  // we don't store 'family', as it is always 2(response) and 0(request)
-  // we don't store 'tag', as it is always 0
+  // 所有字段都是大端序
+  // 没有存储 `family` 字段，因为在请求里是 0，在回应里是 2
+  // 也不用存储 `tag` 字段，因为它是 0
   uint32_t addr;
   uint32_t mask;
   uint32_t nexthop;
@@ -12,9 +12,9 @@ typedef struct {
 
 typedef struct {
   uint32_t numEntries;
-  // all fields below are big endian
+  // 下面所有字段都是大端序
   uint8_t command;
-  // we don't store 'version', as it is always 2
-  // we don't store 'zero', as it is always 0
+  // 不用存储 `version`，因为它总是 2
+  // 不用存储 `zero`，因为它总是 0
   RipEntry entries[RIP_MAX_ENTRY];
 } RipPacket;
