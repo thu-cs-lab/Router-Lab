@@ -35,7 +35,7 @@ uint32_t assemble(const RipPacket *rip, uint8_t *buffer) {
 
 用 Wireshark 打开，可以看到有两个合法的 RIP 包，它们的内容是一样的：
 
-```
+```text
 Routing Information Protocol
     Command: Response (2)
     Version: RIPv2 (2)

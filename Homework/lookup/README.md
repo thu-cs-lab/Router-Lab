@@ -32,7 +32,6 @@ bool query(uint32_t addr, uint32_t *nexthop, uint32_t *if_index) {
 
 从这题的数据量来说，实现一个线性查表即可以得到所有分数，我们认为网络课程不是算法课程，不应该在性能上做过高的基本要求，如果你确实实现了很优秀的算法，请到 [评测鸭的《测测你的路由器》题目](https://duck.ac/problem/router32) 中评测。
 
-
 ## 样例 4
 
 见题目目录下的 *lookup_input4.in* 与 *lookup_output4.out*。
@@ -41,7 +40,7 @@ bool query(uint32_t addr, uint32_t *nexthop, uint32_t *if_index) {
 
 需要注意，文件中的数字都是大端序存储，所以 0x04030201 代表 1.2.3.4 。可以看到这个输入数据中构造了这样的一个路由表：
 
-```
+```text
 1.2.3.0 netmask 255.255.255.0 via if9 nexthop 192.168.3.2
 1.2.3.4 netmask 255.255.255.255 via if10 nexthop 192.168.9.1
 ```
