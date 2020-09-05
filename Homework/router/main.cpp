@@ -77,11 +77,15 @@ int main(int argc, char *argv[]) {
     uint64_t time = HAL_GetTicks();
     // when testing, you can change 30s to 5s
     if (time > last_time + 30 * 1000) {
-      // TODO: send complete routing table to every interface
       // ref. RFC2453 Section 3.8
       // multicast MAC for 224.0.0.9 is 01:00:5e:00:00:09
       printf("30s Timer\n");
-      // TODO: print complete routing table to stdout/stderr
+      // HINT: print complete routing table to stdout/stderr for debugging
+      // TODO: send complete routing table to every interface
+      for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
+        // construct rip response
+        // do the same thing as step 3a.3
+      }
       last_time = time;
     }
 
@@ -133,6 +137,8 @@ int main(int argc, char *argv[]) {
 
           RipPacket resp;
           // TODO: fill resp
+          // implement split horizon with poisoned reverse
+          // ref. RFC2453 Section 3.4.3
 
           // TODO: fill IP headers
           output[0] = 0x45;
