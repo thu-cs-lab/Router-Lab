@@ -75,10 +75,11 @@ int main(int argc, char *argv[]) {
   uint64_t last_time = 0;
   while (1) {
     uint64_t time = HAL_GetTicks();
-    // when testing, you can change 30s to 5s
-    if (time > last_time + 30 * 1000) {
+    // the RFC says 30s interval,
+    // but for faster convergence, use 5s here
+    if (time > last_time + 5 * 1000) {
       // ref. RFC2453 Section 3.8
-      printf("30s Timer\n");
+      printf("5s Timer\n");
       // HINT: print complete routing table to stdout/stderr for debugging
       // TODO: send complete routing table to every interface
       for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
