@@ -1,8 +1,8 @@
-#include "router_hal.h"
 #include "router.h"
+#include "router_hal.h"
 #include <stdint.h>
-#include <stdlib.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 extern void update(bool insert, RoutingTableEntry entry);
 extern bool prefix_query(uint32_t addr, uint32_t *nexthop, uint32_t *if_index);
@@ -20,11 +20,7 @@ int main(int argc, char *argv[]) {
     } else if (buffer[0] == 'D') {
       sscanf(buffer, "%c,%x,%d", &tmp, &addr, &len);
       RoutingTableEntry entry = {
-        .addr = addr,
-        .len = len,
-        .if_index = 0,
-        .nexthop = 0
-      };
+          .addr = addr, .len = len, .if_index = 0, .nexthop = 0};
       update(false, entry);
     } else if (buffer[0] == 'Q') {
       sscanf(buffer, "%c,%x", &tmp, &addr);
