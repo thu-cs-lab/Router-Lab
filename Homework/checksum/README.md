@@ -3,12 +3,7 @@
 这一题要求你进行 IP 头的校验和计算，请你修改 `checksum.cpp` 文件，实现这样的一个函数：
 
 ```cpp
-/**
- * @brief 进行 IP 头的校验和的验证
- * @param packet 完整的 IP 头和载荷
- * @param len 即 packet 是长度，单位是字节，保证包含完整的 IP 头
- * @return 校验和无误则返回 true ，有误则返回 false
- */
+// 函数注释见代码
 bool validateIPChecksum(unsigned char *packet, unsigned long len) {
     // TODO
     return true;
