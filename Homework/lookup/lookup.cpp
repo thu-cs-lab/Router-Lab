@@ -37,7 +37,7 @@ void update(bool insert, RoutingTableEntry entry) {
  * @param if_index 如果查询到目标，把表项的 if_index 写入
  * @return 查到则返回 true ，没查到则返回 false
  */
-bool query(uint32_t addr, uint32_t *nexthop, uint32_t *if_index) {
+bool prefix_query(uint32_t addr, uint32_t *nexthop, uint32_t *if_index) {
   // TODO:
   *nexthop = 0;
   *if_index = 0;

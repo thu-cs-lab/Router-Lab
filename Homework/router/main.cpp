@@ -8,7 +8,7 @@
 
 extern bool validateIPChecksum(uint8_t *packet, size_t len);
 extern void update(bool insert, RoutingTableEntry entry);
-extern bool query(uint32_t addr, uint32_t *nexthop, uint32_t *if_index);
+extern bool prefix_query(uint32_t addr, uint32_t *nexthop, uint32_t *if_index);
 extern bool forward(uint8_t *packet, size_t len);
 extern bool disassemble(const uint8_t *packet, uint32_t len, RipPacket *output);
 extern uint32_t assemble(const RipPacket *rip, uint8_t *buffer);
@@ -130,7 +130,7 @@ int main(int argc, char *argv[]) {
           // update metric, if_index, nexthop
           // HINT: handle nexthop = 0 case
           // HINT: what is missing from RoutingTableEntry?
-          // you might want to use `query` and `update` but beware of the difference between exact match and longest prefix match
+          // you might want to use `prefix_query` and `update` but beware of the difference between exact match and longest prefix match
           // optional: triggered updates? ref. RFC2453 3.10.1
         }
       }
@@ -139,7 +139,7 @@ int main(int argc, char *argv[]) {
       // forward
       // beware of endianness
       uint32_t nexthop, dest_if;
-      if (query(dst_addr, &nexthop, &dest_if)) {
+      if (prefix_query(dst_addr, &nexthop, &dest_if)) {
         // found
         macaddr_t dest_mac;
         // direct routing

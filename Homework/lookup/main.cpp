@@ -5,7 +5,7 @@
 #include <stdio.h>
 
 extern void update(bool insert, RoutingTableEntry entry);
-extern bool query(uint32_t addr, uint32_t *nexthop, uint32_t *if_index);
+extern bool prefix_query(uint32_t addr, uint32_t *nexthop, uint32_t *if_index);
 char buffer[1024];
 
 int main(int argc, char *argv[]) {
@@ -28,7 +28,7 @@ int main(int argc, char *argv[]) {
       update(false, entry);
     } else if (buffer[0] == 'Q') {
       sscanf(buffer, "%c,%x", &tmp, &addr);
-      if (query(addr, &nexthop, &if_index)) {
+      if (prefix_query(addr, &nexthop, &if_index)) {
         printf("0x%08x %d\n", nexthop, if_index);
       } else {
         printf("Not Found\n");
