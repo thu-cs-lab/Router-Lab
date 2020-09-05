@@ -15,13 +15,39 @@ extern uint32_t assemble(const RipPacket *rip, uint8_t *buffer);
 
 uint8_t packet[2048];
 uint8_t output[2048];
+
+// for online experiment, don't change
+#ifdef ROUTER_R1
+// 0: 192.168.1.1
+// 1: 192.168.3.1
+// 2: 192.168.6.1
+// 3: 192.168.7.1
+const in_addr_t addrs[N_IFACE_ON_BOARD] = {0x0101a8c0, 0x0103a8c0, 0x0106a8c0,
+                                           0x0107a8c0};
+#elif defined(ROUTER_R2)
+// 0: 192.168.3.2
+// 1: 192.168.4.1
+// 2: 192.168.8.1
+// 3: 192.168.9.1
+const in_addr_t addrs[N_IFACE_ON_BOARD] = {0x0203a8c0, 0x0104a8c0, 0x0108a8c0,
+                                           0x0109a8c0};
+#elif defined(ROUTER_R3)
+// 0: 192.168.4.2
+// 1: 192.168.5.2
+// 2: 192.168.10.1
+// 3: 192.168.11.1
+const in_addr_t addrs[N_IFACE_ON_BOARD] = {0x0204a8c0, 0x0205a8c0, 0x010aa8c0,
+                                           0x010ba8c0};
+#else
+
+// 自己调试用，你可以按需进行修改，注意端序
 // 0: 10.0.0.1
 // 1: 10.0.1.1
 // 2: 10.0.2.1
 // 3: 10.0.3.1
-// 你可以按需进行修改，注意端序
 in_addr_t addrs[N_IFACE_ON_BOARD] = {0x0100000a, 0x0101000a, 0x0102000a,
                                      0x0103000a};
+#endif
 
 int main(int argc, char *argv[]) {
   // 0a.
@@ -39,9 +65,9 @@ int main(int argc, char *argv[]) {
   for (uint32_t i = 0; i < N_IFACE_ON_BOARD; i++) {
     RoutingTableEntry entry = {
         .addr = addrs[i] & 0x00FFFFFF, // big endian
-        .len = 24,        // small endian
-        .if_index = i,    // small endian
-        .nexthop = 0      // big endian, means direct
+        .len = 24,                     // small endian
+        .if_index = i,                 // small endian
+        .nexthop = 0                   // big endian, means direct
     };
     update(true, entry);
   }
@@ -80,6 +106,7 @@ int main(int argc, char *argv[]) {
     // 1. validate
     if (!validateIPChecksum(packet, res)) {
       printf("Invalid IP Checksum\n");
+      // drop if ip checksum invalid
       continue;
     }
     in_addr_t src_addr, dst_addr;
@@ -130,9 +157,13 @@ int main(int argc, char *argv[]) {
           // update metric, if_index, nexthop
           // HINT: handle nexthop = 0 case
           // HINT: what is missing from RoutingTableEntry?
-          // you might want to use `prefix_query` and `update` but beware of the difference between exact match and longest prefix match
-          // optional: triggered updates? ref. RFC2453 3.10.1
+          // you might want to use `prefix_query` and `update` but beware of the
+          // difference between exact match and longest prefix match optional:
+          // triggered updates? ref. RFC2453 3.10.1
         }
+      } else {
+        // not a rip packet
+        // check icmp echo request packet
       }
     } else {
       // 3b.1 dst is not me

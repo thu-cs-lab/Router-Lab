@@ -1,5 +1,6 @@
 #include "router_hal.h"
 
+// for online experiment, don't change
 #ifdef ROUTER_R1
 const char *interfaces[N_IFACE_ON_BOARD] = {
     "r1topc1",
@@ -26,6 +27,7 @@ const char *interfaces[N_IFACE_ON_BOARD] = {
 };
 
 #else
+// you can customize this
 // configure this to match the output of `ip a`
 const char *interfaces[N_IFACE_ON_BOARD] = {
     "eth1",
