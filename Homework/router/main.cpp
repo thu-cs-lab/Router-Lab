@@ -78,13 +78,14 @@ int main(int argc, char *argv[]) {
     // when testing, you can change 30s to 5s
     if (time > last_time + 30 * 1000) {
       // ref. RFC2453 Section 3.8
-      // multicast MAC for 224.0.0.9 is 01:00:5e:00:00:09
       printf("30s Timer\n");
       // HINT: print complete routing table to stdout/stderr for debugging
       // TODO: send complete routing table to every interface
       for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
         // construct rip response
-        // do the same thing as step 3a.3
+        // do the mostly same thing as step 3a.3
+        // except that dst_ip is RIP multicast IP 224.0.0.9
+        // and dst_mac is RIP multicast MAC 01:00:5e:00:00:09
       }
       last_time = time;
     }
