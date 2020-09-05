@@ -185,32 +185,39 @@ int main(int argc, char *argv[]) {
       }
     } else {
       // 3b.1 dst is not me
-      // forward
-      // beware of endianness
-      uint32_t nexthop, dest_if;
-      if (prefix_query(dst_addr, &nexthop, &dest_if)) {
-        // found
-        macaddr_t dest_mac;
-        // direct routing
-        if (nexthop == 0) {
-          nexthop = dst_addr;
-        }
-        if (HAL_ArpGetMacAddress(dest_if, nexthop, dest_mac) == 0) {
+      // check ttl
+      uint8_t ttl = packet[8];
+      if (ttl == 0) {
+        // send icmp time to live exceeded to src addr
+      } else {
+
+        // forward
+        // beware of endianness
+        uint32_t nexthop, dest_if;
+        if (prefix_query(dst_addr, &nexthop, &dest_if)) {
           // found
-          memcpy(output, packet, res);
-          // update ttl and checksum
-          forward(output, res);
-          // TODO(optional): check ttl=0 case
-          HAL_SendIPPacket(dest_if, output, res, dest_mac);
+          macaddr_t dest_mac;
+          // direct routing
+          if (nexthop == 0) {
+            nexthop = dst_addr;
+          }
+          if (HAL_ArpGetMacAddress(dest_if, nexthop, dest_mac) == 0) {
+            // found
+            memcpy(output, packet, res);
+            // update ttl and checksum
+            forward(output, res);
+            // TODO(optional): check ttl=0 case
+            HAL_SendIPPacket(dest_if, output, res, dest_mac);
+          } else {
+            // not found
+            // you can drop it
+            printf("ARP not found for nexthop %x\n", nexthop);
+          }
         } else {
           // not found
-          // you can drop it
-          printf("ARP not found for nexthop %x\n", nexthop);
+          // TODO(optional): send ICMP Host Unreachable
+          printf("IP not found for src %x dst %x\n", src_addr, dst_addr);
         }
-      } else {
-        // not found
-        // TODO(optional): send ICMP Host Unreachable
-        printf("IP not found for src %x dst %x\n", src_addr, dst_addr);
       }
     }
   }
