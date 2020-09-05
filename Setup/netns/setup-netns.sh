@@ -17,7 +17,7 @@ ip l set r1pc1 netns R1
 ip netns exec PC1 ip a add 192.168.1.2/24 dev pc1r1
 ip netns exec PC1 ip l set pc1r1 up
 ip netns exec PC1 ip r add default via 192.168.1.1
-ip netns exec R1 ip a add 192.168.1.2/24 dev r1pc1
+ip netns exec R1 ip a add 192.168.1.1/24 dev r1pc1
 ip netns exec R1 ip l set r1pc1 up
 echo 'PC1 <-> R1 done'
 
