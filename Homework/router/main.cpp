@@ -179,7 +179,8 @@ int main(int argc, char *argv[]) {
           // you need to:
           // 1. swap src ip addr and dst ip addr
           // 2. change icmp `type` in header
-          // 3. re-calculate icmp checksum and ip checksum
+          // 3. set ttl to 64
+          // 4. re-calculate icmp checksum and ip checksum
         }
       }
     } else {
