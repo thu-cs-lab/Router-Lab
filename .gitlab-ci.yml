@@ -1,5 +1,6 @@
 default:
     before_script:
+        - sed -i 's/deb.debian.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list
         - apt update
         - apt install -y python3-pip libpcap-dev
         - pip3 install pyshark
