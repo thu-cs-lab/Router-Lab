@@ -32,8 +32,8 @@ router:
         - make -C Homework/router/r3
     artifacts:
         paths:
-            - Homework/router/r1
-            - Homework/router/r2
-            - Homework/router/r3
+            - Homework/router/r1/router
+            - Homework/router/r2/router
+            - Homework/router/r3/router
         when: always
         expire_in: 1 year
