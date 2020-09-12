@@ -21,3 +21,18 @@ homework:
             - logs
         when: always
         expire_in: 1 year
+
+router:
+    tags:
+        - arm64
+    script:
+        - make -C Homework/router/r1
+        - make -C Homework/router/r2
+        - make -C Homework/router/r3
+    artifacts:
+        paths:
+            - Homework/router/r1
+            - Homework/router/r2
+            - Homework/router/r3
+        when: always
+        expire_in: 1 year
