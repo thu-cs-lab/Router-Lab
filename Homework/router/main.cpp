@@ -216,7 +216,6 @@ int main(int argc, char *argv[]) {
             memcpy(output, packet, res);
             // update ttl and checksum
             forward(output, res);
-            // TODO(optional): check ttl=0 case
             HAL_SendIPPacket(dest_if, output, res, dest_mac);
           } else {
             // not found
