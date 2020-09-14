@@ -150,7 +150,7 @@ int main(int argc, char *argv[]) {
           output[20] = 0x02;
           output[21] = 0x08;
 
-          // assembleRIP
+          // assemble RIP
           uint32_t rip_len = assemble(&resp, &output[20 + 8]);
 
           // TODO: checksum calculation for ip and udp
