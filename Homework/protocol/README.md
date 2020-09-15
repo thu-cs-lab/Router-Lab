@@ -2,7 +2,7 @@
 
 ## 题目描述
 
-这一题要求你实现 RIPv2 数据格式的处理，你需要按照 `protocol.cpp` 文件中函数的注释，实现如下两个函数：
+这一题要求你实现 [RFC 2453: RIP Version 2](https://tools.ietf.org/html/rfc2453) 数据格式的处理，你需要按照 `protocol.cpp` 文件中函数的注释，实现如下两个函数：
 
 ```cpp
 // 函数注释见代码
