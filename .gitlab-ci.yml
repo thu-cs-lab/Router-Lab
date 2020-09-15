@@ -17,15 +17,9 @@ homework:
         expire_in: 1 year
 
 router:
-    image: debian:stretch
+    image: jiegec/router-lab-aarch64
     tags:
         - arm64
-    before_script:
-        - sed -i 's/deb.debian.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list
-        - sed -i 's/security.debian.org/mirrors.tuna.tsinghua.edu.cn/g' /etc/apt/sources.list
-        - apt update
-        - apt install -y python3-pip python3-py python3-lxml libpcap-dev libxml2-dev libxslt-dev
-        - pip3 install -i https://pypi.tuna.tsinghua.edu.cn/simple pyshark
     script:
         - make -C Homework/router/r1
         - make -C Homework/router/r2
