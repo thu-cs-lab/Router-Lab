@@ -26,7 +26,7 @@ bool query(uint32_t addr, uint32_t *nexthop, uint32_t *if_index) {
 1. 路由表的插入和删除
 2. 路由表的查询，返回是否查到，如果查到还需要写入 nexthop 和 if_index
 
-请一定注意，题中的 addr len nexthop 都是大端序存储的，你可以使用位运算或者 ntohl 函数进行大小端序的转换。
+请一定注意，题中的 addr nexthop 都是大端序存储的，你可以使用位运算或者 ntohl 函数进行大小端序的转换。
 
 在 `data` 目录中提供了评测使用的数据。输入数据一共有 $n$ 行，每一行表示一个操作，第一个字符如果是 `I` ，后面跟了四个数字对应 `addr` `len` `if_index` 和 `nexthop` ，表示插入；第一个字符如果是 `D` ，后面跟了两个数字对应 `addr` 和 `len` ，表示删除；第一个字符如果是 `Q` ，后面一个数字表示要查询的 IPv4 地址。输出中每一行对应了输入中 `Q` 操作的行，如果查询到了，则输出 `nexthop` 和 `if_index` ，否则输出 `Not Found` 。你不需要在你的代码中处理输入输出。
 
