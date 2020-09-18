@@ -23,7 +23,7 @@ uint32_t assemble(const RipPacket *rip, uint8_t *buffer) {
 1. 解析 IP 、 UDP 和 RIPv2 的格式，把有用的信息保存下来
 2. 如果上一步得到了合法的数据，从保存下来的信息恢复出 RIP 的传输格式
 
-需要注意的是，这一题中所有数据都是网络传输的数据格式，所以每一个 RIP 数据字段都是大端序，见 `rip.h` 中的注释。
+需要注意的是，这一题中所有数据都是网络传输的数据格式，所以每一个 RIP 数据字段都是网络字节序，见 `rip.h` 中的注释。
 
 评测所使用的数据都在 `data` 目录下。输入一共有 $n$ 个包，`main.cpp` 会调用你的代码来判断每个包是不是一个合法的 RIP 包，如果是，则保存下来，输出一行 `Valid {numEntries} {command}`，之后是 `numEntries` 行，每一行四个十六进制数，分别对应 `addr` `mask` `nexthop` 和 `metric` ，再输出一行，是重新构造出来的 RIP 包，用十六进制格式输出；如果不合法，就输出 `Invalid` 。
 
@@ -48,4 +48,4 @@ Routing Information Protocol
         Metric: 1
 ```
 
-把对应的内容填入结构体即可，需要注意端序。
+把对应的内容填入结构体即可，需要注意字节序。
