@@ -78,7 +78,7 @@ int main(int argc, char *argv[]) {
     // the RFC says 30s interval,
     // but for faster convergence, use 5s here
     if (time > last_time + 5 * 1000) {
-      // ref. RFC2453 Section 3.8
+      // ref. RFC 2453 Section 3.8
       printf("5s Timer\n");
       // HINT: print complete routing table to stdout/stderr for debugging
       // TODO: send complete routing table to every interface
@@ -134,13 +134,13 @@ int main(int argc, char *argv[]) {
       // check and validate
       if (disassemble(packet, res, &rip)) {
         if (rip.command == 1) {
-          // 3a.3 request, ref. RFC2453 Section 3.9.1
+          // 3a.3 request, ref. RFC 2453 Section 3.9.1
           // only need to respond to whole table requests in the lab
 
           RipPacket resp;
           // TODO: fill resp
           // implement split horizon with poisoned reverse
-          // ref. RFC2453 Section 3.4.3
+          // ref. RFC 2453 Section 3.4.3
 
           // TODO: fill IP headers
           output[0] = 0x45;
@@ -159,7 +159,7 @@ int main(int argc, char *argv[]) {
           // send it back
           HAL_SendIPPacket(if_index, output, rip_len + 20 + 8, src_mac);
         } else {
-          // 3a.2 response, ref. RFC2453 Section 3.9.2
+          // 3a.2 response, ref. RFC 2453 Section 3.9.2
           // TODO: update routing table
           // new metric = ?
           // update metric, if_index, nexthop
@@ -167,7 +167,7 @@ int main(int argc, char *argv[]) {
           // HINT: what is missing from RoutingTableEntry?
           // you might want to use `prefix_query` and `update`, but beware of
           // the difference between exact match and longest prefix match.
-          // optional: triggered updates ref. RFC2453 3.10.1
+          // optional: triggered updates ref. RFC 2453 Section 3.10.1
         }
       } else {
         // not a rip packet
