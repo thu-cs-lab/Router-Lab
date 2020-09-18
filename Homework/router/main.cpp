@@ -40,7 +40,7 @@ const in_addr_t addrs[N_IFACE_ON_BOARD] = {0x0204a8c0, 0x0205a8c0, 0x010aa8c0,
                                            0x010ba8c0};
 #else
 
-// 自己调试用，你可以按需进行修改，注意端序
+// 自己调试用，你可以按需进行修改，注意字节序
 // 0: 10.0.0.1
 // 1: 10.0.1.1
 // 2: 10.0.2.1
@@ -64,10 +64,10 @@ int main(int argc, char *argv[]) {
   // 10.0.3.0/24 if 3
   for (uint32_t i = 0; i < N_IFACE_ON_BOARD; i++) {
     RoutingTableEntry entry = {
-        .addr = addrs[i] & 0x00FFFFFF, // big endian
-        .len = 24,                     // little endian
-        .if_index = i,                 // little endian
-        .nexthop = 0                   // big endian, means direct
+        .addr = addrs[i] & 0x00FFFFFF, // network byte order
+        .len = 24,                     // host byte order
+        .if_index = i,                 // host byte order
+        .nexthop = 0                   // network byte order, means direct
     };
     update(true, entry);
   }
