@@ -1,6 +1,8 @@
 homework:
     image: jiegec/router-lab-x86_64
     script:
+        # DO NOT EDIT!
+        - gpg --verify .gitlab-ci.yml.asc .gitlab-ci.yml
         - mkdir logs
         - make -C Homework/checksum
         - (cd Homework/checksum && python3 grade.py | tee ../../logs/checksum.log)
@@ -21,6 +23,8 @@ router:
     tags:
         - arm64
     script:
+        # DO NOT EDIT!
+        - gpg --verify .gitlab-ci.yml.asc .gitlab-ci.yml
         - make -C Homework/router/r1
         - make -C Homework/router/r2
         - make -C Homework/router/r3
