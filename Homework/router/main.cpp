@@ -146,9 +146,9 @@ int main(int argc, char *argv[]) {
           // ref. RFC 2453 Section 3.4.3
 
           // fill IP headers
-          struct ip *ipHeader = (struct ip *)output;
-          ipHeader->ip_hl = 5;
-          ipHeader->ip_v = 4;
+          struct ip *ip_header = (struct ip *)output;
+          ip_header->ip_hl = 5;
+          ip_header->ip_v = 4;
           // TODO: set tos = 0, id = 0, off = 0, ttl = 1, p = 17(udp), dst and src
 
           // fill UDP headers
@@ -200,15 +200,15 @@ int main(int argc, char *argv[]) {
       if (ttl <= 1) {
         // send icmp time to live exceeded to src addr
         // fill IP header
-        struct ip *ipHeader = (struct ip *)output;
-        ipHeader->ip_hl = 5;
-        ipHeader->ip_v = 4;
+        struct ip *ip_header = (struct ip *)output;
+        ip_header->ip_hl = 5;
+        ip_header->ip_v = 4;
         // TODO: set tos = 0, id = 0, off = 0, ttl = 64, p = 1(icmp), src and dst
 
         // fill icmp header
-        struct icmphdr *icmpHeader = (struct icmphdr *)&output[20];
+        struct icmphdr *icmp_header = (struct icmphdr *)&output[20];
         // icmp type = Time Exceeded
-        icmpHeader->type = ICMP_TIME_EXCEEDED;
+        icmp_header->type = ICMP_TIME_EXCEEDED;
         // TODO: icmp code = 0
         // TODO: fill unused fields with zero
         // TODO: append "ip header and first 8 bytes of the original payload"
@@ -242,15 +242,15 @@ int main(int argc, char *argv[]) {
           printf("IP not found in routing table for src %x dst %x\n", src_addr, dst_addr);
           // send icmp destination net unreachable to src addr
           // fill IP header
-          struct ip *ipHeader = (struct ip *)output;
-          ipHeader->ip_hl = 5;
-          ipHeader->ip_v = 4;
-          // TODO: set dfs = 0, id = 0, off = 0, ttl = 64, p = 1(icmp), src and dst
+          struct ip *ip_header = (struct ip *)output;
+          ip_header->ip_hl = 5;
+          ip_header->ip_v = 4;
+          // TODO: set tos = 0, id = 0, off = 0, ttl = 64, p = 1(icmp), src and dst
 
           // fill icmp header
-          struct icmphdr *icmpHeader = (struct icmphdr *)&output[20];
+          struct icmphdr *icmp_header = (struct icmphdr *)&output[20];
           // icmp type = Destination Unreachable
-          icmpHeader->type = ICMP_DEST_UNREACH;
+          icmp_header->type = ICMP_DEST_UNREACH;
           // TODO: icmp code = Destination Network Unreachable
           // TODO: fill unused fields with zero
           // TODO: append "ip header and first 8 bytes of the original payload"
