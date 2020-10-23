@@ -190,6 +190,7 @@ int main(int argc, char *argv[]) {
           // 2. change icmp `type` in header
           // 3. set ttl to 64
           // 4. re-calculate icmp checksum and ip checksum
+          // 5. send icmp packet
         }
       }
     } else {
@@ -211,8 +212,8 @@ int main(int argc, char *argv[]) {
         // TODO: icmp code = 0
         // TODO: fill unused fields with zero
         // TODO: append "ip header and first 8 bytes of the original payload"
-
         // TODO: calculate icmp checksum and ip checksum
+        // TODO: send icmp packet
       } else {
         // forward
         // beware of endianness
@@ -244,7 +245,7 @@ int main(int argc, char *argv[]) {
           struct ip *ipHeader = (struct ip *)output;
           ipHeader->ip_hl = 5;
           ipHeader->ip_v = 4;
-          // TODO: set dfs = 0, id = 0, off = 0, ttl = 64, p = 1
+          // TODO: set dfs = 0, id = 0, off = 0, ttl = 64, p = 1, src and dst
 
           // fill icmp header
           struct icmphdr *icmpHeader = (struct icmphdr *)&output[20];
@@ -253,8 +254,8 @@ int main(int argc, char *argv[]) {
           // TODO: icmp code = Destination Network Unreachable
           // TODO: fill unused fields with zero
           // TODO: append "ip header and first 8 bytes of the original payload"
-
           // TODO: calculate icmp checksum and ip checksum
+          // TODO: send icmp packet
         }
       }
     }
