@@ -5,6 +5,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <netinet/ip.h>
+#include <netinet/ip_icmp.h>
+#include <netinet/udp.h>
 
 extern bool validateIPChecksum(uint8_t *packet, size_t len);
 extern void update(bool insert, RoutingTableEntry entry);
@@ -142,13 +145,19 @@ int main(int argc, char *argv[]) {
           // implement split horizon with poisoned reverse
           // ref. RFC 2453 Section 3.4.3
 
-          // TODO: fill IP headers
-          output[0] = 0x45;
+          // fill IP headers
+          struct ip *ipHeader = (struct ip *)output;
+          ipHeader->ip_hl = 5;
+          ipHeader->ip_v = 4;
+          // TODO: set tos = 0, id = 0, off = 0, ttl = 1, p = 17, dst and src
 
-          // TODO: fill UDP headers
-          // port = 520
-          output[20] = 0x02;
-          output[21] = 0x08;
+          // fill UDP headers
+          struct udphdr *udpHeader = (struct udphdr *)&output[20];
+          // src port = 520
+          udpHeader->uh_sport = htons(520);
+          // dst port = 520
+          udpHeader->uh_dport = htons(520);
+          // TODO: udp length
 
           // assemble RIP
           uint32_t rip_len = assemble(&resp, &output[20 + 8]);
@@ -190,16 +199,20 @@ int main(int argc, char *argv[]) {
       if (ttl <= 1) {
         // send icmp time to live exceeded to src addr
         // fill IP header
-        output[0] = 0x45;
-        // ttl = 64
+        struct ip *ipHeader = (struct ip *)output;
+        ipHeader->ip_hl = 5;
+        ipHeader->ip_v = 4;
+        // TODO: set tos = 0, id = 0, off = 0, ttl = 64, p = 1, src and dst
 
         // fill icmp header
+        struct icmphdr *icmpHeader = (struct icmphdr *)&output[20];
         // icmp type = Time Exceeded
-        // icmp code = 0
-        // fill unused fields with zero
-        // append "ip header and first 8 bytes of the original payload"
+        icmpHeader->type = ICMP_TIME_EXCEEDED;
+        // TODO: icmp code = 0
+        // TODO: fill unused fields with zero
+        // TODO: append "ip header and first 8 bytes of the original payload"
 
-        // calculate icmp checksum and ip checksum
+        // TODO: calculate icmp checksum and ip checksum
       } else {
         // forward
         // beware of endianness
@@ -224,20 +237,24 @@ int main(int argc, char *argv[]) {
           }
         } else {
           // not found
-          // TODO: send ICMP Destination Network Unreachable
-          printf("IP not found for src %x dst %x\n", src_addr, dst_addr);
+          // send ICMP Destination Network Unreachable
+          printf("IP not found in routing table for src %x dst %x\n", src_addr, dst_addr);
           // send icmp destination net unreachable to src addr
           // fill IP header
-          output[0] = 0x45;
-          // ttl = 64
+          struct ip *ipHeader = (struct ip *)output;
+          ipHeader->ip_hl = 5;
+          ipHeader->ip_v = 4;
+          // TODO: set dfs = 0, id = 0, off = 0, ttl = 64, p = 1
 
           // fill icmp header
+          struct icmphdr *icmpHeader = (struct icmphdr *)&output[20];
           // icmp type = Destination Unreachable
-          // icmp code = Destination Network Unreachable
-          // fill unused fields with zero
-          // append "ip header and first 8 bytes of the original payload"
+          icmpHeader->type = ICMP_DEST_UNREACH;
+          // TODO: icmp code = Destination Network Unreachable
+          // TODO: fill unused fields with zero
+          // TODO: append "ip header and first 8 bytes of the original payload"
 
-          // calculate icmp checksum and ip checksum
+          // TODO: calculate icmp checksum and ip checksum
         }
       }
     }
