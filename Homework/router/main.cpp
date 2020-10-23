@@ -149,7 +149,7 @@ int main(int argc, char *argv[]) {
           struct ip *ipHeader = (struct ip *)output;
           ipHeader->ip_hl = 5;
           ipHeader->ip_v = 4;
-          // TODO: set tos = 0, id = 0, off = 0, ttl = 1, p = 17, dst and src
+          // TODO: set tos = 0, id = 0, off = 0, ttl = 1, p = 17(udp), dst and src
 
           // fill UDP headers
           struct udphdr *udpHeader = (struct udphdr *)&output[20];
@@ -203,7 +203,7 @@ int main(int argc, char *argv[]) {
         struct ip *ipHeader = (struct ip *)output;
         ipHeader->ip_hl = 5;
         ipHeader->ip_v = 4;
-        // TODO: set tos = 0, id = 0, off = 0, ttl = 64, p = 1, src and dst
+        // TODO: set tos = 0, id = 0, off = 0, ttl = 64, p = 1(icmp), src and dst
 
         // fill icmp header
         struct icmphdr *icmpHeader = (struct icmphdr *)&output[20];
@@ -245,7 +245,7 @@ int main(int argc, char *argv[]) {
           struct ip *ipHeader = (struct ip *)output;
           ipHeader->ip_hl = 5;
           ipHeader->ip_v = 4;
-          // TODO: set dfs = 0, id = 0, off = 0, ttl = 64, p = 1, src and dst
+          // TODO: set dfs = 0, id = 0, off = 0, ttl = 64, p = 1(icmp), src and dst
 
           // fill icmp header
           struct icmphdr *icmpHeader = (struct icmphdr *)&output[20];
