@@ -1,6 +1,7 @@
 #include "router_hal.h"
 #include "router_hal_common.h"
 #include <stdio.h>
+#include <errno.h>
 
 #include <ifaddrs.h>
 #include <linux/if_packet.h>
