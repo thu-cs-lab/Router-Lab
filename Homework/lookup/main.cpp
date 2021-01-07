@@ -16,7 +16,8 @@ int main(int argc, char *argv[]) {
   while (fgets(buffer, sizeof(buffer), stdin)) {
     if (buffer[0] == 'I') {
       sscanf(buffer, "%c,%x,%d,%d,%x", &tmp, &addr, &len, &if_index, &nexthop);
-      if ((len_to_mask(len) & addr) != addr || mask_to_len(len_to_mask(len)) != len) {
+      if ((len_to_mask(len) & addr) != addr ||
+          mask_to_len(len_to_mask(len)) != len) {
         printf("Invalid\n");
       } else {
         printf("Valid\n");
@@ -26,7 +27,8 @@ int main(int argc, char *argv[]) {
       }
     } else if (buffer[0] == 'D') {
       sscanf(buffer, "%c,%x,%d", &tmp, &addr, &len);
-      if ((len_to_mask(len) & addr) != addr || mask_to_len(len_to_mask(len)) != len) {
+      if ((len_to_mask(len) & addr) != addr ||
+          mask_to_len(len_to_mask(len)) != len) {
         printf("Invalid\n");
       } else {
         printf("Valid\n");

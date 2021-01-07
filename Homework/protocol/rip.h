@@ -47,10 +47,10 @@ typedef struct {
   RipEntry entries[RIP_MAX_ENTRY];
 } RipPacket;
 
-static const char * rip_error_to_string(RipErrorCode err) {
+static const char *rip_error_to_string(RipErrorCode err) {
   switch (err) {
   case RipErrorCode::ERR_LENGTH:
-    return "Length is consistent";
+    return "Length is inconsistent";
   case RipErrorCode::ERR_IP_PROTO_NOT_UDP:
     return "IP proto field is not UDP";
   case RipErrorCode::ERR_BAD_UDP_PORT:

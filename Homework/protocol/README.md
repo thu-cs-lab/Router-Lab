@@ -6,7 +6,7 @@
 
 ```cpp
 // 函数注释见代码
-bool disassemble(const uint8_t *packet, uint32_t len, RipPacket *output) {
+RipErrorCode disassemble(const uint8_t *packet, uint32_t len, RipPacket *output) {
   // TODO
   return false;
 }

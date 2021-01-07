@@ -1,19 +1,20 @@
 #include "rip.h"
 #include "router.h"
 #include "router_hal.h"
+#include <netinet/ip.h>
+#include <netinet/ip_icmp.h>
+#include <netinet/udp.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <netinet/ip.h>
-#include <netinet/ip_icmp.h>
-#include <netinet/udp.h>
 
 extern bool validateIPChecksum(uint8_t *packet, size_t len);
 extern void update(bool insert, RoutingTableEntry entry);
 extern bool prefix_query(uint32_t addr, uint32_t *nexthop, uint32_t *if_index);
 extern bool forward(uint8_t *packet, size_t len);
-extern bool disassemble(const uint8_t *packet, uint32_t len, RipPacket *output);
+extern RipErrorCode disassemble(const uint8_t *packet, uint32_t len,
+                                RipPacket *output);
 extern uint32_t assemble(const RipPacket *rip, uint8_t *buffer);
 extern int mask_to_len(uint32_t mask);
 extern uint32_t len_to_mask(int len);
@@ -137,7 +138,8 @@ int main(int argc, char *argv[]) {
       // 3a.1
       RipPacket rip;
       // check and validate
-      if (disassemble(packet, res, &rip)) {
+      RipErrorCode err = disassemble(packet, res, &rip);
+      if (err == SUCCESS) {
         if (rip.command == 1) {
           // 3a.3 request, ref. RFC 2453 Section 3.9.1
           // only need to respond to whole table requests in the lab
@@ -151,7 +153,8 @@ int main(int argc, char *argv[]) {
           struct ip *ip_header = (struct ip *)output;
           ip_header->ip_hl = 5;
           ip_header->ip_v = 4;
-          // TODO: set tos = 0, id = 0, off = 0, ttl = 1, p = 17(udp), dst and src
+          // TODO: set tos = 0, id = 0, off = 0, ttl = 1, p = 17(udp), dst and
+          // src
 
           // fill UDP headers
           struct udphdr *udpHeader = (struct udphdr *)&output[20];
@@ -180,7 +183,8 @@ int main(int argc, char *argv[]) {
           // the difference between exact match and longest prefix match.
           // optional: triggered updates ref. RFC 2453 Section 3.10.1
         }
-      } else {
+      } else if (err == RipErrorCode::ERR_IP_PROTO_NOT_UDP ||
+                 err == RipErrorCode::ERR_BAD_UDP_PORT) {
         // not a rip packet
         // handle icmp echo request packet
         // TODO: how to determine?
@@ -194,6 +198,10 @@ int main(int argc, char *argv[]) {
           // 4. re-calculate icmp checksum and ip checksum
           // 5. send icmp packet
         }
+      } else {
+        // a bad rip packet
+        // you received a malformed packet >_<
+        printf("Got bad RIP packet with error: %s\n", rip_error_to_string(err));
       }
     } else {
       // 3b.1 dst is not me
@@ -205,7 +213,8 @@ int main(int argc, char *argv[]) {
         struct ip *ip_header = (struct ip *)output;
         ip_header->ip_hl = 5;
         ip_header->ip_v = 4;
-        // TODO: set tos = 0, id = 0, off = 0, ttl = 64, p = 1(icmp), src and dst
+        // TODO: set tos = 0, id = 0, off = 0, ttl = 64, p = 1(icmp), src and
+        // dst
 
         // fill icmp header
         struct icmphdr *icmp_header = (struct icmphdr *)&output[20];
@@ -241,13 +250,15 @@ int main(int argc, char *argv[]) {
         } else {
           // not found
           // send ICMP Destination Network Unreachable
-          printf("IP not found in routing table for src %x dst %x\n", src_addr, dst_addr);
+          printf("IP not found in routing table for src %x dst %x\n", src_addr,
+                 dst_addr);
           // send icmp destination net unreachable to src addr
           // fill IP header
           struct ip *ip_header = (struct ip *)output;
           ip_header->ip_hl = 5;
           ip_header->ip_v = 4;
-          // TODO: set tos = 0, id = 0, off = 0, ttl = 64, p = 1(icmp), src and dst
+          // TODO: set tos = 0, id = 0, off = 0, ttl = 64, p = 1(icmp), src and
+          // dst
 
           // fill icmp header
           struct icmphdr *icmp_header = (struct icmphdr *)&output[20];

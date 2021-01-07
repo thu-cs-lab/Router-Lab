@@ -27,7 +27,8 @@
  * Mask 转换为主机字节序后，二进制表示是不是由连续的 1 与连续的 0 组成，
  * Mask 和 Address 按位与的结果是否等于 Address。
  */
-RipErrorCode disassemble(const uint8_t *packet, uint32_t len, RipPacket *output) {
+RipErrorCode disassemble(const uint8_t *packet, uint32_t len,
+                         RipPacket *output) {
   // TODO:
   return RipErrorCode::SUCCESS;
 }
