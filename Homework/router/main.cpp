@@ -198,11 +198,11 @@ int main(int argc, char *argv[]) {
           // src
 
           // fill UDP headers
-          struct UDPHeader *udpHeader = (struct UDPHeader *)&output[20];
+          struct UDPHeader *udp_header = (struct UDPHeader *)&output[20];
           // src port = 520
-          udpHeader->uh_sport = htons(520);
+          udp_header->uh_sport = htons(520);
           // dst port = 520
-          udpHeader->uh_dport = htons(520);
+          udp_header->uh_dport = htons(520);
           // TODO: udp length
 
           // assemble RIP
