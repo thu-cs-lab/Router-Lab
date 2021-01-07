@@ -4,7 +4,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-extern bool disassemble(const uint8_t *packet, uint32_t len, RipPacket *output);
+extern RipErrorCode disassemble(const uint8_t *packet, uint32_t len,
+                                RipPacket *output);
 extern uint32_t assemble(const RipPacket *rip, uint8_t *buffer);
 uint8_t buffer[1024];
 uint8_t packet[2048];
@@ -28,7 +29,8 @@ int main(int argc, char *argv[]) {
     } else if (res < 0) {
       return res;
     }
-    if (disassemble(packet, res, &rip)) {
+    RipErrorCode err = disassemble(packet, res, &rip);
+    if (err == RipErrorCode::SUCCESS) {
       printf("Valid %d %d\n", rip.numEntries, rip.command);
       for (int i = 0; i < rip.numEntries; i++) {
         printf("%08x %08x %08x %08x\n", rip.entries[i].addr,
@@ -41,7 +43,7 @@ int main(int argc, char *argv[]) {
       }
       printf("\n");
     } else {
-      printf("Invalid\n");
+      printf("%s\n", rip_error_to_string(err));
     }
   }
   return 0;

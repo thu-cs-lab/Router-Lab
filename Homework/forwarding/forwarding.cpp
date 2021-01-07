@@ -1,7 +1,7 @@
 #include <stdint.h>
 #include <stdlib.h>
 
-// 在 checksum.cpp 中定义
+// 在 checksum.cpp 中定义，编译的时候会链接进来，不需要重新实现
 extern bool validateIPChecksum(uint8_t *packet, size_t len);
 
 /**
