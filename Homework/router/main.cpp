@@ -1,13 +1,54 @@
 #include "rip.h"
 #include "router.h"
 #include "router_hal.h"
-#include <netinet/ip.h>
-#include <netinet/ip_icmp.h>
-#include <netinet/udp.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+// taken from linux header netinet/ip.h
+struct IPHeader {
+#if __BYTE_ORDER == __LITTLE_ENDIAN
+  unsigned int ip_hl : 4; /* header length */
+  unsigned int ip_v : 4;  /* version */
+#endif
+#if __BYTE_ORDER == __BIG_ENDIAN
+  unsigned int ip_v : 4;  /* version */
+  unsigned int ip_hl : 4; /* header length */
+#endif
+  uint8_t ip_tos;                /* type of service */
+  unsigned short ip_len;         /* total length */
+  unsigned short ip_id;          /* identification */
+  unsigned short ip_off;         /* fragment offset field */
+  uint8_t ip_ttl;                /* time to live */
+  uint8_t ip_p;                  /* protocol */
+  unsigned short ip_sum;         /* checksum */
+  struct in_addr ip_src, ip_dst; /* source and dest address */
+};
+
+// taken from linux header netinet/udp.h
+struct UDPHeader {
+  uint16_t uh_sport; /* source port */
+  uint16_t uh_dport; /* destination port */
+  uint16_t uh_ulen;  /* udp length */
+  uint16_t uh_sum;   /* udp checksum */
+};
+
+// taken from linux header netinet/ip_icmp.h
+#define ICMP_DEST_UNREACH 3   /* Destination Unreachable      */
+#define ICMP_TIME_EXCEEDED 11 /* Time Exceeded                */
+struct ICMPHeader {
+  uint8_t type; /* message type */
+  uint8_t code; /* type sub-code */
+  uint16_t checksum;
+  union {
+    struct {
+      uint16_t id;
+      uint16_t sequence;
+    } echo;           /* echo datagram */
+    uint32_t gateway; /* gateway address */
+  } un;
+};
 
 extern bool validateIPChecksum(uint8_t *packet, size_t len);
 extern void update(bool insert, RoutingTableEntry entry);
@@ -150,14 +191,14 @@ int main(int argc, char *argv[]) {
           // ref. RFC 2453 Section 3.4.3
 
           // fill IP headers
-          struct ip *ip_header = (struct ip *)output;
+          struct IPHeader *ip_header = (struct IPHeader *)output;
           ip_header->ip_hl = 5;
           ip_header->ip_v = 4;
           // TODO: set tos = 0, id = 0, off = 0, ttl = 1, p = 17(udp), dst and
           // src
 
           // fill UDP headers
-          struct udphdr *udpHeader = (struct udphdr *)&output[20];
+          struct UDPHeader *udpHeader = (struct UDPHeader *)&output[20];
           // src port = 520
           udpHeader->uh_sport = htons(520);
           // dst port = 520
@@ -210,14 +251,14 @@ int main(int argc, char *argv[]) {
       if (ttl <= 1) {
         // send icmp time to live exceeded to src addr
         // fill IP header
-        struct ip *ip_header = (struct ip *)output;
+        struct IPHeader *ip_header = (struct IPHeader *)output;
         ip_header->ip_hl = 5;
         ip_header->ip_v = 4;
         // TODO: set tos = 0, id = 0, off = 0, ttl = 64, p = 1(icmp), src and
         // dst
 
         // fill icmp header
-        struct icmphdr *icmp_header = (struct icmphdr *)&output[20];
+        struct ICMPHeader *icmp_header = (struct ICMPHeader *)&output[20];
         // icmp type = Time Exceeded
         icmp_header->type = ICMP_TIME_EXCEEDED;
         // TODO: icmp code = 0
@@ -254,14 +295,14 @@ int main(int argc, char *argv[]) {
                  dst_addr);
           // send icmp destination net unreachable to src addr
           // fill IP header
-          struct ip *ip_header = (struct ip *)output;
+          struct IPHeader *ip_header = (struct IPHeader *)output;
           ip_header->ip_hl = 5;
           ip_header->ip_v = 4;
           // TODO: set tos = 0, id = 0, off = 0, ttl = 64, p = 1(icmp), src and
           // dst
 
           // fill icmp header
-          struct icmphdr *icmp_header = (struct icmphdr *)&output[20];
+          struct ICMPHeader *icmp_header = (struct ICMPHeader *)&output[20];
           // icmp type = Destination Unreachable
           icmp_header->type = ICMP_DEST_UNREACH;
           // TODO: icmp code = Destination Network Unreachable
