@@ -27,3 +27,23 @@ bool prefix_query(uint32_t addr, uint32_t *nexthop, uint32_t *if_index) {
   *if_index = 0;
   return false;
 }
+
+/**
+ * @brief 转换 mask 为前缀长度
+ * @param mask 需要转换的 mask，网络字节序
+ * @return mask 合法则返回前缀长度，不合法则返回 -1
+ */
+int mask_to_len(uint32_t mask) {
+  // TODO:
+  return -1;
+}
+
+/**
+ * @brief 转换前缀长度为 mask，前缀长度范围为 [0,32]
+ * @param len 需要转换的前缀长度
+ * @return len 合法则返回对应的网络字节序的 mask，不合法则返回 0
+ */
+uint32_t len_to_mask(int len) {
+  // TODO:
+  return 0;
+}
