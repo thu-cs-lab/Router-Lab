@@ -134,6 +134,7 @@ int main(int argc, char *argv[]) {
         // do the mostly same thing as step 3a.3
         // except that dst_ip is RIP multicast IP 224.0.0.9
         // and dst_mac is RIP multicast MAC 01:00:5e:00:00:09
+        // implement split horizon with poisoned reverse
       }
       last_time = time;
     }
@@ -228,9 +229,12 @@ int main(int argc, char *argv[]) {
                  err == RipErrorCode::ERR_BAD_UDP_PORT) {
         // not a rip packet
         // handle icmp echo request packet
-        // TODO: how to determine?
+        // TODO:
+        // 1. check if ip proto is icmp
+        // 2. check if icmp packet type is echo request
         if (false) {
           // construct icmp echo reply
+          // see RFC792 [Page 14] Echo or Echo Reply Message
           // reply is mostly the same as request,
           // you need to:
           // 1. swap src ip addr and dst ip addr
@@ -242,11 +246,12 @@ int main(int argc, char *argv[]) {
       } else {
         // a bad rip packet
         // you received a malformed packet >_<
-        printf("Got bad RIP packet with error: %s\n", rip_error_to_string(err));
+        printf("Got bad RIP packet from IP %x with error: %s\n", src_addr,
+               rip_error_to_string(err));
       }
     } else {
       // 3b.1 dst is not me
-      // check ttl
+      // check if ttl is less than or equal 1
       uint8_t ttl = packet[8];
       if (ttl <= 1) {
         // send icmp time to live exceeded to src addr
@@ -258,14 +263,16 @@ int main(int argc, char *argv[]) {
         // dst
 
         // fill icmp header
+        // see RFC792 [Page 6] Time Exceeded Message
         struct ICMPHeader *icmp_header = (struct ICMPHeader *)&output[20];
         // icmp type = Time Exceeded
         icmp_header->type = ICMP_TIME_EXCEEDED;
-        // TODO: icmp code = 0
-        // TODO: fill unused fields with zero
-        // TODO: append "ip header and first 8 bytes of the original payload"
-        // TODO: calculate icmp checksum and ip checksum
-        // TODO: send icmp packet
+        // TODO:
+        // set icmp code = 0
+        // fill unused fields with zero
+        // append "ip header and first 8 bytes of the original payload"
+        // calculate icmp checksum and ip checksum
+        // send icmp packet
       } else {
         // forward
         // beware of endianness
@@ -273,7 +280,7 @@ int main(int argc, char *argv[]) {
         if (prefix_query(dst_addr, &nexthop, &dest_if)) {
           // found
           macaddr_t dest_mac;
-          // direct routing
+          // direct routing means that destination ip is directly accessible
           if (nexthop == 0) {
             nexthop = dst_addr;
           }
@@ -286,13 +293,14 @@ int main(int argc, char *argv[]) {
           } else {
             // not found
             // you can drop it
-            printf("ARP not found for nexthop %x\n", nexthop);
+            printf("Nexthop ip %x is not found in ARP table\n", nexthop);
           }
         } else {
           // not found
           // send ICMP Destination Network Unreachable
-          printf("IP not found in routing table for src %x dst %x\n", src_addr,
-                 dst_addr);
+          printf("Destination IP %x not found in routing table and source IP "
+                 "is %x\n",
+                 dst_addr, src_addr);
           // send icmp destination net unreachable to src addr
           // fill IP header
           struct IPHeader *ip_header = (struct IPHeader *)output;
@@ -302,14 +310,16 @@ int main(int argc, char *argv[]) {
           // dst
 
           // fill icmp header
+          // see RFC792 [Page 4] Destination Unreachable Message
           struct ICMPHeader *icmp_header = (struct ICMPHeader *)&output[20];
           // icmp type = Destination Unreachable
           icmp_header->type = ICMP_DEST_UNREACH;
-          // TODO: icmp code = Destination Network Unreachable
-          // TODO: fill unused fields with zero
-          // TODO: append "ip header and first 8 bytes of the original payload"
-          // TODO: calculate icmp checksum and ip checksum
-          // TODO: send icmp packet
+          // TODO:
+          // icmp code = Destination Network Unreachable
+          // fill unused fields with zero
+          // append "ip header and first 8 bytes of the original payload"
+          // calculate icmp checksum and ip checksum
+          // send icmp packet
         }
       }
     }
