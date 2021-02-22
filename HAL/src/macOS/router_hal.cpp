@@ -29,7 +29,7 @@ const char *interfaces[N_IFACE_ON_BOARD] = {
 
 bool inited = false;
 int debugEnabled = 0;
-in_addr_t interface_addrs[N_IFACE_ON_BOARD] = {0};
+uint32_t interface_addrs[N_IFACE_ON_BOARD] = {0};
 macaddr_t interface_mac[N_IFACE_ON_BOARD] = {0};
 
 pcap_t *pcap_in_handles[N_IFACE_ON_BOARD];
@@ -40,11 +40,11 @@ struct macaddr_wrap {
   macaddr_t mac;
 };
 
-std::map<std::pair<in_addr_t, int>, macaddr_wrap> arp_table;
-std::map<std::pair<in_addr_t, int>, uint64_t> arp_timer;
+std::map<std::pair<uint32_t, int>, macaddr_wrap> arp_table;
+std::map<std::pair<uint32_t, int>, uint64_t> arp_timer;
 
 extern "C" {
-int HAL_Init(HAL_IN int debug, HAL_IN in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
+int HAL_Init(HAL_IN int debug, HAL_IN uint32_t if_addrs[N_IFACE_ON_BOARD]) {
   if (inited) {
     return 0;
   }
@@ -110,7 +110,7 @@ int HAL_Init(HAL_IN int debug, HAL_IN in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
     caddr_t mac = LLADDR(sdl);
     // found
     memcpy(interface_mac[i], mac, sizeof(macaddr_t));
-    memcpy(&arp_table[std::pair<in_addr_t, int>(if_addrs[i], i)],
+    memcpy(&arp_table[std::pair<uint32_t, int>(if_addrs[i], i)],
            interface_mac[i], sizeof(macaddr_t));
     if (debugEnabled) {
       macaddr_t m;
@@ -167,7 +167,7 @@ uint64_t HAL_GetTicks() {
   return (uint64_t)tp.tv_sec * 1000 + (uint64_t)tp.tv_nsec / 1000000;
 }
 
-int HAL_ArpGetMacAddress(HAL_IN int if_index, HAL_IN in_addr_t ip,
+int HAL_ArpGetMacAddress(HAL_IN int if_index, HAL_IN uint32_t ip,
                          HAL_OUT macaddr_t o_mac) {
   if (!inited) {
     return HAL_ERR_CALLED_BEFORE_INIT;
@@ -187,14 +187,14 @@ int HAL_ArpGetMacAddress(HAL_IN int if_index, HAL_IN in_addr_t ip,
     return 0;
   }
 
-  auto it = arp_table.find(std::pair<in_addr_t, int>(ip, if_index));
+  auto it = arp_table.find(std::pair<uint32_t, int>(ip, if_index));
   if (it != arp_table.end()) {
     memcpy(o_mac, &it->second, sizeof(macaddr_t));
     return 0;
   } else if (pcap_out_handles[if_index] &&
-             arp_timer[std::pair<in_addr_t, int>(ip, if_index)] + 1000 <
+             arp_timer[std::pair<uint32_t, int>(ip, if_index)] + 1000 <
                  HAL_GetTicks()) {
-    arp_timer[std::pair<in_addr_t, int>(ip, if_index)] = HAL_GetTicks();
+    arp_timer[std::pair<uint32_t, int>(ip, if_index)] = HAL_GetTicks();
     if (debugEnabled) {
       struct in_addr addr;
       addr.s_addr = ip;
@@ -227,9 +227,9 @@ int HAL_ArpGetMacAddress(HAL_IN int if_index, HAL_IN in_addr_t ip,
     buffer[21] = 0x01;
     // sender
     memcpy(&buffer[22], mac, sizeof(macaddr_t));
-    memcpy(&buffer[28], &interface_addrs[if_index], sizeof(in_addr_t));
+    memcpy(&buffer[28], &interface_addrs[if_index], sizeof(uint32_t));
     // target
-    memcpy(&buffer[38], &ip, sizeof(in_addr_t));
+    memcpy(&buffer[38], &ip, sizeof(uint32_t));
 
     pcap_inject(pcap_out_handles[if_index], buffer, sizeof(buffer));
   }
@@ -308,9 +308,9 @@ int HAL_ReceiveIPPacket(HAL_IN int if_index_mask, HAL_OUT uint8_t *buffer,
       // ARP
       macaddr_t mac;
       memcpy(mac, &packet[22], sizeof(macaddr_t));
-      in_addr_t ip;
-      memcpy(&ip, &packet[28], sizeof(in_addr_t));
-      memcpy(&arp_table[std::pair<in_addr_t, int>(ip, current_port)], mac,
+      uint32_t ip;
+      memcpy(&ip, &packet[28], sizeof(uint32_t));
+      memcpy(&arp_table[std::pair<uint32_t, int>(ip, current_port)], mac,
              sizeof(macaddr_t));
       if (debugEnabled) {
         struct in_addr addr;
@@ -319,8 +319,8 @@ int HAL_ReceiveIPPacket(HAL_IN int if_index_mask, HAL_OUT uint8_t *buffer,
                 inet_ntoa(addr));
       }
 
-      in_addr_t dst_ip;
-      memcpy(&dst_ip, &packet[38], sizeof(in_addr_t));
+      uint32_t dst_ip;
+      memcpy(&dst_ip, &packet[38], sizeof(uint32_t));
       if (dst_ip == interface_addrs[current_port] && packet[21] == 0x01) {
         // reply
         uint8_t buffer[64] = {0};
@@ -345,10 +345,10 @@ int HAL_ReceiveIPPacket(HAL_IN int if_index_mask, HAL_OUT uint8_t *buffer,
         buffer[21] = 0x02;
         // sender
         memcpy(&buffer[22], mac, sizeof(macaddr_t));
-        memcpy(&buffer[28], &dst_ip, sizeof(in_addr_t));
+        memcpy(&buffer[28], &dst_ip, sizeof(uint32_t));
         // target
         memcpy(&buffer[32], &packet[22], sizeof(macaddr_t));
-        memcpy(&buffer[38], &packet[28], sizeof(in_addr_t));
+        memcpy(&buffer[38], &packet[28], sizeof(uint32_t));
 
         pcap_inject(pcap_out_handles[current_port], buffer, sizeof(buffer));
         if (debugEnabled) {

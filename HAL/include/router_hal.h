@@ -10,11 +10,11 @@
 #elif defined ROUTER_BACKEND_STDIO
 #include <arpa/inet.h>
 #elif defined ROUTER_BACKEND_XILINX
-typedef uint32_t in_addr_t;
+typedef uint32_t uint32_t;
 #elif defined ROUTER_BACKEND_EMCC
-typedef uint32_t in_addr_t;
+typedef uint32_t uint32_t;
 #endif
-// in_addr_t 是以大端序存储的，意味着 1.2.3.4 对应 0x04030201
+// uint32_t 是以大端序存储的，意味着 1.2.3.4 对应 0x04030201
 
 #define HAL_IN const
 #define HAL_OUT
@@ -45,7 +45,7 @@ extern "C" {
  *
  * @return int 0 表示成功，非 0 表示失败
  */
-int HAL_Init(HAL_IN int debug, HAL_IN in_addr_t if_addrs[N_IFACE_ON_BOARD]);
+int HAL_Init(HAL_IN int debug, HAL_IN uint32_t if_addrs[N_IFACE_ON_BOARD]);
 
 /**
  * @brief 获取从启动到当前时刻的毫秒数
@@ -66,7 +66,7 @@ uint64_t HAL_GetTicks();
  * @param o_mac OUT，查询结果 MAC 地址
  * @return int 0 表示成功，非 0 为失败
  */
-int HAL_ArpGetMacAddress(HAL_IN int if_index, HAL_IN in_addr_t ip, HAL_OUT macaddr_t o_mac);
+int HAL_ArpGetMacAddress(HAL_IN int if_index, HAL_IN uint32_t ip, HAL_OUT macaddr_t o_mac);
 
 /**
  * @brief 获取网卡的 MAC 地址，如果为全 0 代表系统中不存在该网卡或者获取失败

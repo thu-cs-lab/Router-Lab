@@ -10,7 +10,7 @@ extern uint32_t assemble(const RipPacket *rip, uint8_t *buffer);
 uint8_t buffer[1024];
 uint8_t packet[2048];
 RipPacket rip;
-in_addr_t addrs[N_IFACE_ON_BOARD] = {0};
+uint32_t addrs[N_IFACE_ON_BOARD] = {0};
 
 int main(int argc, char *argv[]) {
   int res = HAL_Init(0, addrs);

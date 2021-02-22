@@ -16,14 +16,14 @@ struct IPHeader {
   unsigned int ip_v : 4;  /* version */
   unsigned int ip_hl : 4; /* header length */
 #endif
-  uint8_t ip_tos;                /* type of service */
-  unsigned short ip_len;         /* total length */
-  unsigned short ip_id;          /* identification */
-  unsigned short ip_off;         /* fragment offset field */
-  uint8_t ip_ttl;                /* time to live */
-  uint8_t ip_p;                  /* protocol */
-  unsigned short ip_sum;         /* checksum */
-  struct in_addr ip_src, ip_dst; /* source and dest address */
+  uint8_t ip_tos;          /* type of service */
+  uint16_t ip_len;         /* total length */
+  uint16_t ip_id;          /* identification */
+  uint16_t ip_off;         /* fragment offset field */
+  uint8_t ip_ttl;          /* time to live */
+  uint8_t ip_p;            /* protocol */
+  uint16_t ip_sum;         /* checksum */
+  uint32_t ip_src, ip_dst; /* source and dest address */
 };
 
 // taken from linux header netinet/udp.h
@@ -69,21 +69,21 @@ uint8_t output[2048];
 // 1: 192.168.3.1
 // 2: 192.168.6.1
 // 3: 192.168.7.1
-const in_addr_t addrs[N_IFACE_ON_BOARD] = {0x0101a8c0, 0x0103a8c0, 0x0106a8c0,
+const uint32_t addrs[N_IFACE_ON_BOARD] = {0x0101a8c0, 0x0103a8c0, 0x0106a8c0,
                                            0x0107a8c0};
 #elif defined(ROUTER_R2)
 // 0: 192.168.3.2
 // 1: 192.168.4.1
 // 2: 192.168.8.1
 // 3: 192.168.9.1
-const in_addr_t addrs[N_IFACE_ON_BOARD] = {0x0203a8c0, 0x0104a8c0, 0x0108a8c0,
+const uint32_t addrs[N_IFACE_ON_BOARD] = {0x0203a8c0, 0x0104a8c0, 0x0108a8c0,
                                            0x0109a8c0};
 #elif defined(ROUTER_R3)
 // 0: 192.168.4.2
 // 1: 192.168.5.2
 // 2: 192.168.10.1
 // 3: 192.168.11.1
-const in_addr_t addrs[N_IFACE_ON_BOARD] = {0x0204a8c0, 0x0205a8c0, 0x010aa8c0,
+const uint32_t addrs[N_IFACE_ON_BOARD] = {0x0204a8c0, 0x0205a8c0, 0x010aa8c0,
                                            0x010ba8c0};
 #else
 
@@ -92,7 +92,7 @@ const in_addr_t addrs[N_IFACE_ON_BOARD] = {0x0204a8c0, 0x0205a8c0, 0x010aa8c0,
 // 1: 10.0.1.1
 // 2: 10.0.2.1
 // 3: 10.0.3.1
-in_addr_t addrs[N_IFACE_ON_BOARD] = {0x0100000a, 0x0101000a, 0x0102000a,
+uint32_t addrs[N_IFACE_ON_BOARD] = {0x0100000a, 0x0101000a, 0x0102000a,
                                      0x0103000a};
 #endif
 
@@ -163,13 +163,13 @@ int main(int argc, char *argv[]) {
       // drop if ip checksum invalid
       continue;
     }
-    in_addr_t src_addr, dst_addr;
+    uint32_t src_addr, dst_addr;
     // TODO: extract src_addr and dst_addr from packet (big endian)
 
     // 2. check whether dst is me
     bool dst_is_me = false;
     for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
-      if (memcmp(&dst_addr, &addrs[i], sizeof(in_addr_t)) == 0) {
+      if (memcmp(&dst_addr, &addrs[i], sizeof(uint32_t)) == 0) {
         dst_is_me = true;
         break;
       }

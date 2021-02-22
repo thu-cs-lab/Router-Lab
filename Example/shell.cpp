@@ -18,7 +18,7 @@ uint8_t packet[2048];
 bool cont = false;
 
 // 10.0.0.1 ~ 10.0.3.1
-in_addr_t addrs[N_IFACE_ON_BOARD] = {0x0100000a, 0x0101000a, 0x0102000a,
+uint32_t addrs[N_IFACE_ON_BOARD] = {0x0100000a, 0x0101000a, 0x0102000a,
                                     0x0103000a};
 
 void interrupt(int _) {
@@ -47,7 +47,7 @@ int main() {
       sscanf(buffer, "arp %d %d.%d.%d.%d", &if_index, &ip1, &ip2, &ip3, &ip4);
       printf("Get arp address of %d.%d.%d.%d if %d\n", ip1, ip2, ip3, ip4,
              if_index);
-      in_addr_t ip = (ip4 << 24) | (ip3 << 16) | (ip2 << 8) | ip1;
+      uint32_t ip = (ip4 << 24) | (ip3 << 16) | (ip2 << 8) | ip1;
       macaddr_t mac;
       int res = HAL_ArpGetMacAddress(if_index, ip, mac);
       if (res == 0) {

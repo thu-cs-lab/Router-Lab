@@ -12,14 +12,14 @@ const int IP_OFFSET = 14;
 
 bool inited = false;
 int debugEnabled = 0;
-in_addr_t interface_addrs[N_IFACE_ON_BOARD] = {0};
+uint32_t interface_addrs[N_IFACE_ON_BOARD] = {0};
 macaddr_t interface_mac[N_IFACE_ON_BOARD] = {0};
 
-std::map<std::pair<in_addr_t, int>, macaddr_t> arp_table;
-std::map<std::pair<in_addr_t, int>, uint64_t> arp_timer;
+std::map<std::pair<uint32_t, int>, macaddr_t> arp_table;
+std::map<std::pair<uint32_t, int>, uint64_t> arp_timer;
 
 extern "C" {
-int HAL_Init(HAL_IN int debug, HAL_IN in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
+int HAL_Init(HAL_IN int debug, HAL_IN uint32_t if_addrs[N_IFACE_ON_BOARD]) {
   if (inited) {
     return 0;
   }
@@ -36,7 +36,7 @@ uint64_t HAL_GetTicks() {
   return (uint64_t)tp.tv_sec * 1000 + (uint64_t)tp.tv_nsec / 1000000;
 }
 
-int HAL_ArpGetMacAddress(HAL_IN int if_index, HAL_IN in_addr_t ip,
+int HAL_ArpGetMacAddress(HAL_IN int if_index, HAL_IN uint32_t ip,
                          HAL_OUT macaddr_t o_mac) {
   if (!inited) {
     return HAL_ERR_CALLED_BEFORE_INIT;

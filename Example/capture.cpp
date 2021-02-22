@@ -12,7 +12,7 @@ uint8_t packet[2048];
 bool cont = false;
 
 // 10.0.0.1 ~ 10.0.3.1
-in_addr_t addrs[N_IFACE_ON_BOARD] = {0x0100000a, 0x0101000a, 0x0102000a,
+uint32_t addrs[N_IFACE_ON_BOARD] = {0x0100000a, 0x0101000a, 0x0102000a,
                                      0x0103000a};
 
 int main() {

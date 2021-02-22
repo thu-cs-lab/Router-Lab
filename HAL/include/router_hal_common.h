@@ -6,7 +6,7 @@
 #include <string.h>
 
 // send igmp join to the multicast address
-void HAL_JoinIGMPGroup(int if_index, in_addr_t ip) {
+void HAL_JoinIGMPGroup(int if_index, uint32_t ip) {
   uint8_t buffer[40] = {
       0x46, 0xc0, 0x00, 0x28, 0x00, 0x00, 0x40, 0x00, 0x01, 0x02, // Header
       0x00, 0x00,             // Header checksum
@@ -22,7 +22,7 @@ void HAL_JoinIGMPGroup(int if_index, in_addr_t ip) {
       0x00, 0x00, 0x00,       // Zeros
       0xe0, 0x00, 0x00, 0x09  // RIP Multicast
   };
-  memcpy(&buffer[12], &ip, sizeof(in_addr_t));
+  memcpy(&buffer[12], &ip, sizeof(uint32_t));
   uint32_t ip_chksum = 0;
   for (int i = 0; i < 12; i++) {
     ip_chksum += ((uint16_t *)buffer)[i];

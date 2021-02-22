@@ -11,7 +11,7 @@ const int ARP_LENGTH = 28;
 
 int inited = 0;
 int debugEnabled = 0;
-in_addr_t interface_addrs[N_IFACE_ON_BOARD] = {0};
+uint32_t interface_addrs[N_IFACE_ON_BOARD] = {0};
 macaddr_t interface_mac = {2, 3, 3, 3, 3, 3};
 
 XAxiEthernet_Config *axiEthernetConfig;
@@ -54,7 +54,7 @@ u32 txBufferUsed = 0;
 struct ArpTableEntry {
   int if_index;
   macaddr_t mac;
-  in_addr_t ip;
+  uint32_t ip;
 } arpTable[ARP_TABLE_SIZE];
 
 void SpiWriteRegister(u8 addr, u8 data) {
@@ -93,7 +93,7 @@ void WaitTxBdAvailable() {
   }
 }
 
-int HAL_Init(int debug, in_addr_t if_addrs[N_IFACE_ON_BOARD]) {
+int HAL_Init(int debug, uint32_t if_addrs[N_IFACE_ON_BOARD]) {
   XAxiDma_Bd *bd;
   if (inited) {
     return 0;
@@ -189,7 +189,7 @@ uint64_t HAL_GetTicks() {
   return XTmrCtr_GetValue(&tmrCtr, 0) * 1000 / XPAR_AXI_TIMER_0_CLOCK_FREQ_HZ;
 }
 
-int HAL_ArpGetMacAddress(int if_index, in_addr_t ip, macaddr_t o_mac) {
+int HAL_ArpGetMacAddress(int if_index, uint32_t ip, macaddr_t o_mac) {
   if (!inited) {
     return HAL_ERR_CALLED_BEFORE_INIT;
   }
@@ -258,10 +258,10 @@ int HAL_ArpGetMacAddress(int if_index, in_addr_t ip, macaddr_t o_mac) {
   buffer[25] = 0x01;
   // sender
   memcpy(&buffer[26], interface_mac, sizeof(macaddr_t));
-  memcpy(&buffer[32], &interface_addrs[if_index], sizeof(in_addr_t));
+  memcpy(&buffer[32], &interface_addrs[if_index], sizeof(uint32_t));
   // target
   memset(&buffer[36], 0, sizeof(macaddr_t));
-  memcpy(&buffer[42], &ip, sizeof(in_addr_t));
+  memcpy(&buffer[42], &ip, sizeof(uint32_t));
 
   XAxiDma_BdRingToHw(txRing, 1, bd);
   return HAL_ERR_IP_NOT_EXIST;
@@ -317,8 +317,8 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
         // ARP
         macaddr_t mac;
         memcpy(mac, &data[26], sizeof(macaddr_t));
-        in_addr_t ip;
-        memcpy(&ip, &data[32], sizeof(in_addr_t));
+        uint32_t ip;
+        memcpy(&ip, &data[32], sizeof(uint32_t));
         u32 vlan = data[15] - 1;
 
         // update ARP Table
@@ -345,8 +345,8 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
           }
         }
 
-        in_addr_t dst_ip;
-        memcpy(&dst_ip, &data[42], sizeof(in_addr_t));
+        uint32_t dst_ip;
+        memcpy(&dst_ip, &data[42], sizeof(uint32_t));
         if (vlan < N_IFACE_ON_BOARD && dst_ip == interface_addrs[vlan] && data[25] == 0x01) {
           // reply
           XAxiDma_Bd *bd;
@@ -389,10 +389,10 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
           buffer[25] = 0x02;
           // sender
           memcpy(&buffer[26], interface_mac, sizeof(macaddr_t));
-          memcpy(&buffer[32], &dst_ip, sizeof(in_addr_t));
+          memcpy(&buffer[32], &dst_ip, sizeof(uint32_t));
           // target
           memcpy(&buffer[36], &data[26], sizeof(macaddr_t));
-          memcpy(&buffer[42], &data[32], sizeof(in_addr_t));
+          memcpy(&buffer[42], &data[32], sizeof(uint32_t));
 
           XAxiDma_BdRingToHw(txRing, 1, bd);
 
