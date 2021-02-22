@@ -2,6 +2,8 @@
 
 ![C/C++ CI](https://github.com/z4yx/Router-Lab/workflows/C/C++%20CI/badge.svg)
 
+仓库地址：[GitHub](http://github.com/thu-cs-lab/Router-Lab) [Git.Tsinghua](https://git.tsinghua.edu.cn/Router-Lab/Router-Lab) [Gitee](https://gitee.com/jiegec/Router-Lab.git)
+
 ## 版权声明
 
 本项目为 2019 年秋季学期起清华大学计算机系开设的《计算机网络原理》课程的实验框架。
