@@ -11,7 +11,7 @@
  * 删除时按照 addr 和 len **精确** 匹配。
  */
 void update(bool insert, RoutingTableEntry entry) {
-  // TODO:
+  // TODO
 }
 
 /**
@@ -22,7 +22,7 @@ void update(bool insert, RoutingTableEntry entry) {
  * @return 查到则返回 true ，没查到则返回 false
  */
 bool prefix_query(uint32_t addr, uint32_t *nexthop, uint32_t *if_index) {
-  // TODO:
+  // TODO
   *nexthop = 0;
   *if_index = 0;
   return false;
@@ -34,7 +34,7 @@ bool prefix_query(uint32_t addr, uint32_t *nexthop, uint32_t *if_index) {
  * @return mask 合法则返回前缀长度，不合法则返回 -1
  */
 int mask_to_len(uint32_t mask) {
-  // TODO:
+  // TODO
   return -1;
 }
 
@@ -44,6 +44,6 @@ int mask_to_len(uint32_t mask) {
  * @return len 合法则返回对应的网络字节序的 mask，不合法则返回 0
  */
 uint32_t len_to_mask(int len) {
-  // TODO:
+  // TODO
   return 0;
 }

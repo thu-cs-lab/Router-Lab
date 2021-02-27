@@ -21,15 +21,15 @@
  *
  * IP 包的 Total Length 长度可能和 len 不同，当 Total Length 大于 len
  * 时，把传入的 IP 包视为不合法。 你不需要校验 IP 头和 UDP 的校验和是否合法。
- * 你需要检查 Command 是否为 1 或 2，Version 是否为 2， Zero 是否为 0，
- * Family 和 Command 是否有正确的对应关系（见上面结构体注释），Tag 是否为 0，
- * Metric 是否在 [1,16] 的区间内，
+ * 你需要检查 IP 头中 Protocol 字段是否为 UDP 协议，Command 是否为 1 或 2，
+ * Version 是否为 2， Zero 是否为 0，Family 和 Command 是否有正确的对应关系，
+ * Tag 是否为 0，Metric 是否在 [1,16] 的区间内，
  * Mask 转换为主机字节序后，二进制表示是不是由连续的 1 与连续的 0 组成，
  * Mask 和 Address 按位与的结果是否等于 Address。
  */
 RipErrorCode disassemble(const uint8_t *packet, uint32_t len,
                          RipPacket *output) {
-  // TODO:
+  // TODO
   return RipErrorCode::SUCCESS;
 }
 
@@ -45,6 +45,6 @@ RipErrorCode disassemble(const uint8_t *packet, uint32_t len,
  * 需要注意一些没有保存在 RipPacket 结构体内的数据的填写。
  */
 uint32_t assemble(const RipPacket *rip, uint8_t *buffer) {
-  // TODO:
+  // TODO
   return 0;
 }

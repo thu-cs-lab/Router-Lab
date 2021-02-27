@@ -6,11 +6,10 @@
 
 ```cpp
 // 函数注释见代码
-bool forward(unsigned char *packet, unsigned long len) {
+bool forward(uint8_t *packet, size_t len) {
   // TODO
   return false;
 }
-
 ```
 
 你需要实现：

@@ -7,12 +7,12 @@
 ```cpp
 // 函数注释见代码
 void update(bool insert, RoutingTableEntry entry) {
-  // TODO:
+  // TODO
 }
 
 // 函数注释见代码
-bool query(uint32_t addr, uint32_t *nexthop, uint32_t *if_index) {
-  // TODO:
+bool prefix_query(uint32_t addr, uint32_t *nexthop, uint32_t *if_index) {
+  // TODO
   *nexthop = 0;
   *if_index = 0;
   return false;
@@ -20,13 +20,13 @@ bool query(uint32_t addr, uint32_t *nexthop, uint32_t *if_index) {
 
 // 函数注释见代码
 int mask_to_len(uint32_t mask) {
-  // TODO:
-  return 0;
+  // TODO
+  return -1;
 }
 
 // 函数注释见代码
 uint32_t len_to_mask(int len) {
-  // TODO:
+  // TODO
   return 0;
 }
 ```
