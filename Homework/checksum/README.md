@@ -6,9 +6,9 @@
 
 ```cpp
 // 函数注释见代码
-bool validateIPChecksum(unsigned char *packet, unsigned long len) {
-    // TODO
-    return true;
+bool validateIPChecksum(uint8_t *packet, size_t len) {
+  // TODO
+  return true;
 }
 ```
 

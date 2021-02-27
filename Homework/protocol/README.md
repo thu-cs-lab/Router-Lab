@@ -8,7 +8,7 @@
 // 函数注释见代码
 RipErrorCode disassemble(const uint8_t *packet, uint32_t len, RipPacket *output) {
   // TODO
-  return false;
+  return RipErrorCode::SUCCESS;
 }
 
 // 函数注释见代码

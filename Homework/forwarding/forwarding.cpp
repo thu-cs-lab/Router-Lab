@@ -15,6 +15,6 @@ extern bool validateIPChecksum(uint8_t *packet, size_t len);
  * @return 校验和无误则返回 true ，有误则返回 false
  */
 bool forward(uint8_t *packet, size_t len) {
-  // TODO:
+  // TODO
   return false;
 }
