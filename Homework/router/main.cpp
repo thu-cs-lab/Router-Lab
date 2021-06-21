@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pcap.h>
 
 // taken from linux header netinet/ip.h
 struct IPHeader {
@@ -96,8 +97,11 @@ uint32_t addrs[N_IFACE_ON_BOARD] = {0x0100000a, 0x0101000a, 0x0102000a,
                                      0x0103000a};
 #endif
 
+const uint32_t RIP_MULTICAST_ADDR = 0x090000e0;
+const macaddr_t RIP_MULTICAST_MAC = {0x01, 0x00, 0x5e, 0x00, 0x00, 0x09};
+
 int main(int argc, char *argv[]) {
-  // 0a.
+  // 0a. Init address
   int res = HAL_Init(1, addrs);
   if (res < 0) {
     return res;
@@ -128,13 +132,43 @@ int main(int argc, char *argv[]) {
       // ref. RFC 2453 Section 3.8
       printf("5s Timer\n");
       // HINT: print complete routing table to stdout/stderr for debugging
+      // do the mostly same thing as step 3a.3
+      // except that dst_ip is RIP multicast IP 224.0.0.9
+      // and dst_mac is RIP multicast MAC 01:00:5e:00:00:09
+      // fill IP headers
+      struct IPHeader *ip_header = (struct IPHeader *)output;
+      ip_header->ip_hl = 5;
+      ip_header->ip_v = 4;
+      // TODO: set tos = 0, id = 0, off = 0, ttl = 1,
+      // p = 17(udp) and dst(multicast addr)
+
+      // fill UDP headers
+      struct UDPHeader *udp_header = (struct UDPHeader *)&output[20];
+      // src port = 520
+      udp_header->uh_sport = htons(520);
+      // dst port = 520
+      udp_header->uh_dport = htons(520);
+
       // TODO: send complete routing table to every interface
       for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
+        // TODO: src_ip
+
         // construct rip response
-        // do the mostly same thing as step 3a.3
-        // except that dst_ip is RIP multicast IP 224.0.0.9
-        // and dst_mac is RIP multicast MAC 01:00:5e:00:00:09
+        RipPacket resp;
+        // TODO: fill resp
         // implement split horizon with poisoned reverse
+        // ref. RFC 2453 Section 3.4.3
+        // between 1 and 25 (inclusive) RIP entries every packet
+        // ref. RFC 2453 Section 3.6
+
+        // assemble RIP
+        uint32_t rip_len = assemble(&resp, &output[20 + 8]);
+
+        // TODO: checksum calculation for ip and udp
+        // if you don't want to calculate udp checksum, set it to zero
+
+        // send it back
+        HAL_SendIPPacket(i, output, rip_len + 20 + 8, RIP_MULTICAST_MAC);
       }
       last_time = time;
     }
@@ -186,11 +220,6 @@ int main(int argc, char *argv[]) {
           // 3a.3 request, ref. RFC 2453 Section 3.9.1
           // only need to respond to whole table requests in the lab
 
-          RipPacket resp;
-          // TODO: fill resp
-          // implement split horizon with poisoned reverse
-          // ref. RFC 2453 Section 3.4.3
-
           // fill IP headers
           struct IPHeader *ip_header = (struct IPHeader *)output;
           ip_header->ip_hl = 5;
@@ -206,6 +235,13 @@ int main(int argc, char *argv[]) {
           udp_header->uh_dport = htons(520);
           // TODO: udp length
 
+          RipPacket resp;
+          // TODO: fill resp
+          // implement split horizon with poisoned reverse
+          // ref. RFC 2453 Section 3.4.3
+          // between 1 and 25 (inclusive) RIP entries every packet
+          // ref. RFC 2453 Section 3.6
+
           // assemble RIP
           uint32_t rip_len = assemble(&resp, &output[20 + 8]);
 
@@ -220,6 +256,7 @@ int main(int argc, char *argv[]) {
           // new metric = ?
           // update metric, if_index, nexthop
           // HINT: handle nexthop = 0 case
+          // HINT: read RFC 2453 Section 3.4 Distance Vector Algorithms 4.ne
           // HINT: what is missing from RoutingTableEntry?
           // you might want to use `prefix_query` and `update`, but beware of
           // the difference between exact match and longest prefix match.
@@ -246,7 +283,7 @@ int main(int argc, char *argv[]) {
       } else {
         // a bad rip packet
         // you received a malformed packet >_<
-        printf("Got bad RIP packet from IP %x with error: %s\n", src_addr,
+        printf("Got bad RIP packet from IP %s with error: %s\n", inet_ntoa(in_addr{src_addr}),
                rip_error_to_string(err));
       }
     } else {
@@ -293,14 +330,16 @@ int main(int argc, char *argv[]) {
           } else {
             // not found
             // you can drop it
-            printf("Nexthop ip %x is not found in ARP table\n", nexthop);
+            printf("Nexthop ip %s is not found in ARP table\n",
+                   inet_ntoa(in_addr{nexthop}));
           }
         } else {
           // not found
           // send ICMP Destination Network Unreachable
-          printf("Destination IP %x not found in routing table and source IP "
-                 "is %x\n",
-                 dst_addr, src_addr);
+          printf("Destination IP %s not found in routing table ",
+                 inet_ntoa(in_addr{dst_addr}));
+          printf("and source IP is %s\n",
+                 inet_ntoa(in_addr{src_addr}));
           // send icmp destination net unreachable to src addr
           // fill IP header
           struct IPHeader *ip_header = (struct IPHeader *)output;
