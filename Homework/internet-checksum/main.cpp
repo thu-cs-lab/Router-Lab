@@ -2,8 +2,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-
-extern bool validateIPChecksum(uint8_t *packet, size_t len);
+#include "checksum.h"
 
 uint32_t addrs[N_IFACE_ON_BOARD] = {0};
 uint8_t packet[1024];
