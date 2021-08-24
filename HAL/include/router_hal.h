@@ -3,6 +3,7 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include "common.h"
 #ifdef ROUTER_BACKEND_LINUX
 #include <arpa/inet.h>
 #elif defined ROUTER_BACKEND_MACOS
@@ -20,7 +21,6 @@ typedef uint32_t uint32_t;
 #define HAL_OUT
 
 #define N_IFACE_ON_BOARD 4
-typedef uint8_t macaddr_t[6];
 
 enum HAL_ERROR_NUMBER {
   HAL_ERR_INVALID_PARAMETER = -1000,

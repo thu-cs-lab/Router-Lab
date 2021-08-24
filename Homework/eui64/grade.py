@@ -14,16 +14,10 @@ import signal
 import glob
 import traceback
 
-prefix = 'forwarding'
+prefix = 'eui64'
 exe = prefix
 if len(sys.argv) > 1:
     exe = sys.argv[1]
-
-try:
-    import pyshark
-except Exception:
-    print('Install pyshark (pip3 install pyshark) first!')
-    sys.exit(1)
 
 def write_grade(grade, total):
     data = {}
@@ -44,16 +38,16 @@ if __name__ == '__main__':
 
     if os.isatty(1):
         print('Removing all output files')
-    os.system('rm -f data/{}user*.out'.format(prefix))
+    os.system('rm -f data/{}user*.txt'.format(prefix))
 
-    total = len(glob.glob("data/{}_input*.pcap".format(prefix)))
+    total = len(glob.glob("data/{}_input*.txt".format(prefix)))
 
     grade = 0
 
     for i in range(1, total+1):
-        in_file = "data/{}_input{}.pcap".format(prefix, i)
-        out_file = "data/{}_user{}.out".format(prefix, i)
-        ans_file = "data/{}_output{}.out".format(prefix, i)
+        in_file = "data/{}_input{}.txt".format(prefix, i)
+        out_file = "data/{}_output{}.txt".format(prefix, i)
+        ans_file = "data/{}_answer{}.txt".format(prefix, i)
 
         if os.isatty(1):
             print('Running \'./{} < {} > {}\''.format(exe, in_file, out_file))
