@@ -1,3 +1,4 @@
+#include "common.h"
 #include "rip.h"
 #include "router.h"
 #include "router_hal.h"
@@ -5,34 +6,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
-// taken from linux header netinet/ip.h
-struct IPHeader {
-#if __BYTE_ORDER == __LITTLE_ENDIAN
-  unsigned int ip_hl : 4; /* header length */
-  unsigned int ip_v : 4;  /* version */
-#endif
-#if __BYTE_ORDER == __BIG_ENDIAN
-  unsigned int ip_v : 4;  /* version */
-  unsigned int ip_hl : 4; /* header length */
-#endif
-  uint8_t ip_tos;          /* type of service */
-  uint16_t ip_len;         /* total length */
-  uint16_t ip_id;          /* identification */
-  uint16_t ip_off;         /* fragment offset field */
-  uint8_t ip_ttl;          /* time to live */
-  uint8_t ip_p;            /* protocol */
-  uint16_t ip_sum;         /* checksum */
-  uint32_t ip_src, ip_dst; /* source and dest address */
-};
-
-// taken from linux header netinet/udp.h
-struct UDPHeader {
-  uint16_t uh_sport; /* source port */
-  uint16_t uh_dport; /* destination port */
-  uint16_t uh_ulen;  /* udp length */
-  uint16_t uh_sum;   /* udp checksum */
-};
 
 // taken from linux header netinet/ip_icmp.h
 #define ICMP_DEST_UNREACH 3   /* Destination Unreachable      */
@@ -70,21 +43,21 @@ uint8_t output[2048];
 // 2: 192.168.6.1
 // 3: 192.168.7.1
 const uint32_t addrs[N_IFACE_ON_BOARD] = {0x0101a8c0, 0x0103a8c0, 0x0106a8c0,
-                                           0x0107a8c0};
+                                          0x0107a8c0};
 #elif defined(ROUTER_R2)
 // 0: 192.168.3.2
 // 1: 192.168.4.1
 // 2: 192.168.8.1
 // 3: 192.168.9.1
 const uint32_t addrs[N_IFACE_ON_BOARD] = {0x0203a8c0, 0x0104a8c0, 0x0108a8c0,
-                                           0x0109a8c0};
+                                          0x0109a8c0};
 #elif defined(ROUTER_R3)
 // 0: 192.168.4.2
 // 1: 192.168.5.2
 // 2: 192.168.10.1
 // 3: 192.168.11.1
 const uint32_t addrs[N_IFACE_ON_BOARD] = {0x0204a8c0, 0x0205a8c0, 0x010aa8c0,
-                                           0x010ba8c0};
+                                          0x010ba8c0};
 #else
 
 // 自己调试用，你可以按需进行修改，注意字节序
@@ -93,7 +66,7 @@ const uint32_t addrs[N_IFACE_ON_BOARD] = {0x0204a8c0, 0x0205a8c0, 0x010aa8c0,
 // 2: 10.0.2.1
 // 3: 10.0.3.1
 uint32_t addrs[N_IFACE_ON_BOARD] = {0x0100000a, 0x0101000a, 0x0102000a,
-                                     0x0103000a};
+                                    0x0103000a};
 #endif
 
 int main(int argc, char *argv[]) {
@@ -192,14 +165,14 @@ int main(int argc, char *argv[]) {
           // ref. RFC 2453 Section 3.4.3
 
           // fill IP headers
-          struct IPHeader *ip_header = (struct IPHeader *)output;
+          struct ip_header *ip_header = (struct ip_header *)output;
           ip_header->ip_hl = 5;
           ip_header->ip_v = 4;
           // TODO: set tos = 0, id = 0, off = 0, ttl = 1, p = 17(udp), dst and
           // src
 
           // fill UDP headers
-          struct UDPHeader *udp_header = (struct UDPHeader *)&output[20];
+          struct udp_header *udp_header = (struct udp_header *)&output[20];
           // src port = 520
           udp_header->uh_sport = htons(520);
           // dst port = 520
@@ -256,7 +229,7 @@ int main(int argc, char *argv[]) {
       if (ttl <= 1) {
         // send icmp time to live exceeded to src addr
         // fill IP header
-        struct IPHeader *ip_header = (struct IPHeader *)output;
+        struct ip_header *ip_header = (struct ip_header *)output;
         ip_header->ip_hl = 5;
         ip_header->ip_v = 4;
         // TODO: set tos = 0, id = 0, off = 0, ttl = 64, p = 1(icmp), src and
@@ -303,7 +276,7 @@ int main(int argc, char *argv[]) {
                  dst_addr, src_addr);
           // send icmp destination net unreachable to src addr
           // fill IP header
-          struct IPHeader *ip_header = (struct IPHeader *)output;
+          struct ip_header *ip_header = (struct ip_header *)output;
           ip_header->ip_hl = 5;
           ip_header->ip_v = 4;
           // TODO: set tos = 0, id = 0, off = 0, ttl = 64, p = 1(icmp), src and

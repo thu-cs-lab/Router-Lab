@@ -12,8 +12,8 @@ clean:
 grade: eui64
 	python3 grade.py
 
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $^ -o $@
+%.o: %.cpp eui64.h
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 eui64: eui64.o main.o
 	$(CXX) $^ -o $@ $(LDFLAGS) 

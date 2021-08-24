@@ -14,11 +14,14 @@
 
 ```cpp
 // 函数注释见代码
-ipv6addr_t eui64(macaddr_t mac) {
+in6_addr eui64(macaddr_t mac) {
+  in6_addr res = {0};
   // TODO
-  return true;
+  return res;
 }
 ```
+
+`in6_addr` 类型保存了 IPv6 的 128 位地址信息，你可以通过 `uint8_t s6_addr[8]` 成员来读写，例如 `res.s6_addr[0] = 0xfe;`。`macaddr_t` 类型则是 `uint8_t [6]` 类型的别称。
 
 你不需要实现输入输出，输入输出已经在 `main.cpp` 中实现。
 

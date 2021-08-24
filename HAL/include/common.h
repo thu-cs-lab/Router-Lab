@@ -3,9 +3,10 @@
 
 #include <stdint.h>
 #include <array>
+#include <netinet/in.h>
+#include <netinet/ip6.h>
 
-// MAC address and IPv6 address
-typedef std::array<uint8_t, 6> macaddr_t;
-typedef std::array<uint8_t, 16> ipv6addr_t;
+// MAC address type
+typedef uint8_t macaddr_t[6];
 
 #endif
