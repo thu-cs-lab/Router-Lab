@@ -67,18 +67,9 @@ if __name__ == '__main__':
             elif os.isatty(1):
                 limit = 1
                 count = 0
-                reader = pyshark.FileCapture(in_file)
-                packets = list(reader)
-                print('Wrong Answer (showing only first {} packets):'.format(limit))
-                for i in range(len(ans)):
-                    if i >= len(out) or out[i] != ans[i]:
-                        count += 1
-                        print('Answer is wrong for packet #{}: {}'.format(i, packets[i]['ip']))
-                        if count == limit:
-                            break
+                print('Wrong Answer:')
                 print('Diff: ')
                 os.system('diff -u {} {} | head -n 10'.format(out_file, ans_file))
-                reader.close()
         except Exception:
             if os.isatty(1):
                 print('Unexpected exception caught:')
