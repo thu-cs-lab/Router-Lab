@@ -5,7 +5,7 @@ set(CMAKE_C_STANDARD 11)
 set(CMAKE_CXX_STANDARD 11)
 
 set(BACKEND Linux CACHE STRING "Router platform")
-set(BACKEND_VALUES "Linux" "Xilinx" "macOS" "stdio" "emcc")
+set(BACKEND_VALUES "Linux" "macOS" "stdio")
 set_property(CACHE BACKEND PROPERTY STRINGS ${BACKEND_VALUES})
 list(FIND BACKEND_VALUES ${BACKEND} BACKEND_INDEX)
 
