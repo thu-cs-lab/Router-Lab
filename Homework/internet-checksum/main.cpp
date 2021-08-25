@@ -24,7 +24,12 @@ int main(int argc, char *argv[]) {
     } else if (res < 0) {
       return res;
     }
-    printf("%s\n", validateIPChecksum(packet, res) ? "Yes" : "No");
+    bool correct = validateAndFillChecksum(packet, res);
+    printf("%s\n", correct ? "Yes" : "No");
+    for (int i = 0;i < res;i++) {
+      printf("%02X", packet[i]);
+    }
+    printf("\n");
   }
   return 0;
 }

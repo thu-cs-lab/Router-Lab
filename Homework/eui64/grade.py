@@ -1,16 +1,12 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import re
 import sys
 import os
 import json
 import subprocess
 import time
 from os.path import isfile, join
-import random
-import string
-import signal
 import glob
 import traceback
 
