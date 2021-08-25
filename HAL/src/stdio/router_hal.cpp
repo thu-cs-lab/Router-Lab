@@ -77,7 +77,12 @@ int HAL_ArpGetMacAddress(int if_index, uint32_t ip, macaddr_t o_mac) {
   }
 
   if ((ip & 0xe0) == 0xe0) {
-    uint8_t multicasting_mac[6] = {0x01, 0, 0x5e, (uint8_t)((ip >> 8) & 0x7f), (uint8_t)(ip >> 16), (uint8_t)(ip >> 24)};
+    uint8_t multicasting_mac[6] = {0x01,
+                                   0,
+                                   0x5e,
+                                   (uint8_t)((ip >> 8) & 0x7f),
+                                   (uint8_t)(ip >> 16),
+                                   (uint8_t)(ip >> 24)};
     memcpy(o_mac, multicasting_mac, sizeof(macaddr_t));
     return 0;
   }
@@ -185,12 +190,13 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
     }
 
     // check 802.1Q
+    uint32_t vlan = (((uint32_t)packet[14]) << 8) + packet[15];
+    vlan &= 0xFFF;
     if (packet && hdr->caplen >= IP_OFFSET && packet[12] == 0x81 &&
-        packet[13] == 0x00 && packet[14] == 0x00 && packet[15] >= 0 &&
-        packet[15] < N_IFACE_ON_BOARD) {
+        packet[13] == 0x00 && 0 < vlan && vlan < N_IFACE_ON_BOARD) {
       int current_port = packet[15];
-      if (packet[16] == 0x08 && packet[17] == 0x00) {
-        // IPv4
+      if (packet[16] == 0x86 && packet[17] == 0xdd) {
+        // IPv6
         // assuming len == caplen
         size_t ip_len = hdr->caplen - IP_OFFSET;
         size_t real_length = length > ip_len ? ip_len : length;
@@ -283,8 +289,8 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
   return 0;
 }
 
-int HAL_SendIPPacket(HAL_IN int if_index, HAL_IN uint8_t *buffer, HAL_IN size_t length,
-                     HAL_IN macaddr_t dst_mac) {
+int HAL_SendIPPacket(HAL_IN int if_index, HAL_IN uint8_t *buffer,
+                     HAL_IN size_t length, HAL_IN macaddr_t dst_mac) {
   if (!inited) {
     return HAL_ERR_CALLED_BEFORE_INIT;
   }
@@ -299,9 +305,9 @@ int HAL_SendIPPacket(HAL_IN int if_index, HAL_IN uint8_t *buffer, HAL_IN size_t 
   eth_buffer[13] = 0x00;
   eth_buffer[14] = 0x00;
   eth_buffer[15] = if_index;
-  // IPv4
-  eth_buffer[16] = 0x08;
-  eth_buffer[17] = 0x00;
+  // IPv6
+  eth_buffer[16] = 0x86;
+  eth_buffer[17] = 0xdd;
   memcpy(&eth_buffer[IP_OFFSET], buffer, length);
   struct pcap_pkthdr header;
   header.caplen = header.len = length + IP_OFFSET;

@@ -42,12 +42,12 @@ IPv6 Pseudo Header 由下面几个东西组成：
 
 1. 16 字节的 Source IPv6 Address
 2. 16 字节的 Destination IPv6 Address
-3. 4 字节的 UDP/ICMPv6 Length
+3. 4 字节的 UDP/ICMPv6 Length（网络字节序）
 4. 3 字节的 0，然后是 1 字节的 Next Protocol（对 UDP 来说是 17，对 ICMPv6 来说是 58）
 
 可以对照 [UDP Checksum](https://en.wikipedia.org/wiki/User_Datagram_Protocol#IPv6_pseudo_header)  和 [ICMPv6 Checksum](https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol_for_IPv6#Checksum) 网页上的表格进行实现。
 
-提示：你可以用一些结构体来简化解析过程：`struct ip6_hdr` `struct udphdr` 和 `struct icmp6_hdr`。
+提示：你可以用一些结构体来简化解析过程：`struct ip6_hdr`、`struct udphdr` 和 `struct icmp6_hdr`，代码中已经提供了一些使用的例子。
 
 你不需要处理输入输出，你只需要在本地执行 `make grade` 就可以进行本地评测。在本题中，保证 packet 中的数据只有 checksum 可能是不合法的。
 
