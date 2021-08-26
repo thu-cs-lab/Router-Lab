@@ -47,7 +47,7 @@ IPv6 Pseudo Header 由下面几个东西组成：
 
 可以对照 [UDP Checksum](https://en.wikipedia.org/wiki/User_Datagram_Protocol#IPv6_pseudo_header)  和 [ICMPv6 Checksum](https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol_for_IPv6#Checksum) 网页上的表格进行实现。
 
-提示：你可以用一些结构体来简化解析过程：`struct ip6_hdr`、`struct udphdr` 和 `struct icmp6_hdr`，代码中已经提供了一些使用的例子。
+提示：你可以用一些结构体来简化解析过程：`struct ip6_hdr`、`struct udphdr` 和 `struct icmp6_hdr`，代码中已经提供了一些使用的例子。对于 UDP/ICMPv6 Length，你可以用 `htonl/htons/ntohl/ntohs` 函数来转换字节序。
 
 你不需要处理输入输出，你只需要在本地执行 `make grade` 就可以进行本地评测。在本题中，保证 packet 中的数据只有 checksum 可能是不合法的。
 
