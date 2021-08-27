@@ -1,0 +1,38 @@
+Valid
+Valid
+Valid
+Valid
+Valid
+Valid
+Valid
+::7 7
+::7 7
+::7 7
+::7 7
+::7 7
+::7 7
+::6 6
+::5 5
+::4 4
+::3 3
+::2 2
+::1 1
+Invalid
+Invalid
+Invalid
+Valid
+Valid
+Valid
+Valid
+Invalid
+Valid
+Invalid
+Valid
+Invalid
+Valid
+Valid
+Invalid
+::3 3
+::1 1
+::7 7
+::5 5
