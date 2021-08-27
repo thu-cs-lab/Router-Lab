@@ -2,5 +2,5 @@
 lookup
 std
 std.cpp
-!*_output*.out
+*_output*.txt
 !Makefile

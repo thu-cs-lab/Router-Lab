@@ -34,7 +34,7 @@ if __name__ == '__main__':
 
     if os.isatty(1):
         print('Removing all output files')
-    os.system('rm -f data/{}user*.out'.format(prefix))
+    os.system('rm -f data/{}_output*.out'.format(prefix))
 
     total = len(glob.glob("data/{}_input*.pcap".format(prefix)))
 
