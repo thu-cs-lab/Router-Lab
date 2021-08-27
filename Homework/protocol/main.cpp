@@ -1,16 +1,16 @@
-#include "rip.h"
+#include "protocol.h"
 #include "router_hal.h"
+#include <arpa/inet.h>
+#include <assert.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
-extern RipErrorCode disassemble(const uint8_t *packet, uint32_t len,
-                                RipPacket *output);
-extern uint32_t assemble(const RipPacket *rip, uint8_t *buffer);
 uint8_t buffer[1024];
 uint8_t packet[2048];
 RipPacket rip;
 uint32_t addrs[N_IFACE_ON_BOARD] = {0};
+char addr_buffer[1024];
 
 int main(int argc, char *argv[]) {
   int res = HAL_Init(0, addrs);
@@ -33,9 +33,10 @@ int main(int argc, char *argv[]) {
     if (err == RipErrorCode::SUCCESS) {
       printf("Valid %d %d\n", rip.numEntries, rip.command);
       for (int i = 0; i < rip.numEntries; i++) {
-        printf("%08x %08x %08x %08x\n", rip.entries[i].addr,
-               rip.entries[i].mask, rip.entries[i].nexthop,
-               rip.entries[i].metric);
+        assert(inet_ntop(AF_INET6, &rip.entries[i].prefix, addr_buffer,
+                         sizeof(addr_buffer)));
+        printf("%s %d %d %d\n", addr_buffer, rip.entries[i].route_tag,
+               rip.entries[i].prefix_len, rip.entries[i].metric);
       }
       uint32_t len = assemble(&rip, buffer);
       for (uint32_t i = 0; i < len; i++) {
