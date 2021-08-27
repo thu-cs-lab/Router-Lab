@@ -1,8 +1,7 @@
 CXX ?= g++
 LAB_ROOT ?= ../..
-BACKEND ?= STDIO
-CXXFLAGS ?= --std=c++11 -I $(LAB_ROOT)/HAL/include -DROUTER_BACKEND_$(BACKEND)
-LDFLAGS ?= -lpcap
+CXXFLAGS ?= --std=c++11
+LDFLAGS ?=
 
 .PHONY: all clean grade
 all: lookup
@@ -16,11 +15,8 @@ grade: lookup
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $^ -o $@
 
-hal.o: $(LAB_ROOT)/HAL/src/stdio/router_hal.cpp
-	$(CXX) $(CXXFLAGS) -c $^ -o $@
-
-lookup: lookup.o main.o hal.o
+lookup: lookup.o main.o
 	$(CXX) $^ -o $@ $(LDFLAGS) 
 
-std: std.o main.o hal.o
+std: std.o main.o
 	$(CXX) $^ -o $@ $(LDFLAGS) 

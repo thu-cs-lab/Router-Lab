@@ -1,5 +1,4 @@
 #include "lookup.h"
-#include "router_hal.h"
 #include <arpa/inet.h>
 #include <assert.h>
 #include <stdint.h>
@@ -16,10 +15,11 @@ int main(int argc, char *argv[]) {
   char tmp;
   while (fgets(buffer, sizeof(buffer), stdin)) {
     if (buffer[0] == 'I') {
-      sscanf(buffer, "%c,%s,%d,%d,%s", &tmp, addr_buffer, &len, &if_index,
+      sscanf(buffer, "%c%s%d%d%s", &tmp, addr_buffer, &len, &if_index,
              nexthop_buffer);
       assert(inet_pton(AF_INET6, addr_buffer, &addr) == 1);
       assert(inet_pton(AF_INET6, nexthop_buffer, &nexthop) == 1);
+      assert(0 <= len && len <= 128);
       if ((len_to_mask(len) & addr) != addr ||
           mask_to_len(len_to_mask(len)) != len) {
         printf("Invalid\n");
@@ -30,8 +30,9 @@ int main(int argc, char *argv[]) {
         update(true, entry);
       }
     } else if (buffer[0] == 'D') {
-      sscanf(buffer, "%c,%s,%d", &tmp, addr_buffer, &len);
+      sscanf(buffer, "%c%s%d", &tmp, addr_buffer, &len);
       assert(inet_pton(AF_INET6, addr_buffer, &addr) == 1);
+      assert(0 <= len && len <= 128);
       if ((len_to_mask(len) & addr) != addr ||
           mask_to_len(len_to_mask(len)) != len) {
         printf("Invalid\n");
@@ -42,10 +43,11 @@ int main(int argc, char *argv[]) {
         update(false, entry);
       }
     } else if (buffer[0] == 'Q') {
-      sscanf(buffer, "%c,%s", &tmp, addr_buffer);
+      sscanf(buffer, "%c%s", &tmp, addr_buffer);
       assert(inet_pton(AF_INET6, addr_buffer, &addr) == 1);
       if (prefix_query(addr, &nexthop, &if_index)) {
-        assert(inet_ntop(AF_INET6, &nexthop, nexthop_buffer, sizeof(nexthop_buffer)));
+        assert(inet_ntop(AF_INET6, &nexthop, nexthop_buffer,
+                         sizeof(nexthop_buffer)));
         printf("%s %d\n", nexthop_buffer, if_index);
       } else {
         printf("Not Found\n");
