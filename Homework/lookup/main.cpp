@@ -39,7 +39,7 @@ int main(int argc, char *argv[]) {
       } else {
         printf("Valid\n");
         RoutingTableEntry entry = {
-            .addr = addr, .len = len, .if_index = 0, .nexthop = 0};
+            .addr = addr, .len = len, .if_index = 0, .nexthop = in6_addr{}};
         update(false, entry);
       }
     } else if (buffer[0] == 'Q') {
