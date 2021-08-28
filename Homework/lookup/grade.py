@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
     if os.isatty(1):
         print('Removing all output files')
-    os.system('rm -f data/{}output*.out'.format(prefix))
+    os.system('rm -f data/{}_output*.txt'.format(prefix))
 
     total = len(glob.glob("data/{}_input*.txt".format(prefix)))
 

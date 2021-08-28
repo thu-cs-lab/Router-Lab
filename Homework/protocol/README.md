@@ -29,23 +29,21 @@ uint32_t assemble(const RipPacket *rip, uint8_t *buffer) {
 
 ## 样例 1
 
-见题目目录下的 *protocol_input1.pcap* 与 *protocol_output1.out*。
+见题目目录下的 *protocol_input1.pcap* 与 *protocol_answer1.txt*。
 
 ## 样例 1 解释
 
-用 Wireshark 打开，可以看到有两个合法的 RIP 包，它们的内容是一样的：
+用 Wireshark 打开，可以看到有两个合法的 RIP 包，它们的内容如下：
 
 ```text
-Routing Information Protocol
+RIPng
+    Command: Request (1)
+    Version: 1
+    Reserved: 0000
+RIPng
     Command: Response (2)
-    Version: RIPv2 (2)
-    IP Address: 192.168.5.0, Metric: 1
-        Address Family: IP (2)
-        Route Tag: 0
-        IP Address: 192.168.5.0
-        Netmask: 255.255.255.0
-        Next Hop: 0.0.0.0
-        Metric: 1
+    Version: 1
+    Reserved: 0000
 ```
 
-把对应的内容填入结构体即可，需要注意字节序。
+可以看到都是合法的 RIPng packet。把对应的内容填入结构体即可，需要注意字节序。
