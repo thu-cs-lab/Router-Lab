@@ -1,6 +1,7 @@
 #include "common.h"
-#include "rip.h"
-#include "router.h"
+#include "checksum.h"
+#include "protocol.h"
+#include "lookup.h"
 #include "router_hal.h"
 #include <stdint.h>
 #include <stdio.h>
@@ -22,16 +23,6 @@ struct ICMPHeader {
     uint32_t gateway; /* gateway address */
   } un;
 };
-
-extern bool validateIPChecksum(uint8_t *packet, size_t len);
-extern void update(bool insert, RoutingTableEntry entry);
-extern bool prefix_query(uint32_t addr, uint32_t *nexthop, uint32_t *if_index);
-extern bool forward(uint8_t *packet, size_t len);
-extern RipErrorCode disassemble(const uint8_t *packet, uint32_t len,
-                                RipPacket *output);
-extern uint32_t assemble(const RipPacket *rip, uint8_t *buffer);
-extern int mask_to_len(uint32_t mask);
-extern uint32_t len_to_mask(int len);
 
 uint8_t packet[2048];
 uint8_t output[2048];

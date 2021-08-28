@@ -2,7 +2,7 @@ CXX ?= g++
 LAB_ROOT ?= ../../..
 BACKEND ?= LINUX
 LDFLAGS = -lpcap -static
-override CXXFLAGS += --std=c++11 -I $(LAB_ROOT)/HAL/include -DROUTER_BACKEND_$(BACKEND) -Wno-psabi -O2 -static -I../../protocol -I../../lookup
+override CXXFLAGS += --std=c++11 -I $(LAB_ROOT)/HAL/include -DROUTER_BACKEND_$(BACKEND) -Wno-psabi -O2 -static -I../../protocol -I../../lookup -I../../internet-checksum
 
 .PHONY: all clean
 all: router
@@ -16,7 +16,7 @@ clean:
 hal.o: $(LAB_ROOT)/HAL/src/linux/router_hal.cpp $(LAB_ROOT)/HAL/src/linux/platform/standard.h
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-checksum.o: ../../checksum/checksum.cpp
+checksum.o: ../../internet-checksum/checksum.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 forwarding.o: ../../forwarding/forwarding.cpp

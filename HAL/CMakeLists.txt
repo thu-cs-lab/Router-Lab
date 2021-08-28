@@ -8,8 +8,6 @@ elseif(${BACKEND} STREQUAL MACOS)
 elseif(${BACKEND} STREQUAL STDIO)
     file(GLOB_RECURSE SOURCES src/stdio/*.cpp)
     set(LIBRARIES pcap)
-elseif(${BACKEND} STREQUAL XILINX)
-    file(GLOB_RECURSE SOURCES src/xilinx/*.c)
 endif()
 
 add_library(router_hal ${SOURCES} ${HEADERS})
