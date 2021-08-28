@@ -4,10 +4,10 @@ homework:
         # DO NOT EDIT!
         - gpg --verify .gitlab-ci.yml.asc .gitlab-ci.yml
         - mkdir logs
-        - make -C Homework/checksum
-        - (cd Homework/checksum && python3 grade.py | tee ../../logs/checksum.log)
-        - make -C Homework/forwarding
-        - (cd Homework/forwarding && python3 grade.py | tee ../../logs/forwarding.log)
+        - make -C Homework/eui64
+        - (cd Homework/eui64 && python3 grade.py | tee ../../logs/eui64.log)
+        - make -C Homework/internet-checksum
+        - (cd Homework/internet-checksum && python3 grade.py | tee ../../logs/internet-checksum.log)
         - make -C Homework/lookup
         - (cd Homework/lookup && python3 grade.py | tee ../../logs/lookup.log)
         - make -C Homework/protocol
