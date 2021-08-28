@@ -2,7 +2,7 @@
 
 ## 题目描述
 
-这一题要求你实现 [RFC 2453: RIP Version 2](https://tools.ietf.org/html/rfc2453) 数据格式的处理，你需要按照 `protocol.cpp` 文件中函数的注释，实现如下两个函数：
+这一题要求你实现 [RFC 2080: RIPng for IPv6](https://datatracker.ietf.org/doc/html/rfc2080) 数据格式的处理，你需要按照 `protocol.cpp` 文件中函数的注释，实现如下两个函数：
 
 ```cpp
 // 函数注释见代码
@@ -20,8 +20,8 @@ uint32_t assemble(const RipPacket *rip, uint8_t *buffer) {
 
 你需要实现：
 
-1. 解析 IP 、 UDP 和 RIPv2 的格式，把有用的信息保存下来
-2. 如果上一步得到了合法的数据，从保存下来的信息恢复出 RIP 的传输格式
+1. 解析 IPv6 、 UDP 和 RIPng 的格式，把有用的信息保存下来
+2. 如果上一步得到了合法的数据，从保存下来的信息恢复出 RIPng 的传输格式
 
 需要注意的是，这一题中所有数据都是网络传输的数据格式，所以每一个 RIP 数据字段都是网络字节序，见 `rip.h` 中的注释。
 
