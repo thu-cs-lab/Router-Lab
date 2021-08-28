@@ -1,0 +1,2 @@
+UDP port is not 521
+Command field is bad

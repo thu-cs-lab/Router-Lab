@@ -8,10 +8,10 @@ enum RipErrorCode {
   SUCCESS = 0,
   // IPv6 头中 next header 字段不是 UDP 协议
   ERR_IP_NEXT_HEADER_NOT_UDP,
-  // IPv6 头、UDP 头和实际的 RIPng 路由项的长度不一致
-  ERR_LENGTH,
   // UDP 头中源端口号或者目的端口号不是 521(RIPng)
   ERR_BAD_UDP_PORT,
+  // IPv6 头、UDP 头和实际的 RIPng 路由项的长度不一致
+  ERR_LENGTH,
   // RIPng 的 Command 字段错误
   ERR_RIP_BAD_COMMAND,
   // RIPng 的 Version 字段错误
@@ -64,10 +64,10 @@ static const char *rip_error_to_string(RipErrorCode err) {
   switch (err) {
   case RipErrorCode::ERR_IP_NEXT_HEADER_NOT_UDP:
     return "IP next header field is not UDP";
-  case RipErrorCode::ERR_LENGTH:
-    return "Length is inconsistent";
   case RipErrorCode::ERR_BAD_UDP_PORT:
     return "UDP port is not 521";
+  case RipErrorCode::ERR_LENGTH:
+    return "Length is inconsistent";
   case RipErrorCode::ERR_RIP_BAD_COMMAND:
     return "Command field is bad";
   case RipErrorCode::ERR_RIP_BAD_VERSION:
