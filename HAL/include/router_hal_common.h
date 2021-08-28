@@ -1,12 +1,11 @@
 #ifndef __ROUTER_HAL_COMMON_H__
 #define __ROUTER_HAL_COMMON_H__
 
-// don't include this file in your own code.
+// you don't need to include this file in your own code.
 #include "router_hal.h"
-#include <string.h>
 
 // send igmp join to the multicast address
-void HAL_JoinIGMPGroup(int if_index, uint32_t ip) {
+static void HAL_JoinIGMPGroup(int if_index, in6_addr ip) {
   uint8_t buffer[40] = {
       0x46, 0xc0, 0x00, 0x28, 0x00, 0x00, 0x40, 0x00, 0x01, 0x02, // Header
       0x00, 0x00,             // Header checksum
@@ -36,5 +35,6 @@ void HAL_JoinIGMPGroup(int if_index, uint32_t ip) {
   macaddr_t dst_mac = {0x01, 0x00, 0x5e, 0x00, 0x00, 0x16};
   HAL_SendIPPacket(if_index, buffer, sizeof(buffer), dst_mac);
 }
+
 
 #endif

@@ -9,6 +9,7 @@ elseif(${BACKEND} STREQUAL STDIO)
     file(GLOB_RECURSE SOURCES src/stdio/*.cpp)
     set(LIBRARIES pcap)
 endif()
+set(SOURCES ${SOURCES} src/common.cpp)
 
 add_library(router_hal ${SOURCES} ${HEADERS})
 target_include_directories(router_hal PUBLIC include)

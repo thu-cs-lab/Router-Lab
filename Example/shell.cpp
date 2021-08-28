@@ -1,3 +1,4 @@
+#include "common.h"
 #include "router_hal.h"
 #include <ncurses.h>
 #include <readline/history.h>
@@ -17,9 +18,17 @@ char *buffer;
 uint8_t packet[2048];
 bool cont = false;
 
-// 10.0.0.1 ~ 10.0.3.1
-uint32_t addrs[N_IFACE_ON_BOARD] = {0x0100000a, 0x0101000a, 0x0102000a,
-                                    0x0103000a};
+// fd00::0:1 ~ fd00::3:1
+in6_addr addrs[N_IFACE_ON_BOARD] = {
+    {0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+     0x00, 0x00, 0x00, 0x01},
+    {0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+     0x00, 0x01, 0x00, 0x01},
+    {0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+     0x00, 0x02, 0x00, 0x01},
+    {0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+     0x00, 0x03, 0x00, 0x01},
+};
 
 void interrupt(int _) {
   printf("Interrupt\n");
@@ -29,7 +38,7 @@ void interrupt(int _) {
 
 int main() {
   printf("HAL init: %d\n", HAL_Init(1, addrs));
-  for (int i = 0; i < N_IFACE_ON_BOARD;i++) {
+  for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
     macaddr_t mac;
     HAL_GetInterfaceMacAddress(i, mac);
     printf("%d: %02X:%02X:%02X:%02X:%02X:%02X\n", i, mac[0], mac[1], mac[2],
@@ -41,15 +50,16 @@ int main() {
     add_history(buffer);
     if (strcmp(buffer, "time") == 0) {
       printf("Current tick %lld\n", HAL_GetTicks());
-    } else if (strncmp(buffer, "arp", strlen("arp")) == 0) {
+    } else if (strncmp(buffer, "ndp", strlen("ndp")) == 0) {
       int if_index;
       int ip1, ip2, ip3, ip4;
-      sscanf(buffer, "arp %d %d.%d.%d.%d", &if_index, &ip1, &ip2, &ip3, &ip4);
-      printf("Get arp address of %d.%d.%d.%d if %d\n", ip1, ip2, ip3, ip4,
-             if_index);
-      uint32_t ip = (ip4 << 24) | (ip3 << 16) | (ip2 << 8) | ip1;
+      char addr_buffer[128];
+      sscanf(buffer, "ndp %d %s", &if_index, addr_buffer);
+      in6_addr ip = {};
+      assert(inet_pton(AF_INET6, addr_buffer, &ip) == 1);
+      printf("Get ndp address of %s if %d\n", inet6_ntoa(ip), if_index);
       macaddr_t mac;
-      int res = HAL_ArpGetMacAddress(if_index, ip, mac);
+      int res = HAL_GetNeighborMacAddress(if_index, ip, mac);
       if (res == 0) {
         printf("Found: ");
         printMAC(mac);
@@ -100,7 +110,7 @@ int main() {
       for (int i = 0; i < len; i++) {
         packet[i] = rand();
       }
-      for (int i = 0; i < sizeof(macaddr_t);i++) {
+      for (int i = 0; i < sizeof(macaddr_t); i++) {
         dst_mac[i] = rand();
       }
       int res = HAL_SendIPPacket(if_index, packet, len, dst_mac);
@@ -130,7 +140,7 @@ int main() {
       printf("Unknown command.\n");
       printf("Usage:\n");
       printf("\ttime: show current ticks\n");
-      printf("\tarp index a.b.c.d: lookup arp\n");
+      printf("\tndp index ipv6_addr: lookup by ndp\n");
       printf("\tmac index: print MAC address of interface\n");
       printf("\tcap: capture one packet\n");
       printf("\tout index: send random packet to interface\n");

@@ -3,6 +3,7 @@
 
 #include <netinet/in.h>
 #include <stdint.h>
+#include "common.h"
 
 /*
   表示路由表的一项。
@@ -50,10 +51,5 @@ int mask_to_len(const in6_addr mask);
  * @return len 合法则返回对应的 mask，不合法则返回 0
  */
 in6_addr len_to_mask(int len);
-
-// 工具函数
-in6_addr operator &(const in6_addr &a, const in6_addr &b);
-bool operator !=(const in6_addr &a, const in6_addr &b);
-bool operator ==(const in6_addr &a, const in6_addr &b);
 
 #endif

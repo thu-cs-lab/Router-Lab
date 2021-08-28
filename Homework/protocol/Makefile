@@ -19,11 +19,14 @@ grade: protocol
 hal.o: $(LAB_ROOT)/HAL/src/stdio/router_hal.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
+common.o: $(LAB_ROOT)/HAL/src/common.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
 lookup.o: ../lookup/lookup.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-protocol: protocol.o main.o hal.o lookup.o
+protocol: protocol.o main.o hal.o lookup.o common.o
 	$(CXX) $^ -o $@ $(LDFLAGS) 
 
-std: std.o main.o hal.o lookup.o
+std: std.o main.o hal.o lookup.o common.o
 	$(CXX) $^ -o $@ $(LDFLAGS) 

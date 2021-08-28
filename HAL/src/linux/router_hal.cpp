@@ -1,14 +1,13 @@
 #include "router_hal.h"
+#include "common.h"
 #include "router_hal_common.h"
-#include <stdio.h>
 #include <errno.h>
-
 #include <ifaddrs.h>
 #include <linux/if_packet.h>
 #include <map>
 #include <net/if.h>
-#include <net/if_arp.h>
 #include <pcap.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
@@ -23,17 +22,17 @@ const int IP_OFFSET = 14;
 
 bool inited = false;
 int debugEnabled = 0;
-uint32_t interface_addrs[N_IFACE_ON_BOARD] = {0};
+in6_addr interface_addrs[N_IFACE_ON_BOARD] = {0};
 macaddr_t interface_mac[N_IFACE_ON_BOARD] = {0};
 
 pcap_t *pcap_in_handles[N_IFACE_ON_BOARD];
 pcap_t *pcap_out_handles[N_IFACE_ON_BOARD];
 
-std::map<std::pair<uint32_t, int>, macaddr_t> arp_table;
-std::map<std::pair<uint32_t, int>, uint64_t> arp_timer;
+std::map<std::pair<in6_addr, int>, macaddr_t> ndp_table;
+std::map<std::pair<in6_addr, int>, uint64_t> ndp_timer;
 
 extern "C" {
-int HAL_Init(HAL_IN int debug, HAL_IN uint32_t if_addrs[N_IFACE_ON_BOARD]) {
+int HAL_Init(HAL_IN int debug, HAL_IN in6_addr if_addrs[N_IFACE_ON_BOARD]) {
   if (inited) {
     return 0;
   }
@@ -58,7 +57,7 @@ int HAL_Init(HAL_IN int debug, HAL_IN uint32_t if_addrs[N_IFACE_ON_BOARD]) {
         memcpy(interface_mac[i],
                ((struct sockaddr_ll *)ifa->ifa_addr)->sll_addr,
                sizeof(macaddr_t));
-        memcpy(arp_table[std::pair<uint32_t, int>(if_addrs[i], i)],
+        memcpy(ndp_table[std::pair<in6_addr, int>(if_addrs[i], i)],
                interface_mac[i], sizeof(macaddr_t));
         if (debugEnabled) {
           fprintf(stderr, "HAL_Init: found MAC addr of interface %s\n",
@@ -117,8 +116,8 @@ uint64_t HAL_GetTicks() {
   return (uint64_t)tp.tv_sec * 1000 + (uint64_t)tp.tv_nsec / 1000000;
 }
 
-int HAL_ArpGetMacAddress(HAL_IN int if_index, HAL_IN uint32_t ip,
-                         HAL_OUT macaddr_t o_mac) {
+int HAL_GetNeighborMacAddress(HAL_IN int if_index, HAL_IN in6_addr ip,
+                              HAL_OUT macaddr_t o_mac) {
   if (!inited) {
     return HAL_ERR_CALLED_BEFORE_INIT;
   }
@@ -126,34 +125,22 @@ int HAL_ArpGetMacAddress(HAL_IN int if_index, HAL_IN uint32_t ip,
     return HAL_ERR_INVALID_PARAMETER;
   }
 
-  // handle multicast
-  if ((ip & 0xe0) == 0xe0) {
-    uint8_t multicasting_mac[6] = {0x01,
-                                   0,
-                                   0x5e,
-                                   (uint8_t)((ip >> 8) & 0x7f),
-                                   (uint8_t)(ip >> 16),
-                                   (uint8_t)(ip >> 24)};
-    memcpy(o_mac, multicasting_mac, sizeof(macaddr_t));
-    return 0;
-  }
-
-  // lookup arp table
-  auto it = arp_table.find(std::pair<uint32_t, int>(ip, if_index));
-  if (it != arp_table.end()) {
+  // lookup ndp table
+  auto it = ndp_table.find(std::pair<in6_addr, int>(ip, if_index));
+  if (it != ndp_table.end()) {
     memcpy(o_mac, it->second, sizeof(macaddr_t));
     return 0;
   } else if (pcap_out_handles[if_index] &&
-             arp_timer[std::pair<uint32_t, int>(ip, if_index)] + 1000 <
+             ndp_timer[std::pair<in6_addr, int>(ip, if_index)] + 1000 <
                  HAL_GetTicks()) {
-    // not found, send arp request
-    // rate limit arp request by 1 req/s
-    arp_timer[std::pair<uint32_t, int>(ip, if_index)] = HAL_GetTicks();
+    // not found, send ndp request
+    // rate limit ndp request by 1 req/s
+    ndp_timer[std::pair<in6_addr, int>(ip, if_index)] = HAL_GetTicks();
     if (debugEnabled) {
       fprintf(
           stderr,
-          "HAL_ArpGetMacAddress: asking for ip address %s with arp request\n",
-          inet_ntoa(in_addr{ip}));
+          "HAL_ArpGetMacAddress: asking for ip address %s with ndp request\n",
+          inet6_ntoa(ip));
     }
     uint8_t buffer[64] = {0};
     // dst mac
@@ -263,16 +250,16 @@ int HAL_ReceiveIPPacket(HAL_IN int if_index_mask, HAL_OUT uint8_t *buffer,
       // learn it
       macaddr_t mac;
       memcpy(mac, &packet[22], sizeof(macaddr_t));
-      uint32_t ip;
+      in6_addr ip;
       memcpy(&ip, &packet[28], sizeof(uint32_t));
-      memcpy(arp_table[std::pair<uint32_t, int>(ip, current_port)], mac,
+      memcpy(ndp_table[std::pair<in6_addr, int>(ip, current_port)], mac,
              sizeof(macaddr_t));
       if (debugEnabled) {
         fprintf(stderr, "HAL_ReceiveIPPacket: learned MAC address of %s\n",
-                inet_ntoa(in_addr{ip}));
+                inet6_ntoa(ip));
       }
 
-      uint32_t dst_ip;
+      in6_addr dst_ip;
       memcpy(&dst_ip, &packet[38], sizeof(uint32_t));
       // ask me: reply
       if (dst_ip == interface_addrs[current_port] && packet[21] == 0x01) {
@@ -307,7 +294,7 @@ int HAL_ReceiveIPPacket(HAL_IN int if_index_mask, HAL_OUT uint8_t *buffer,
         pcap_inject(pcap_out_handles[current_port], buffer, sizeof(buffer));
         if (debugEnabled) {
           fprintf(stderr, "HAL_ReceiveIPPacket: replied ARP to %s\n",
-                  inet_ntoa(in_addr{ip}));
+                  inet6_ntoa(ip));
         }
       }
       // otherwise: learn and ignore
