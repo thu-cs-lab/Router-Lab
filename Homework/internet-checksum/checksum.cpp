@@ -1,7 +1,8 @@
 #include "checksum.h"
+#include <assert.h>
 #include <stdint.h>
 #include <stdlib.h>
-#include <assert.h>
+#include <string.h>
 
 bool validateAndFillChecksum(uint8_t *packet, size_t len) {
   // TODO
@@ -16,7 +17,8 @@ bool validateAndFillChecksum(uint8_t *packet, size_t len) {
     // checksum: udp->uh_sum
   } else if (nxt_header == IPPROTO_ICMPV6) {
     // ICMPv6
-    struct icmp6_hdr *icmp = (struct icmp6_hdr *)&packet[sizeof(struct ip6_hdr)];
+    struct icmp6_hdr *icmp =
+        (struct icmp6_hdr *)&packet[sizeof(struct ip6_hdr)];
     // length: len-sizeof(struct ip6_hdr)
     // checksum: icmp->icmp6_chksum
   } else {

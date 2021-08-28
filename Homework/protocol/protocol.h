@@ -6,11 +6,11 @@
 enum RipErrorCode {
   // 没有错误
   SUCCESS = 0,
-  // IPv6 头、UDP 头和实际的 RIPng 路由项的长度不一致
-  ERR_LENGTH,
   // IPv6 头中 next header 字段不是 UDP 协议
   ERR_IP_NEXT_HEADER_NOT_UDP,
-  // UDP 头中端口号不是 521(RIPng)
+  // IPv6 头、UDP 头和实际的 RIPng 路由项的长度不一致
+  ERR_LENGTH,
+  // UDP 头中源端口号或者目的端口号不是 521(RIPng)
   ERR_BAD_UDP_PORT,
   // RIPng 的 Command 字段错误
   ERR_RIP_BAD_COMMAND,
@@ -22,18 +22,29 @@ enum RipErrorCode {
   ERR_RIP_BAD_METRIC,
   // RIPng 表项的 Prefix Len 字段错误
   ERR_RIP_BAD_PREFIX_LEN,
+  // RIPng 表项的 Route Tag 字段错误
+  ERR_RIP_BAD_ROUTE_TAG,
   // RIPng 表项的 Prefix 和 Prefix Len 字段不符合要求
   ERR_RIP_INCONSISTENT_PREFIX_LENGTH,
 };
 
+// RIPng header 定义
+typedef struct ripng_hdr {
+  uint8_t command;
+  uint8_t version;
+  uint16_t zero;
+} ripng_hdr;
+
 // (1500-40-8-4)/20=72
 #define RIP_MAX_ENTRY 72
+
+// RIPng entry 定义
 typedef struct {
   in6_addr prefix;
   uint16_t route_tag;
   uint8_t prefix_len;
   uint8_t metric;
-} RipEntry;
+} ripng_entry;
 
 typedef struct {
   uint32_t numEntries;
@@ -41,15 +52,15 @@ typedef struct {
   uint8_t command;
   // 不用存储 `version`，因为它总是 1
   // 不用存储 `zero`，因为它总是 0
-  RipEntry entries[RIP_MAX_ENTRY];
+  ripng_entry entries[RIP_MAX_ENTRY];
 } RipPacket;
 
 static const char *rip_error_to_string(RipErrorCode err) {
   switch (err) {
-  case RipErrorCode::ERR_LENGTH:
-    return "Length is inconsistent";
   case RipErrorCode::ERR_IP_NEXT_HEADER_NOT_UDP:
     return "IP next header field is not UDP";
+  case RipErrorCode::ERR_LENGTH:
+    return "Length is inconsistent";
   case RipErrorCode::ERR_BAD_UDP_PORT:
     return "UDP port is not 521";
   case RipErrorCode::ERR_RIP_BAD_COMMAND:
@@ -62,6 +73,8 @@ static const char *rip_error_to_string(RipErrorCode err) {
     return "Metric field is bad";
   case RipErrorCode::ERR_RIP_BAD_PREFIX_LEN:
     return "Prefix len field is bad";
+  case RipErrorCode::ERR_RIP_BAD_ROUTE_TAG:
+    return "Route tag field is bad";
   case RipErrorCode::ERR_RIP_INCONSISTENT_PREFIX_LENGTH:
     return "Prefix field is inconsistent with Prefix len field";
   default:
@@ -86,9 +99,11 @@ static const char *rip_error_to_string(RipErrorCode err) {
  * IPv6 Header 的 Payload Length 长度可能和 len 不同，
  * 当 Payload Length 大于 len 时，把传入的 IP 包视为不合法。
  * 你不需要校验 UDP 的校验和是否合法。
- * 你需要检查 IPv6 头中 Next header 字段是否为 UDP 协议，UDP 端口号是否为
- * 521，Command 是否为 1 或 2，Version 是否为 1，Zero 是否为 0，
- * Prefix Len 是否合法，是否与 IPv6 prefix 字段组成合法的 IPv6 前缀。
+ * 你需要检查 IPv6 头中 Next header 字段是否为 UDP 协议，UDP 端口号是否为 521，
+ * RIPng header 中的 Command 是否为 1 或 2，Version 是否为 1，Zero 是否为 0，
+ * 对于 RIPng entry，当 Metric=0xFF 时，检查 Prefix Len 和 Route Tag 是否为 0；
+ * 当 Metric!=0xFF 时，检查 Metric 是否属于 [1,16]，并检查 Prefix Len 是否属于 [0,128]，
+ * 是否与 IPv6 prefix 字段组成合法的 IPv6 前缀。
  */
 RipErrorCode disassemble(const uint8_t *packet, uint32_t len,
                          RipPacket *output);

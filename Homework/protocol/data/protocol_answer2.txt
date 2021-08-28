@@ -1,0 +1,2 @@
+Version field is bad
+Zero field is bad

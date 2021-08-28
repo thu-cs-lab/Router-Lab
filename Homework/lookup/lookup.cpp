@@ -1,6 +1,8 @@
 #include "lookup.h"
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
+#include <vector>
 
 void update(bool insert, const RoutingTableEntry entry) {
   // TODO

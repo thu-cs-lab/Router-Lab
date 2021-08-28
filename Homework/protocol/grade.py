@@ -38,7 +38,7 @@ if __name__ == '__main__':
 
     if os.isatty(1):
         print('Removing all output files')
-    os.system('rm -f data/{}user*.out'.format(prefix))
+    os.system('rm -f data/{}_output*.txt'.format(prefix))
 
     total = len(glob.glob("data/{}_input*.pcap".format(prefix)))
 
@@ -46,8 +46,8 @@ if __name__ == '__main__':
 
     for i in range(1, total+1):
         in_file = "data/{}_input{}.pcap".format(prefix, i)
-        out_file = "data/{}_user{}.out".format(prefix, i)
-        ans_file = "data/{}_output{}.out".format(prefix, i)
+        out_file = "data/{}_output{}.txt".format(prefix, i)
+        ans_file = "data/{}_answer{}.txt".format(prefix, i)
 
         if os.isatty(1):
             print('Running \'./{} < {} > {}\''.format(exe, in_file, out_file))

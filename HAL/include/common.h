@@ -1,8 +1,8 @@
 #ifndef __COMMON_H__
 #define __COMMON_H__
 
-#include <stdint.h>
 #include <array>
+#include <stdint.h>
 
 // definition of in6_addr
 #include <netinet/in.h>
