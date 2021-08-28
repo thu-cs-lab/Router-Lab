@@ -31,7 +31,7 @@ in6_addr eui64(const macaddr_t mac) {
 
 输入文件有若干行，每一行一个 MAC 地址。
 
-输出文件有若干行，每行一个 IPv6 地址，为输入文件中每一行 MAC 地址采用 EUI64 算法生成的 IPv6 地址。
+输出文件有若干行，每行一个 IPv6 地址，为输入文件中每一行 MAC 地址采用 EUI-64 算法生成的 IPv6 地址。
 
 IPv6 地址采用 `inet_ntop` 函数将 IPv6 地址转换为字符串。简单来说，将 IPv6 地址的 16 个字节分别转换为十六进制，两个为一组，组之间由 `:` 分隔；如果有连续的 0000，那么可以省略。完整的规则见 [Wikipedia](https://en.wikipedia.org/wiki/IPv6_address#Representation)。
 
