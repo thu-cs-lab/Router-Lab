@@ -1,2 +1,4 @@
 Prefix field is inconsistent with Prefix len field
-Prefix field is inconsistent with Prefix len field
+Valid 1 1
+fd00:: 0 8 1
+01 01 00 00 fd 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 08 01 

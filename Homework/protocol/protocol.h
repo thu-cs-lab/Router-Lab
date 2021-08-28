@@ -30,8 +30,11 @@ enum RipErrorCode {
 
 // RIPng header 定义
 typedef struct ripng_hdr {
+  // 1 表示 request，2 表示 response
   uint8_t command;
+  // 应当为 1
   uint8_t version;
+  // 应当为 0
   uint16_t zero;
 } ripng_hdr;
 
@@ -40,7 +43,9 @@ typedef struct ripng_hdr {
 
 // RIPng entry 定义
 typedef struct {
-  in6_addr prefix;
+  // 当 Metric=0xFF 时记录了 Nexthop；当 Metric!=0xFF 是记录了 Prefix
+  in6_addr prefix_or_nh;
+  // 网络字节序存储
   uint16_t route_tag;
   uint8_t prefix_len;
   uint8_t metric;

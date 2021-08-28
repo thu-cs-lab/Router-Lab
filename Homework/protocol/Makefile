@@ -13,14 +13,14 @@ clean:
 grade: protocol
 	python3 grade.py
 
-%.o: %.cpp
-	$(CXX) $(CXXFLAGS) -c $^ -o $@
+%.o: %.cpp protocol.h
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 hal.o: $(LAB_ROOT)/HAL/src/stdio/router_hal.cpp
-	$(CXX) $(CXXFLAGS) -c $^ -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-lookup.o: ../lookup/lookup.cpp 
-	$(CXX) $(CXXFLAGS) -c $^ -o $@
+lookup.o: ../lookup/lookup.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 protocol: protocol.o main.o hal.o lookup.o
 	$(CXX) $^ -o $@ $(LDFLAGS) 

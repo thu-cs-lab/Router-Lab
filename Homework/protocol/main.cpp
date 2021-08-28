@@ -33,9 +33,9 @@ int main(int argc, char *argv[]) {
     if (err == RipErrorCode::SUCCESS) {
       printf("Valid %d %d\n", rip.numEntries, rip.command);
       for (int i = 0; i < rip.numEntries; i++) {
-        assert(inet_ntop(AF_INET6, &rip.entries[i].prefix, addr_buffer,
+        assert(inet_ntop(AF_INET6, &rip.entries[i].prefix_or_nh, addr_buffer,
                          sizeof(addr_buffer)));
-        printf("%s %d %d %d\n", addr_buffer, rip.entries[i].route_tag,
+        printf("%s %d %d %d\n", addr_buffer, htons(rip.entries[i].route_tag),
                rip.entries[i].prefix_len, rip.entries[i].metric);
       }
       uint32_t len = assemble(&rip, buffer);
