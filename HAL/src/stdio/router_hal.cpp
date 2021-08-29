@@ -14,7 +14,7 @@ bool inited = false;
 bool outputInited = false;
 int debugEnabled = 0;
 uint32_t interface_addrs[N_IFACE_ON_BOARD] = {0};
-macaddr_t interface_mac[N_IFACE_ON_BOARD] = {0};
+ether_addr interface_mac[N_IFACE_ON_BOARD] = {0};
 
 // input
 pcap_t *pcap_handle;
@@ -25,7 +25,7 @@ pcap_dumper_t *pcap_dumper;
 
 // workaround for clang
 struct macaddr_wrap {
-  macaddr_t mac;
+  ether_addr mac;
 };
 
 std::map<std::pair<uint32_t, int>, macaddr_wrap> arp_table;
@@ -39,10 +39,10 @@ int HAL_Init(HAL_IN int debug, HAL_IN uint32_t if_addrs[N_IFACE_ON_BOARD]) {
 
   for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
     // hard coded MAC
-    macaddr_t mac = {2, 3, 3, 0, 0, (uint8_t)i};
-    memcpy(interface_mac[i], mac, sizeof(macaddr_t));
+    ether_addr mac = {2, 3, 3, 0, 0, (uint8_t)i};
+    memcpy(interface_mac[i], mac, sizeof(ether_addr));
     memcpy(&arp_table[std::pair<uint32_t, int>(if_addrs[i], i)],
-           interface_mac[i], sizeof(macaddr_t));
+           interface_mac[i], sizeof(ether_addr));
   }
 
   char error_buffer[PCAP_ERRBUF_SIZE];
@@ -68,7 +68,7 @@ uint64_t HAL_GetTicks() {
   return (uint64_t)tp.tv_sec * 1000 + (uint64_t)tp.tv_nsec / 1000000;
 }
 
-int HAL_GetNeighborMacAddress(int if_index, uint32_t ip, macaddr_t o_mac) {
+int HAL_GetNeighborMacAddress(int if_index, uint32_t ip, ether_addr o_mac) {
   if (!inited) {
     return HAL_ERR_CALLED_BEFORE_INIT;
   }
@@ -83,13 +83,13 @@ int HAL_GetNeighborMacAddress(int if_index, uint32_t ip, macaddr_t o_mac) {
                                    (uint8_t)((ip >> 8) & 0x7f),
                                    (uint8_t)(ip >> 16),
                                    (uint8_t)(ip >> 24)};
-    memcpy(o_mac, multicasting_mac, sizeof(macaddr_t));
+    memcpy(o_mac, multicasting_mac, sizeof(ether_addr));
     return 0;
   }
 
   auto it = arp_table.find(std::pair<uint32_t, int>(ip, if_index));
   if (it != arp_table.end()) {
-    memcpy(o_mac, &it->second, sizeof(macaddr_t));
+    memcpy(o_mac, &it->second, sizeof(ether_addr));
     return 0;
   } else {
     if (debugEnabled) {
@@ -106,9 +106,9 @@ int HAL_GetNeighborMacAddress(int if_index, uint32_t ip, macaddr_t o_mac) {
       buffer[i] = 0xff;
     }
     // src mac
-    macaddr_t mac;
+    ether_addr mac;
     HAL_GetInterfaceMacAddress(if_index, mac);
-    memcpy(&buffer[6], mac, sizeof(macaddr_t));
+    memcpy(&buffer[6], mac, sizeof(ether_addr));
     // 802.1Q
     buffer[12] = 0x81;
     buffer[13] = 0x00;
@@ -128,7 +128,7 @@ int HAL_GetNeighborMacAddress(int if_index, uint32_t ip, macaddr_t o_mac) {
     // opcode
     buffer[25] = 0x01;
     // sender
-    memcpy(&buffer[26], mac, sizeof(macaddr_t));
+    memcpy(&buffer[26], mac, sizeof(ether_addr));
     memcpy(&buffer[32], &interface_addrs[if_index], sizeof(uint32_t));
     // target
     memcpy(&buffer[42], &ip, sizeof(uint32_t));
@@ -152,7 +152,7 @@ int HAL_GetNeighborMacAddress(int if_index, uint32_t ip, macaddr_t o_mac) {
   return HAL_ERR_IP_NOT_EXIST;
 }
 
-int HAL_GetInterfaceMacAddress(int if_index, macaddr_t o_mac) {
+int HAL_GetInterfaceMacAddress(int if_index, ether_addr o_mac) {
   if (!inited) {
     return HAL_ERR_CALLED_BEFORE_INIT;
   }
@@ -160,12 +160,12 @@ int HAL_GetInterfaceMacAddress(int if_index, macaddr_t o_mac) {
     return HAL_ERR_IFACE_NOT_EXIST;
   }
 
-  memcpy(o_mac, interface_mac[if_index], sizeof(macaddr_t));
+  memcpy(o_mac, interface_mac[if_index], sizeof(ether_addr));
   return 0;
 }
 
 int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
-                        macaddr_t src_mac, macaddr_t dst_mac, int64_t timeout,
+                        ether_addr src_mac, ether_addr dst_mac, int64_t timeout,
                         int *if_index) {
   if (!inited) {
     return HAL_ERR_CALLED_BEFORE_INIT;
@@ -201,19 +201,19 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
         size_t ip_len = hdr->caplen - IP_OFFSET;
         size_t real_length = length > ip_len ? ip_len : length;
         memcpy(buffer, &packet[IP_OFFSET], real_length);
-        memcpy(dst_mac, &packet[0], sizeof(macaddr_t));
-        memcpy(src_mac, &packet[6], sizeof(macaddr_t));
+        memcpy(dst_mac, &packet[0], sizeof(ether_addr));
+        memcpy(src_mac, &packet[6], sizeof(ether_addr));
         *if_index = current_port;
         return ip_len;
       } else if (packet[16] == 0x08 && packet[17] == 0x06) {
         // ARP
-        macaddr_t mac;
-        memcpy(mac, &packet[26], sizeof(macaddr_t));
+        ether_addr mac;
+        memcpy(mac, &packet[26], sizeof(ether_addr));
         uint32_t ip;
         memcpy(&ip, &packet[32], sizeof(uint32_t));
 
         memcpy(&arp_table[std::pair<uint32_t, int>(ip, current_port)], mac,
-               sizeof(macaddr_t));
+               sizeof(ether_addr));
         if (debugEnabled) {
           struct in_addr addr;
           addr.s_addr = ip;
@@ -227,11 +227,11 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
           // reply
           uint8_t buffer[64] = {0};
           // dst mac
-          memcpy(buffer, &packet[6], sizeof(macaddr_t));
+          memcpy(buffer, &packet[6], sizeof(ether_addr));
           // src mac
-          macaddr_t mac;
+          ether_addr mac;
           HAL_GetInterfaceMacAddress(current_port, mac);
-          memcpy(&buffer[6], mac, sizeof(macaddr_t));
+          memcpy(&buffer[6], mac, sizeof(ether_addr));
           // VLAN
           buffer[12] = 0x81;
           buffer[13] = 0x00;
@@ -251,10 +251,10 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
           // opcode
           buffer[25] = 0x02;
           // sender
-          memcpy(&buffer[26], mac, sizeof(macaddr_t));
+          memcpy(&buffer[26], mac, sizeof(ether_addr));
           memcpy(&buffer[32], &dst_ip, sizeof(uint32_t));
           // target
-          memcpy(&buffer[36], &packet[22], sizeof(macaddr_t));
+          memcpy(&buffer[36], &packet[22], sizeof(ether_addr));
           memcpy(&buffer[42], &packet[28], sizeof(uint32_t));
 
           struct pcap_pkthdr header;
@@ -290,7 +290,7 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
 }
 
 int HAL_SendIPPacket(HAL_IN int if_index, HAL_IN uint8_t *buffer,
-                     HAL_IN size_t length, HAL_IN macaddr_t dst_mac) {
+                     HAL_IN size_t length, HAL_IN ether_addr dst_mac) {
   if (!inited) {
     return HAL_ERR_CALLED_BEFORE_INIT;
   }
@@ -298,8 +298,8 @@ int HAL_SendIPPacket(HAL_IN int if_index, HAL_IN uint8_t *buffer,
     return HAL_ERR_INVALID_PARAMETER;
   }
   uint8_t *eth_buffer = (uint8_t *)malloc(length + IP_OFFSET);
-  memcpy(eth_buffer, dst_mac, sizeof(macaddr_t));
-  memcpy(&eth_buffer[6], interface_mac[if_index], sizeof(macaddr_t));
+  memcpy(eth_buffer, dst_mac, sizeof(ether_addr));
+  memcpy(&eth_buffer[6], interface_mac[if_index], sizeof(ether_addr));
   // VLAN
   eth_buffer[12] = 0x81;
   eth_buffer[13] = 0x00;

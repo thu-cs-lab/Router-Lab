@@ -3,11 +3,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-void printMAC(macaddr_t mac) {
-  printf("%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3],
-         mac[4], mac[5]);
-}
-
 uint8_t packet[2048];
 bool cont = false;
 
@@ -32,19 +27,18 @@ void interrupt(int _) {
 int main() {
   fprintf(stderr, "HAL init: %d\n", HAL_Init(1, addrs));
   for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
-    macaddr_t mac;
-    HAL_GetInterfaceMacAddress(i, mac);
-    fprintf(stderr, "%d: %02X:%02X:%02X:%02X:%02X:%02X\n", i, mac[0], mac[1],
-            mac[2], mac[3], mac[4], mac[5]);
+    ether_addr mac;
+    HAL_GetInterfaceMacAddress(i, &mac);
+    fprintf(stderr, "%d: %s\n", i, ether_ntoa(mac));
   }
 
   while (1) {
     int mask = (1 << N_IFACE_ON_BOARD) - 1;
-    macaddr_t src_mac;
-    macaddr_t dst_mac;
+    ether_addr src_mac;
+    ether_addr dst_mac;
     int if_index;
-    int res = HAL_ReceiveIPPacket(mask, packet, sizeof(packet), src_mac,
-                                  dst_mac, 1000, &if_index);
+    int res = HAL_ReceiveIPPacket(mask, packet, sizeof(packet), &src_mac,
+                                  &dst_mac, 1000, &if_index);
     if (res > 0) {
       for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
         HAL_SendIPPacket(i, packet, res, src_mac);

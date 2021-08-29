@@ -16,14 +16,14 @@
 
 ```cpp
 // 函数注释见代码
-in6_addr eui64(const macaddr_t mac) {
+in6_addr eui64(const ether_addr mac) {
   in6_addr res = {0};
   // TODO
   return res;
 }
 ```
 
-`in6_addr` 类型保存了 IPv6 的 128 位地址信息，你可以通过 `uint8_t s6_addr[8]` 成员来读写，例如 `res.s6_addr[0] = 0xfe;`。`macaddr_t` 类型则是 `uint8_t [6]` 类型的别称。
+`in6_addr` 类型保存了 IPv6 的 128 位地址信息，你可以通过 `uint8_t s6_addr[8]` 成员来读写，例如 `res.s6_addr[0] = 0xfe;`。`ether_addr` 类型则是 `uint8_t [6]` 类型的别称。
 
 你不需要处理输入输出，你只需要在本地执行 `make grade` 就可以进行本地评测。
 

@@ -58,7 +58,7 @@ uint64_t HAL_GetTicks();
  * @return int 0 表示成功，非 0 为失败
  */
 int HAL_GetNeighborMacAddress(HAL_IN int if_index, HAL_IN in6_addr ip,
-                              HAL_OUT macaddr_t o_mac);
+                              HAL_OUT ether_addr *o_mac);
 
 /**
  * @brief 获取网卡的 MAC 地址，如果为全 0 代表系统中不存在该网卡或者获取失败
@@ -67,7 +67,7 @@ int HAL_GetNeighborMacAddress(HAL_IN int if_index, HAL_IN in6_addr ip,
  * @param o_mac OUT，网卡的 MAC 地址
  * @return int 0 表示成功，非 0 为失败
  */
-int HAL_GetInterfaceMacAddress(HAL_IN int if_index, HAL_OUT macaddr_t o_mac);
+int HAL_GetInterfaceMacAddress(HAL_IN int if_index, HAL_OUT ether_addr *o_mac);
 
 /**
  * @brief 接收一个 IPv6 报文，保证不会收到自己发送的报文；
@@ -85,8 +85,8 @@ int HAL_GetInterfaceMacAddress(HAL_IN int if_index, HAL_OUT macaddr_t o_mac);
  * @return int >0 表示实际接收的报文长度，=0 表示超时返回，<0 表示发生错误
  */
 int HAL_ReceiveIPPacket(HAL_IN int if_index_mask, HAL_OUT uint8_t *buffer,
-                        HAL_IN size_t length, HAL_OUT macaddr_t src_mac,
-                        HAL_OUT macaddr_t dst_mac, HAL_IN int64_t timeout,
+                        HAL_IN size_t length, HAL_OUT ether_addr *src_mac,
+                        HAL_OUT ether_addr *dst_mac, HAL_IN int64_t timeout,
                         HAL_OUT int *if_index);
 
 /**
@@ -99,7 +99,7 @@ int HAL_ReceiveIPPacket(HAL_IN int if_index_mask, HAL_OUT uint8_t *buffer,
  * @return int 0 表示成功，非 0 为失败
  */
 int HAL_SendIPPacket(HAL_IN int if_index, HAL_IN uint8_t *buffer,
-                     HAL_IN size_t length, HAL_IN macaddr_t dst_mac);
+                     HAL_IN size_t length, HAL_IN ether_addr dst_mac);
 
 #ifdef __cplusplus
 }

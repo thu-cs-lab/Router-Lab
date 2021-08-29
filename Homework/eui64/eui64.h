@@ -8,6 +8,6 @@
  * @param mac MAC 地址
  * @return IPv6 地址
  */
-in6_addr eui64(const macaddr_t mac);
+in6_addr eui64(const ether_addr mac);
 
 #endif

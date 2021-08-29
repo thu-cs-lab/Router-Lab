@@ -1,4 +1,5 @@
 #include "common.h"
+#include <stdio.h>
 
 in6_addr operator&(const in6_addr &a, const in6_addr &b) {
   in6_addr res;
@@ -28,12 +29,6 @@ bool operator<(const in6_addr &a, const in6_addr &b) {
   return false;
 }
 
-const char *inet6_ntoa(in6_addr addr) {
-  static char buffer[1024];
-  assert(inet_ntop(AF_INET6, &addr, buffer, sizeof(buffer)));
-  return buffer;
-}
-
 in6_addr get_solicited_node_mcast_addr(const in6_addr ip) {
   // https://datatracker.ietf.org/doc/html/rfc4291#section-2.7.1
   in6_addr res = {
@@ -45,8 +40,23 @@ in6_addr get_solicited_node_mcast_addr(const in6_addr ip) {
   return res;
 }
 
-void get_ipv6_mcast_mac(const in6_addr mcast_ip, macaddr_t mac) {
+void get_ipv6_mcast_mac(const in6_addr mcast_ip, ether_addr *mac) {
   // https://datatracker.ietf.org/doc/html/rfc2464#section-7
-  mac[0] = mac[1] = 0x33;
-  memcpy(&mac[2], &mcast_ip.s6_addr[12], 4);
+  mac->ether_addr_octet[0] = mac->ether_addr_octet[1] = 0x33;
+  memcpy(&mac->ether_addr_octet[2], &mcast_ip.s6_addr[12], 4);
+}
+
+const char *inet6_ntoa(const in6_addr addr) {
+  static char buffer[1024];
+  assert(inet_ntop(AF_INET6, &addr, buffer, sizeof(buffer)));
+  return buffer;
+}
+
+const char *ether_ntoa(const ether_addr mac) {
+  static char buffer[1024];
+  sprintf(buffer, "%02X:%02X:%02X:%02X:%02X:%02X", mac.ether_addr_octet[0],
+          mac.ether_addr_octet[1], mac.ether_addr_octet[2],
+          mac.ether_addr_octet[3], mac.ether_addr_octet[4],
+          mac.ether_addr_octet[5]);
+  return buffer;
 }

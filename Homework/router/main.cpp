@@ -104,8 +104,8 @@ int main(int argc, char *argv[]) {
     }
 
     int mask = (1 << N_IFACE_ON_BOARD) - 1;
-    macaddr_t src_mac;
-    macaddr_t dst_mac;
+    ether_addr src_mac;
+    ether_addr dst_mac;
     int if_index;
     res = HAL_ReceiveIPPacket(mask, packet, sizeof(packet), src_mac, dst_mac,
                               1000, &if_index);
@@ -243,7 +243,7 @@ int main(int argc, char *argv[]) {
         uint32_t nexthop, dest_if;
         if (prefix_query(dst_addr, &nexthop, &dest_if)) {
           // found
-          macaddr_t dest_mac;
+          ether_addr dest_mac;
           // direct routing means that destination ip is directly accessible
           if (nexthop == 0) {
             nexthop = dst_addr;

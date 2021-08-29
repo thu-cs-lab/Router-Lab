@@ -8,12 +8,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-void printMAC(macaddr_t mac) {
-  printf("%02X:%02X:%02X:%02X:%02X:%02X", mac[0], mac[1], mac[2], mac[3],
-         mac[4], mac[5]);
-}
-
-// char buffer[2048];
 char *buffer;
 uint8_t packet[2048];
 bool cont = false;
@@ -39,10 +33,9 @@ void interrupt(int _) {
 int main() {
   printf("HAL init: %d\n", HAL_Init(1, addrs));
   for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
-    macaddr_t mac;
-    HAL_GetInterfaceMacAddress(i, mac);
-    printf("%d: %02X:%02X:%02X:%02X:%02X:%02X\n", i, mac[0], mac[1], mac[2],
-           mac[3], mac[4], mac[5]);
+    ether_addr mac;
+    HAL_GetInterfaceMacAddress(i, &mac);
+    printf("%d: %s\n", i, ether_ntoa(mac));
   }
   signal(SIGINT, interrupt);
   rl_bind_key('\t', rl_insert);
@@ -58,41 +51,35 @@ int main() {
       in6_addr ip = {};
       assert(inet_pton(AF_INET6, addr_buffer, &ip) == 1);
       printf("Get ndp address of %s if %d\n", inet6_ntoa(ip), if_index);
-      macaddr_t mac;
-      int res = HAL_GetNeighborMacAddress(if_index, ip, mac);
+      ether_addr mac;
+      int res = HAL_GetNeighborMacAddress(if_index, ip, &mac);
       if (res == 0) {
-        printf("Found: ");
-        printMAC(mac);
-        printf("\n");
+        printf("Found: %s\n", ether_ntoa(mac));
       } else {
         printf("Not found: %d\n", res);
       }
     } else if (strncmp(buffer, "mac", strlen("mac")) == 0) {
       int if_index;
       sscanf(buffer, "mac %d", &if_index);
-      macaddr_t mac;
-      int res = HAL_GetInterfaceMacAddress(if_index, mac);
+      ether_addr mac;
+      int res = HAL_GetInterfaceMacAddress(if_index, &mac);
       if (res == 0) {
-        printf("Found: ");
-        printMAC(mac);
-        printf("\n");
+        printf("Found: %s\n", ether_ntoa(mac));
       } else {
         printf("Not found: %d\n", res);
       }
     } else if (strncmp(buffer, "cap", strlen("cap")) == 0) {
       int mask = (1 << N_IFACE_ON_BOARD) - 1;
-      macaddr_t src_mac;
-      macaddr_t dst_mac;
+      ether_addr src_mac;
+      ether_addr dst_mac;
       int if_index;
-      int res = HAL_ReceiveIPPacket(mask, packet, sizeof(packet), src_mac,
-                                    dst_mac, 1000, &if_index);
+      int res = HAL_ReceiveIPPacket(mask, packet, sizeof(packet), &src_mac,
+                                    &dst_mac, 1000, &if_index);
       if (res > 0) {
         printf("Got IP packet of length %d from port %d\n", res, if_index);
-        printf("Src MAC: ");
-        printMAC(src_mac);
-        printf(" Dst MAC: ");
-        printMAC(dst_mac);
-        printf("\nData: ");
+        printf("Src MAC: %s ", ether_ntoa(src_mac));
+        printf(" Dst MAC: %s\n", ether_ntoa(dst_mac));
+        printf("Data: ");
         for (int i = 0; i < res; i++) {
           printf("%02X ", packet[i]);
         }
@@ -105,13 +92,13 @@ int main() {
     } else if (strncmp(buffer, "out", strlen("out")) == 0) {
       int if_index;
       sscanf(buffer, "out %d", &if_index);
-      macaddr_t dst_mac;
+      ether_addr dst_mac;
       int len = 64;
       for (int i = 0; i < len; i++) {
         packet[i] = rand();
       }
-      for (int i = 0; i < sizeof(macaddr_t); i++) {
-        dst_mac[i] = rand();
+      for (int i = 0; i < sizeof(ether_addr); i++) {
+        dst_mac.ether_addr_octet[i] = rand();
       }
       int res = HAL_SendIPPacket(if_index, packet, len, dst_mac);
       if (res == 0) {
@@ -123,11 +110,11 @@ int main() {
       cont = true;
       while (getch() == ERR && cont) {
         int mask = (1 << N_IFACE_ON_BOARD) - 1;
-        macaddr_t src_mac;
-        macaddr_t dst_mac;
+        ether_addr src_mac;
+        ether_addr dst_mac;
         int if_index;
-        int res = HAL_ReceiveIPPacket(mask, packet, sizeof(packet), src_mac,
-                                      dst_mac, 1000, &if_index);
+        int res = HAL_ReceiveIPPacket(mask, packet, sizeof(packet), &src_mac,
+                                      &dst_mac, 1000, &if_index);
         if (res < 0) {
           printf("loop failed with %d\n", res);
           break;
