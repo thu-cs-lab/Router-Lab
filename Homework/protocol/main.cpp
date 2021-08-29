@@ -9,7 +9,7 @@
 uint8_t buffer[1024];
 uint8_t packet[2048];
 RipPacket rip;
-uint32_t addrs[N_IFACE_ON_BOARD] = {0};
+in6_addr addrs[N_IFACE_ON_BOARD] = {0};
 char addr_buffer[1024];
 
 int main(int argc, char *argv[]) {
@@ -22,7 +22,7 @@ int main(int argc, char *argv[]) {
     ether_addr src_mac;
     ether_addr dst_mac;
     int if_index;
-    res = HAL_ReceiveIPPacket(mask, packet, sizeof(packet), src_mac, dst_mac,
+    res = HAL_ReceiveIPPacket(mask, packet, sizeof(packet), &src_mac, &dst_mac,
                               -1, &if_index);
     if (res == HAL_ERR_EOF) {
       break;

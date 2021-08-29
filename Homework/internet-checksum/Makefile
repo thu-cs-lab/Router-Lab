@@ -16,11 +16,14 @@ grade: checksum
 %.o: %.cpp
 	$(CXX) $(CXXFLAGS) -c $^ -o $@
 
+common.o: $(LAB_ROOT)/HAL/src/common.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
 hal.o: $(LAB_ROOT)/HAL/src/stdio/router_hal.cpp
 	$(CXX) $(CXXFLAGS) -c $^ -o $@
 
-checksum: checksum.o main.o hal.o
+checksum: checksum.o main.o hal.o common.o
 	$(CXX) $^ -o $@ $(LDFLAGS) 
 
-std: std.o main.o hal.o
+std: std.o main.o hal.o common.o
 	$(CXX) $^ -o $@ $(LDFLAGS) 
