@@ -21,17 +21,8 @@
 
 #include "platform/standard.h"
 
-bool inited = false;
-int debugEnabled = 0;
-in6_addr interface_addrs[N_IFACE_ON_BOARD] = {0};
-ether_addr interface_mac[N_IFACE_ON_BOARD] = {0};
-in6_addr interface_link_local_addrs[N_IFACE_ON_BOARD] = {0};
-
 pcap_t *pcap_in_handles[N_IFACE_ON_BOARD];
 pcap_t *pcap_out_handles[N_IFACE_ON_BOARD];
-
-std::map<std::pair<in6_addr, int>, ether_addr> ndp_table;
-std::map<std::pair<in6_addr, int>, uint64_t> ndp_timer;
 
 extern "C" {
 int HAL_Init(HAL_IN int debug, HAL_IN in6_addr if_addrs[N_IFACE_ON_BOARD]) {
@@ -116,13 +107,6 @@ int HAL_Init(HAL_IN int debug, HAL_IN in6_addr if_addrs[N_IFACE_ON_BOARD]) {
 
   inited = true;
   return 0;
-}
-
-uint64_t HAL_GetTicks() {
-  struct timespec tp = {0};
-  clock_gettime(CLOCK_MONOTONIC, &tp);
-  // millisecond
-  return (uint64_t)tp.tv_sec * 1000 + (uint64_t)tp.tv_nsec / 1000000;
 }
 
 int HAL_GetNeighborMacAddress(HAL_IN int if_index, HAL_IN in6_addr ip,
