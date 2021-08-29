@@ -98,12 +98,13 @@ int HAL_ReceiveIPPacket(int if_index_mask, uint8_t *buffer, size_t length,
     if (packet && hdr->caplen >= sizeof(ether_header) && packet[12] == 0x81 &&
         packet[13] == 0x00 && 0 < vlan && vlan < N_IFACE_ON_BOARD) {
       int current_port = packet[15];
-      if (packet[16] == 0x86 && packet[17] == 0xdd) {
+      if (hdr->caplen >= sizeof(ether_header) + 4 && packet[16] == 0x86 &&
+          packet[17] == 0xdd) {
         // IPv6
         // assuming len == caplen
-        size_t ip_len = hdr->caplen - sizeof(ether_header);
+        size_t ip_len = hdr->caplen - sizeof(ether_header) - 4;
         size_t real_length = length > ip_len ? ip_len : length;
-        memcpy(buffer, &packet[sizeof(ether_header)], real_length);
+        memcpy(buffer, &packet[sizeof(ether_header) + 4], real_length);
         memcpy(dst_mac, &packet[0], sizeof(ether_addr));
         memcpy(src_mac, &packet[6], sizeof(ether_addr));
         *if_index = current_port;
