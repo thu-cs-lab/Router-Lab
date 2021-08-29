@@ -59,8 +59,7 @@ int HAL_Init(HAL_IN int debug, HAL_IN in6_addr if_addrs[N_IFACE_ON_BOARD]) {
         memcpy(&interface_mac[i],
                ((struct sockaddr_ll *)ifa->ifa_addr)->sll_addr,
                sizeof(ether_addr));
-        memcpy(&ndp_table[std::pair<in6_addr, int>(if_addrs[i], i)],
-               &interface_mac[i], sizeof(ether_addr));
+        ndp_table[std::pair<in6_addr, int>(if_addrs[i], i)] = interface_mac[i];
         if (debugEnabled) {
           fprintf(stderr, "HAL_Init: found MAC addr of interface %s\n",
                   interfaces[i]);
@@ -138,7 +137,7 @@ int HAL_GetNeighborMacAddress(HAL_IN int if_index, HAL_IN in6_addr ip,
   // lookup ndp table
   auto it = ndp_table.find(std::pair<in6_addr, int>(ip, if_index));
   if (it != ndp_table.end()) {
-    memcpy(o_mac, &it->second, sizeof(ether_addr));
+    *o_mac = it->second;
     return 0;
   } else if (pcap_out_handles[if_index] &&
              ndp_timer[std::pair<in6_addr, int>(ip, if_index)] + 1000 <
@@ -232,7 +231,7 @@ int HAL_GetInterfaceMacAddress(HAL_IN int if_index, HAL_OUT ether_addr *o_mac) {
     return HAL_ERR_IFACE_NOT_EXIST;
   }
 
-  memcpy(o_mac, &interface_mac[if_index], sizeof(ether_addr));
+  *o_mac = interface_mac[if_index];
   return 0;
 }
 
@@ -320,17 +319,17 @@ int HAL_ReceiveIPPacket(HAL_IN int if_index_mask, HAL_OUT uint8_t *buffer,
             (icmp6_hdr *)&packet[sizeof(ether_header) + sizeof(ip6_hdr)];
         if (icmp6->icmp6_type == 136) {
           // neighbor advertisement
-          nd_neighbor_solicit *ns =
-              (nd_neighbor_solicit
+          nd_neighbor_advert *na =
+              (nd_neighbor_advert
                    *)&packet[sizeof(ether_header) + sizeof(ip6_hdr)];
           ether_addr mac;
           memcpy(&mac, &ether->ether_shost, sizeof(ether_addr));
-          in6_addr ip = ns->nd_ns_target;
-          memcpy(&ndp_table[std::pair<in6_addr, int>(ip, current_port)], &mac,
-                 sizeof(ether_addr));
+          in6_addr ip = na->nd_na_target;
+          ndp_table[std::pair<in6_addr, int>(ip, current_port)] = mac;
           if (debugEnabled) {
-            fprintf(stderr, "HAL_ReceiveIPPacket: learned MAC address of %s\n",
-                    inet6_ntoa(ip));
+            fprintf(stderr,
+                    "HAL_ReceiveIPPacket: learned MAC address of %s is %s\n",
+                    inet6_ntoa(ip), ether_ntoa(mac));
           }
           continue;
         }
