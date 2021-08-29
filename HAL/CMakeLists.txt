@@ -11,6 +11,10 @@ elseif(${BACKEND} STREQUAL STDIO)
 endif()
 set(SOURCES ${SOURCES} src/common.cpp)
 
+# add sources from homework
+set(SOURCES ${SOURCES} ../Homework/eui64/eui64.cpp ../Homework/internet-checksum/checksum.cpp)
+
 add_library(router_hal ${SOURCES} ${HEADERS})
 target_include_directories(router_hal PUBLIC include)
+target_include_directories(router_hal PUBLIC ../Homework/eui64 ../Homework/internet-checksum)
 target_link_libraries(router_hal ${LIBRARIES})

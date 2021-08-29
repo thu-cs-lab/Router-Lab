@@ -248,7 +248,7 @@ int main(int argc, char *argv[]) {
           if (nexthop == 0) {
             nexthop = dst_addr;
           }
-          if (HAL_ArpGetMacAddress(dest_if, nexthop, dest_mac) == 0) {
+          if (HAL_GetNeighborMacAddress(dest_if, nexthop, dest_mac) == 0) {
             // found
             memcpy(output, packet, res);
             // update ttl and checksum

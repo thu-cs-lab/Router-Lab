@@ -1,5 +1,7 @@
 #include "router_hal.h"
+#include "checksum.h"
 #include "common.h"
+#include "eui64.h"
 #include "router_hal_common.h"
 #include <errno.h>
 #include <ifaddrs.h>
@@ -24,6 +26,7 @@ bool inited = false;
 int debugEnabled = 0;
 in6_addr interface_addrs[N_IFACE_ON_BOARD] = {0};
 macaddr_t interface_mac[N_IFACE_ON_BOARD] = {0};
+in6_addr interface_link_local_addrs[N_IFACE_ON_BOARD] = {0};
 
 pcap_t *pcap_in_handles[N_IFACE_ON_BOARD];
 pcap_t *pcap_out_handles[N_IFACE_ON_BOARD];
@@ -94,18 +97,26 @@ int HAL_Init(HAL_IN int debug, HAL_IN in6_addr if_addrs[N_IFACE_ON_BOARD]) {
 
   memcpy(interface_addrs, if_addrs, sizeof(interface_addrs));
 
-  inited = true;
-  // send igmp to join RIP multicast group
+  // generate link local addresses with eui64
   for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
-    if (pcap_out_handles[i]) {
-      HAL_JoinIGMPGroup(i, if_addrs[i]);
-      if (debugEnabled) {
-        fprintf(stderr,
-                "HAL_Init: Joining RIP multicast group 224.0.0.9 for %s\n",
-                interfaces[i]);
-      }
+    interface_link_local_addrs[i] = eui64(interface_mac[i]);
+    if (debugEnabled) {
+      fprintf(stderr,
+              "HAL_Init: interface %d is configured with link local addr %s\n",
+              i, inet6_ntoa(interface_link_local_addrs[i]));
     }
   }
+
+  // debug print
+  if (debugEnabled) {
+    for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
+      fprintf(stderr,
+              "HAL_Init: interface %d is configured with IPv6 addr %s\n", i,
+              inet6_ntoa(interface_addrs[i]));
+    }
+  }
+
+  inited = true;
   return 0;
 }
 
@@ -137,38 +148,76 @@ int HAL_GetNeighborMacAddress(HAL_IN int if_index, HAL_IN in6_addr ip,
     // rate limit ndp request by 1 req/s
     ndp_timer[std::pair<in6_addr, int>(ip, if_index)] = HAL_GetTicks();
     if (debugEnabled) {
-      fprintf(
-          stderr,
-          "HAL_ArpGetMacAddress: asking for ip address %s with ndp request\n",
-          inet6_ntoa(ip));
+      fprintf(stderr,
+              "HAL_GetNeighborMacAddress: asking for ip address %s with ndp "
+              "request\n",
+              inet6_ntoa(ip));
     }
-    uint8_t buffer[64] = {0};
+    in6_addr dest_ip = get_solicited_node_mcast_addr(ip);
+
+    uint8_t buffer[sizeof(ether_hdr) + sizeof(ip6_hdr) +
+                   sizeof(nd_neighbor_solicit) + sizeof(nd_opt_hdr) +
+                   sizeof(macaddr_t)] = {0};
+    ether_hdr *ether = (ether_hdr *)&buffer;
     // dst mac
-    for (int i = 0; i < 6; i++) {
-      buffer[i] = 0xff;
-    }
+    macaddr_t dst_mac;
+    get_ipv6_mcast_mac(dest_ip, dst_mac);
+    memcpy(ether->dst_mac, dst_mac, sizeof(macaddr_t));
     // src mac
-    macaddr_t mac;
-    HAL_GetInterfaceMacAddress(if_index, mac);
-    memcpy(&buffer[6], mac, sizeof(macaddr_t));
-    // ARP
-    buffer[12] = 0x08;
-    buffer[13] = 0x06;
-    // hardware type
-    buffer[15] = 0x01;
-    // protocol type
-    buffer[16] = 0x08;
-    // hardware size
-    buffer[18] = 0x06;
-    // protocol size
-    buffer[19] = 0x04;
-    // opcode
-    buffer[21] = 0x01;
-    // sender
-    memcpy(&buffer[22], mac, sizeof(macaddr_t));
-    memcpy(&buffer[28], &interface_addrs[if_index], sizeof(uint32_t));
-    // target
-    memcpy(&buffer[38], &ip, sizeof(uint32_t));
+    macaddr_t src_mac;
+    HAL_GetInterfaceMacAddress(if_index, src_mac);
+    memcpy(ether->src_mac, src_mac, sizeof(macaddr_t));
+
+    // IPv6 ether type
+    ether->ether_type = htons(0x86dd);
+
+    // IPv6 header
+    ip6_hdr *ip6 = (ip6_hdr *)&buffer[14];
+    // flow label
+    ip6->ip6_flow = 0;
+    // version
+    ip6->ip6_vfc = 6 << 4;
+    // payload length
+    // icmpv6 header + option = 32
+    ip6->ip6_plen = htons(sizeof(nd_neighbor_solicit) + sizeof(nd_opt_hdr) +
+                          sizeof(macaddr_t));
+    // next header
+    ip6->ip6_nxt = IPPROTO_ICMPV6;
+    // hop limit
+    ip6->ip6_hlim = 255;
+    // src ip
+    ip6->ip6_src = interface_addrs[if_index];
+    // dst ip
+    ip6->ip6_dst = dest_ip;
+
+    // ICMPv6
+    nd_neighbor_solicit *ns =
+        (nd_neighbor_solicit *)&buffer[sizeof(ether_hdr) + sizeof(ip6_hdr)];
+    icmp6_hdr *icmp6 = &ns->nd_ns_hdr;
+    // type = neighbor solicitation
+    icmp6->icmp6_type = 135;
+    // code = 0
+    icmp6->icmp6_code = 0;
+    // data = 0
+    icmp6->icmp6_data32[0] = 0;
+    // target ip
+    ns->nd_ns_target = ip;
+
+    // option
+    nd_opt_hdr *opt =
+        (nd_opt_hdr *)&buffer[sizeof(ether_hdr) + sizeof(ip6_hdr) +
+                              sizeof(nd_neighbor_solicit)];
+    // source link-layer address
+    opt->nd_opt_type = ND_OPT_SOURCE_LINKADDR;
+    // 6 + 2 = 8 bytes
+    opt->nd_opt_len = 8;
+    // source link layer address
+    memcpy(&buffer[sizeof(ether_hdr) + sizeof(ip6_hdr) +
+                   sizeof(nd_neighbor_solicit) + sizeof(nd_opt_hdr)],
+           interface_mac[if_index], 6);
+
+    validateAndFillChecksum((uint8_t *)ip6, sizeof(nd_neighbor_solicit) +
+                                                sizeof(nd_opt_hdr) + sizeof(macaddr_t));
 
     pcap_inject(pcap_out_handles[if_index], buffer, sizeof(buffer));
   }

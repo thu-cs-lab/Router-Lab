@@ -167,7 +167,7 @@ uint64_t HAL_GetTicks() {
   return (uint64_t)tp.tv_sec * 1000 + (uint64_t)tp.tv_nsec / 1000000;
 }
 
-int HAL_ArpGetMacAddress(HAL_IN int if_index, HAL_IN uint32_t ip,
+int HAL_GetNeighborMacAddress(HAL_IN int if_index, HAL_IN uint32_t ip,
                          HAL_OUT macaddr_t o_mac) {
   if (!inited) {
     return HAL_ERR_CALLED_BEFORE_INIT;
@@ -200,7 +200,7 @@ int HAL_ArpGetMacAddress(HAL_IN int if_index, HAL_IN uint32_t ip,
       addr.s_addr = ip;
       fprintf(
           stderr,
-          "HAL_ArpGetMacAddress: asking for ip address %s with arp request\n",
+          "HAL_GetNeighborMacAddress: asking for ip address %s with arp request\n",
           inet_ntoa(addr));
     }
     uint8_t buffer[64] = {0};
