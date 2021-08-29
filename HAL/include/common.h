@@ -9,24 +9,24 @@
 
 // definition of ether_addr and ether_header
 #include <net/ethernet.h>
-static_assert(sizeof(ether_addr) == 6);
-static_assert(sizeof(ether_header) == 14);
+static_assert(sizeof(ether_addr) == 6, "sizeof(ether_addr) should be 6");
+static_assert(sizeof(ether_header) == 14, "sizeof(ether_header) should be 14");
 
 // definition of in6_addr
 #include <netinet/in.h>
-static_assert(sizeof(in6_addr) == 16);
+static_assert(sizeof(in6_addr) == 16, "sizeof(in6_addr) should be 16");
 
 // definition of ip6_hdr
 #include <netinet/ip6.h>
-static_assert(sizeof(ip6_hdr) == 40);
+static_assert(sizeof(ip6_hdr) == 40, "sizeof(ip6_hdr) should be 40");
 
 // definition of udphdr
 #include <netinet/udp.h>
-static_assert(sizeof(udphdr) == 8);
+static_assert(sizeof(udphdr) == 8, "sizeof(udphdr) should be 8");
 
 // definition of icmp6_hdr
 #include <netinet/icmp6.h>
-static_assert(sizeof(icmp6_hdr) == 8);
+static_assert(sizeof(icmp6_hdr) == 8, "sizeof(icmp6_hdr) should be 8");
 
 // utility functions
 in6_addr operator&(const in6_addr &a, const in6_addr &b);
