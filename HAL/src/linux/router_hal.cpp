@@ -17,10 +17,9 @@
 #include <sys/types.h>
 #include <time.h>
 #include <utility>
+#include <vector>
 
 #include "platform/standard.h"
-
-const int IP_OFFSET = 14;
 
 bool inited = false;
 int debugEnabled = 0;
@@ -209,15 +208,16 @@ int HAL_GetNeighborMacAddress(HAL_IN int if_index, HAL_IN in6_addr ip,
                               sizeof(nd_neighbor_solicit)];
     // source link-layer address
     opt->nd_opt_type = ND_OPT_SOURCE_LINKADDR;
-    // 6 + 2 = 8 bytes
-    opt->nd_opt_len = 8;
+    // 8 bytes
+    opt->nd_opt_len = 1;
     // source link layer address
     memcpy(&buffer[sizeof(ether_hdr) + sizeof(ip6_hdr) +
                    sizeof(nd_neighbor_solicit) + sizeof(nd_opt_hdr)],
            interface_mac[if_index], 6);
 
-    validateAndFillChecksum((uint8_t *)ip6, sizeof(nd_neighbor_solicit) +
-                                                sizeof(nd_opt_hdr) + sizeof(macaddr_t));
+    validateAndFillChecksum((uint8_t *)ip6,
+                            sizeof(ip6_hdr) + sizeof(nd_neighbor_solicit) +
+                                sizeof(nd_opt_hdr) + sizeof(macaddr_t));
 
     pcap_inject(pcap_out_handles[if_index], buffer, sizeof(buffer));
   }
@@ -275,79 +275,74 @@ int HAL_ReceiveIPPacket(HAL_IN int if_index_mask, HAL_OUT uint8_t *buffer,
       continue;
     }
 
-    const uint8_t *packet = pcap_next(pcap_in_handles[current_port], &hdr);
-    if (packet && hdr.caplen >= IP_OFFSET &&
-        memcmp(&packet[6], interface_mac[current_port], sizeof(macaddr_t)) ==
-            0) {
+    const uint8_t *const_packet =
+        pcap_next(pcap_in_handles[current_port], &hdr);
+    if (!const_packet) {
+      continue;
+    }
+    std::vector<uint8_t> packet(&const_packet[0], &const_packet[hdr.caplen]);
+    const_packet = nullptr;
+
+    const ether_hdr *ether = (const ether_hdr *)&packet[0];
+    if (packet.size() >= sizeof(ether_hdr) &&
+        memcmp(ether->src_mac, interface_mac[current_port],
+               sizeof(macaddr_t)) == 0) {
       // skip outbound
       continue;
-    } else if (packet && hdr.caplen >= IP_OFFSET && packet[12] == 0x08 &&
-               packet[13] == 0x00) {
-      // IPv4
+    } else if (packet.size() >= sizeof(ether_hdr) + sizeof(ip6_hdr) &&
+               ether->ether_type == htons(0x86dd)) {
+      // IPv6
       // TODO: what if len != caplen
       // Beware: might be larger than MTU because of offloading
-      size_t ip_len = hdr.caplen - IP_OFFSET;
-      size_t real_length = length > ip_len ? ip_len : length;
-      memcpy(buffer, &packet[IP_OFFSET], real_length);
-      memcpy(dst_mac, &packet[0], sizeof(macaddr_t));
-      memcpy(src_mac, &packet[6], sizeof(macaddr_t));
-      *if_index = current_port;
-      return ip_len;
-    } else if (packet && hdr.caplen >= IP_OFFSET && packet[12] == 0x08 &&
-               packet[13] == 0x06) {
-      // ARP
-      // learn it
-      macaddr_t mac;
-      memcpy(mac, &packet[22], sizeof(macaddr_t));
-      in6_addr ip;
-      memcpy(&ip, &packet[28], sizeof(uint32_t));
-      memcpy(ndp_table[std::pair<in6_addr, int>(ip, current_port)], mac,
-             sizeof(macaddr_t));
-      if (debugEnabled) {
-        fprintf(stderr, "HAL_ReceiveIPPacket: learned MAC address of %s\n",
-                inet6_ntoa(ip));
+
+      ip6_hdr *ip6 = (ip6_hdr *)&packet[sizeof(ether_hdr)];
+      if ((ip6->ip6_vfc) >> 4 != 6) {
+        continue;
       }
-
-      in6_addr dst_ip;
-      memcpy(&dst_ip, &packet[38], sizeof(uint32_t));
-      // ask me: reply
-      if (dst_ip == interface_addrs[current_port] && packet[21] == 0x01) {
-        // reply
-        uint8_t buffer[64] = {0};
-        // dst mac
-        memcpy(buffer, &packet[6], sizeof(macaddr_t));
-        // src mac
-        macaddr_t mac;
-        HAL_GetInterfaceMacAddress(current_port, mac);
-        memcpy(&buffer[6], mac, sizeof(macaddr_t));
-        // ARP
-        buffer[12] = 0x08;
-        buffer[13] = 0x06;
-        // hardware type
-        buffer[15] = 0x01;
-        // protocol type
-        buffer[16] = 0x08;
-        // hardware size
-        buffer[18] = 0x06;
-        // protocol size
-        buffer[19] = 0x04;
-        // opcode
-        buffer[21] = 0x02;
-        // sender
-        memcpy(&buffer[22], mac, sizeof(macaddr_t));
-        memcpy(&buffer[28], &dst_ip, sizeof(uint32_t));
-        // target
-        memcpy(&buffer[32], &packet[22], sizeof(macaddr_t));
-        memcpy(&buffer[38], &packet[28], sizeof(uint32_t));
-
-        pcap_inject(pcap_out_handles[current_port], buffer, sizeof(buffer));
-        if (debugEnabled) {
-          fprintf(stderr, "HAL_ReceiveIPPacket: replied ARP to %s\n",
-                  inet6_ntoa(ip));
+      uint16_t plen = htons(ip6->ip6_plen);
+      if (hdr.caplen < sizeof(ether_hdr) + sizeof(ip6_hdr) + plen) {
+        continue;
+      }
+      if (ip6->ip6_nxt == IPPROTO_ICMPV6 || ip6->ip6_nxt == IPPROTO_UDP) {
+        if (!validateAndFillChecksum((uint8_t *)ip6, sizeof(ip6_hdr) + plen)) {
+          if (debugEnabled) {
+            fprintf(stderr, "HAL_ReceiveIPPacket: received wrong checksum from %s\n",
+                    inet6_ntoa(ip6->ip6_src));
+          }
+          continue;
         }
       }
-      // otherwise: learn and ignore
-      continue;
+
+      // handle icmpv6
+      if (ip6->ip6_nxt == IPPROTO_ICMPV6) {
+        icmp6_hdr *icmp6 =
+            (icmp6_hdr *)&packet[sizeof(ether_hdr) + sizeof(ip6_hdr)];
+        if (icmp6->icmp6_type == 136) {
+          // neighbor advertisement
+          nd_neighbor_solicit *ns =
+              (nd_neighbor_solicit
+                   *)&packet[sizeof(ether_hdr) + sizeof(ip6_hdr)];
+          macaddr_t mac;
+          memcpy(mac, &ether->src_mac, sizeof(macaddr_t));
+          in6_addr ip = ns->nd_ns_target;
+          memcpy(ndp_table[std::pair<in6_addr, int>(ip, current_port)], mac,
+                 sizeof(macaddr_t));
+          if (debugEnabled) {
+            fprintf(stderr, "HAL_ReceiveIPPacket: learned MAC address of %s\n",
+                    inet6_ntoa(ip));
+          }
+          continue;
+        }
+      }
+
+      // pass to user
+      size_t ip_len = hdr.caplen - sizeof(ether_hdr);
+      size_t real_length = length > ip_len ? ip_len : length;
+      memcpy(buffer, &packet[sizeof(ether_hdr)], real_length);
+      memcpy(dst_mac, ether->dst_mac, sizeof(macaddr_t));
+      memcpy(src_mac, ether->src_mac, sizeof(macaddr_t));
+      *if_index = current_port;
+      return ip_len;
     }
 
     current_port = (current_port + 1) % N_IFACE_ON_BOARD;
@@ -367,15 +362,16 @@ int HAL_SendIPPacket(HAL_IN int if_index, HAL_IN uint8_t *buffer,
   if (!pcap_out_handles[if_index]) {
     return HAL_ERR_IFACE_NOT_EXIST;
   }
-  uint8_t *eth_buffer = (uint8_t *)malloc(length + IP_OFFSET);
-  memcpy(eth_buffer, dst_mac, sizeof(macaddr_t));
-  memcpy(&eth_buffer[6], interface_mac[if_index], sizeof(macaddr_t));
-  // IPv4
-  eth_buffer[12] = 0x08;
-  eth_buffer[13] = 0x00;
-  memcpy(&eth_buffer[IP_OFFSET], buffer, length);
-  if (pcap_inject(pcap_out_handles[if_index], eth_buffer, length + IP_OFFSET) >=
-      0) {
+  uint8_t *eth_buffer = (uint8_t *)malloc(length + sizeof(ether_hdr));
+  ether_hdr *ether = (ether_hdr *)eth_buffer;
+  memcpy(ether->dst_mac, dst_mac, sizeof(macaddr_t));
+  memcpy(ether->src_mac, interface_mac[if_index], sizeof(macaddr_t));
+  // IPv6
+  ether->ether_type = htons(0x86dd);
+
+  memcpy(&eth_buffer[sizeof(ether_hdr)], buffer, length);
+  if (pcap_inject(pcap_out_handles[if_index], eth_buffer,
+                  length + sizeof(ether_hdr)) >= 0) {
     free(eth_buffer);
     return 0;
   } else {
