@@ -1,63 +1,79 @@
-#include "common.h"
 #include "checksum.h"
-#include "protocol.h"
+#include "common.h"
 #include "lookup.h"
+#include "protocol.h"
 #include "router_hal.h"
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
-// taken from linux header netinet/ip_icmp.h
-#define ICMP_DEST_UNREACH 3   /* Destination Unreachable      */
-#define ICMP_TIME_EXCEEDED 11 /* Time Exceeded                */
-struct ICMPHeader {
-  uint8_t type; /* message type */
-  uint8_t code; /* type sub-code */
-  uint16_t checksum;
-  union {
-    struct {
-      uint16_t id;
-      uint16_t sequence;
-    } echo;           /* echo datagram */
-    uint32_t gateway; /* gateway address */
-  } un;
-};
-
 uint8_t packet[2048];
 uint8_t output[2048];
 
 // for online experiment, don't change
 #ifdef ROUTER_R1
-// 0: 192.168.1.1
-// 1: 192.168.3.1
-// 2: 192.168.6.1
-// 3: 192.168.7.1
-const uint32_t addrs[N_IFACE_ON_BOARD] = {0x0101a8c0, 0x0103a8c0, 0x0106a8c0,
-                                          0x0107a8c0};
+// 0: fd00::1:1/112
+// 1: fd00::3:1/112
+// 2: fd00::6:1/112
+// 3: fd00::7:1/112
+in6_addr addrs[N_IFACE_ON_BOARD] = {
+    {0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+     0x00, 0x01, 0x00, 0x01},
+    {0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+     0x00, 0x03, 0x00, 0x01},
+    {0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+     0x00, 0x06, 0x00, 0x01},
+    {0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+     0x00, 0x07, 0x00, 0x01},
+};
 #elif defined(ROUTER_R2)
-// 0: 192.168.3.2
-// 1: 192.168.4.1
-// 2: 192.168.8.1
-// 3: 192.168.9.1
-const uint32_t addrs[N_IFACE_ON_BOARD] = {0x0203a8c0, 0x0104a8c0, 0x0108a8c0,
-                                          0x0109a8c0};
+// 0: fd00::3:2/112
+// 1: fd00::4:1/112
+// 2: fd00::8:1/112
+// 3: fd00::9:1/112
+in6_addr addrs[N_IFACE_ON_BOARD] = {
+    {0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+     0x00, 0x03, 0x00, 0x02},
+    {0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+     0x00, 0x04, 0x00, 0x01},
+    {0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+     0x00, 0x08, 0x00, 0x01},
+    {0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+     0x00, 0x09, 0x00, 0x01},
+};
 #elif defined(ROUTER_R3)
-// 0: 192.168.4.2
-// 1: 192.168.5.2
-// 2: 192.168.10.1
-// 3: 192.168.11.1
-const uint32_t addrs[N_IFACE_ON_BOARD] = {0x0204a8c0, 0x0205a8c0, 0x010aa8c0,
-                                          0x010ba8c0};
+// 0: fd00::4:2/112
+// 1: fd00::5:2/112
+// 2: fd00::a:1/112
+// 3: fd00::b:1/112
+in6_addr addrs[N_IFACE_ON_BOARD] = {
+    {0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+     0x00, 0x04, 0x00, 0x02},
+    {0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+     0x00, 0x05, 0x00, 0x02},
+    {0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+     0x00, 0x0a, 0x00, 0x01},
+    {0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+     0x00, 0x0b, 0x00, 0x01},
+};
 #else
 
-// 自己调试用，你可以按需进行修改，注意字节序
-// 0: 10.0.0.1
-// 1: 10.0.1.1
-// 2: 10.0.2.1
-// 3: 10.0.3.1
-uint32_t addrs[N_IFACE_ON_BOARD] = {0x0100000a, 0x0101000a, 0x0102000a,
-                                    0x0103000a};
+// 自己调试用，你可以按需进行修改
+// 0: fd00::0:1
+// 1: fd00::1:1
+// 2: fd00::2:1
+// 3: fd00::3:1
+in6_addr addrs[N_IFACE_ON_BOARD] = {
+    {0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+     0x00, 0x00, 0x00, 0x01},
+    {0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+     0x00, 0x01, 0x00, 0x01},
+    {0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+     0x00, 0x02, 0x00, 0x01},
+    {0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+     0x00, 0x03, 0x00, 0x01},
+};
 #endif
 
 int main(int argc, char *argv[]) {
@@ -67,18 +83,19 @@ int main(int argc, char *argv[]) {
     return res;
   }
 
-  // 0b. Add direct routes
-  // For example:
-  // 10.0.0.0/24 if 0
-  // 10.0.1.0/24 if 1
-  // 10.0.2.0/24 if 2
-  // 10.0.3.0/24 if 3
+  // 0b. 插入直连路由
+  // 例如：
+  // fd00::0:0/112 if 0
+  // fd00::1:0/112 if 1
+  // fd00::2:0/112 if 2
+  // fd00::3:0/112 if 3
   for (uint32_t i = 0; i < N_IFACE_ON_BOARD; i++) {
+    in6_addr mask = len_to_mask(112);
     RoutingTableEntry entry = {
-        .addr = addrs[i] & 0x00FFFFFF, // network byte order
-        .len = 24,                     // host byte order
-        .if_index = i,                 // host byte order
-        .nexthop = 0                   // network byte order, means direct
+        .addr = addrs[i] & mask,
+        .len = 24,
+        .if_index = i,
+        .nexthop = in6_addr{0} // 全 0 表示直连路由
     };
     update(true, entry);
   }
@@ -86,19 +103,49 @@ int main(int argc, char *argv[]) {
   uint64_t last_time = 0;
   while (1) {
     uint64_t time = HAL_GetTicks();
-    // the RFC says 30s interval,
-    // but for faster convergence, use 5s here
+    // RFC 要求每 30s 发送一次
+    // 为了提高收敛速度，设为 5s
     if (time > last_time + 5 * 1000) {
-      // ref. RFC 2453 Section 3.8
+      // 提示：你可以打印完整的路由表到 stdout/stderr 来帮助调试。
       printf("5s Timer\n");
-      // HINT: print complete routing table to stdout/stderr for debugging
-      // TODO: send complete routing table to every interface
+
+      // 这一步需要向所有 interface 发送当前的完整路由表，设置 Command 为
+      // Response，并且注意当路由表表项较多时，需要拆分为多个 IPv6 packet。此时
+      // IPv6 packet 的源地址应为使用 eui64 计算得到的 Link Local
+      // 地址，目的地址为 ff02::9，以太网帧的源 MAC 地址为当前 interface 的 MAC
+      // 地址，目的 MAC 地址为 33:33:00:00:00:09，详见 RFC 2080 Section 2.5.2
+      // Generating Response Messages。
+      //
+      // 注意需要实现水平分割以及毒性反转（Split Horizon with Poisoned Reverse）
+      // 即，如果某一条路由表项是从 interface A 学习到的，那么发送给 interface A
+      // 的 RIPng 表项中，该项的 metric 设为 16。详见 RFC 2080 Section 2.6 Split
+      // Horizon。因此，发往各个 interface 的 RIPng 表项是不同的。
       for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
-        // construct rip response
-        // do the mostly same thing as step 3a.3
-        // except that dst_ip is RIP multicast IP 224.0.0.9
-        // and dst_mac is RIP multicast MAC 01:00:5e:00:00:09
-        // implement split horizon with poisoned reverse
+        // 下面举一个构造 IPv6 packet
+        // 的例子，之后有多处代码需要实现类似的功能，请参考此处的例子进行编写。建议实现单独的函数来简化这个过程。
+
+        // IPv6 header
+        ip6_hdr *ip6 = (ip6_hdr *)&output[0];
+        // flow label
+        ip6->ip6_flow = 0;
+        // version
+        ip6->ip6_vfc = 6 << 4;
+        // payload length
+        ip6->ip6_plen = htons(1234);
+        // next header
+        ip6->ip6_nxt = IPPROTO_UDP;
+        // hop limit
+        ip6->ip6_hlim = 64;
+        // src ip
+        ip6->ip6_src = addrs[i];
+        // dst ip
+        ip6->ip6_dst = inet6_pton("ff02::9");
+
+        udphdr *udp = (udphdr *)&output[sizeof(ip6_hdr)];
+        // dst port
+        udp->uh_dport = htons(521);
+        // src port
+        udp->uh_sport = htons(521);
       }
       last_time = time;
     }
@@ -107,7 +154,7 @@ int main(int argc, char *argv[]) {
     ether_addr src_mac;
     ether_addr dst_mac;
     int if_index;
-    res = HAL_ReceiveIPPacket(mask, packet, sizeof(packet), src_mac, dst_mac,
+    res = HAL_ReceiveIPPacket(mask, packet, sizeof(packet), &src_mac, &dst_mac,
                               1000, &if_index);
     if (res == HAL_ERR_EOF) {
       break;
@@ -121,169 +168,144 @@ int main(int argc, char *argv[]) {
       continue;
     }
 
-    // 1. validate
-    if (!validateIPChecksum(packet, res)) {
-      printf("Invalid IP Checksum\n");
-      // drop if ip checksum invalid
+    // 检查 IPv6 头部长度
+    ip6_hdr *ip6 = (ip6_hdr *)packet;
+    if (res < sizeof(ip6_hdr)) {
+      printf("Received invalid ipv6 packet (%d < %d)\n", res, sizeof(ip6_hdr));
       continue;
     }
-    uint32_t src_addr, dst_addr;
-    // TODO: extract src_addr and dst_addr from packet (big endian)
+    uint16_t plen = htons(ip6->ip6_plen);
+    if (res < plen + sizeof(ip6_hdr)) {
+      printf("Received invalid ipv6 packet (%d < %d + %d)\n", res, plen,
+             sizeof(ip6_hdr));
+      continue;
+    }
 
-    // 2. check whether dst is me
+    // 检查 IPv6 头部目的地址是否为我自己
+    // TODO: 修改这个检查，当目的地址为 RIPng 的组播目的地址（ff02::9）时也设置
+    // dst_is_me 为 true。
     bool dst_is_me = false;
     for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
-      if (memcmp(&dst_addr, &addrs[i], sizeof(uint32_t)) == 0) {
+      if (memcmp(&ip6->ip6_dst, &addrs[i], sizeof(in6_addr)) == 0) {
         dst_is_me = true;
         break;
       }
     }
-    // TODO: handle rip multicast address(224.0.0.9)
 
     if (dst_is_me) {
-      // 3a.1
-      RipPacket rip;
-      // check and validate
-      RipErrorCode err = disassemble(packet, res, &rip);
-      if (err == SUCCESS) {
-        if (rip.command == 1) {
-          // 3a.3 request, ref. RFC 2453 Section 3.9.1
-          // only need to respond to whole table requests in the lab
+      // 目的地址是我，按照类型进行处理
 
-          RipPacket resp;
-          // TODO: fill resp
-          // implement split horizon with poisoned reverse
-          // ref. RFC 2453 Section 3.4.3
-
-          // fill IP headers
-          struct ip_header *ip_header = (struct ip_header *)output;
-          ip_header->ip_hl = 5;
-          ip_header->ip_v = 4;
-          // TODO: set tos = 0, id = 0, off = 0, ttl = 1, p = 17(udp), dst and
-          // src
-
-          // fill UDP headers
-          struct udp_header *udp_header = (struct udp_header *)&output[20];
-          // src port = 520
-          udp_header->uh_sport = htons(520);
-          // dst port = 520
-          udp_header->uh_dport = htons(520);
-          // TODO: udp length
-
-          // assemble RIP
-          uint32_t rip_len = assemble(&resp, &output[20 + 8]);
-
-          // TODO: checksum calculation for ip and udp
-          // if you don't want to calculate udp checksum, set it to zero
-
-          // send it back
-          HAL_SendIPPacket(if_index, output, rip_len + 20 + 8, src_mac);
-        } else {
-          // 3a.2 response, ref. RFC 2453 Section 3.9.2
-          // TODO: update routing table
-          // new metric = ?
-          // update metric, if_index, nexthop
-          // HINT: handle nexthop = 0 case
-          // HINT: what is missing from RoutingTableEntry?
-          // you might want to use `prefix_query` and `update`, but beware of
-          // the difference between exact match and longest prefix match.
-          // optional: triggered updates ref. RFC 2453 Section 3.10.1
+      // 检查 checksum 是否正确
+      if (ip6->ip6_nxt == IPPROTO_UDP || ip6->ip6_nxt == IPPROTO_ICMPV6) {
+        if (!validateAndFillChecksum(packet, res)) {
+          printf("Received packet with bad checksum\n");
+          continue;
         }
-      } else if (err == RipErrorCode::ERR_IP_PROTO_NOT_UDP ||
-                 err == RipErrorCode::ERR_BAD_UDP_PORT) {
-        // not a rip packet
-        // handle icmp echo request packet
-        // TODO:
-        // 1. check if ip proto is icmp
-        // 2. check if icmp packet type is echo request
-        if (false) {
-          // construct icmp echo reply
-          // see RFC792 [Page 14] Echo or Echo Reply Message
-          // reply is mostly the same as request,
-          // you need to:
-          // 1. swap src ip addr and dst ip addr
-          // 2. change icmp `type` in header
-          // 3. set ttl to 64
-          // 4. re-calculate icmp checksum and ip checksum
-          // 5. send icmp packet
-        }
-      } else {
-        // a bad rip packet
-        // you received a malformed packet >_<
-        printf("Got bad RIP packet from IP %x with error: %s\n", src_addr,
-               rip_error_to_string(err));
       }
-    } else {
-      // 3b.1 dst is not me
-      // check if ttl is less than or equal 1
-      uint8_t ttl = packet[8];
-      if (ttl <= 1) {
-        // send icmp time to live exceeded to src addr
-        // fill IP header
-        struct ip_header *ip_header = (struct ip_header *)output;
-        ip_header->ip_hl = 5;
-        ip_header->ip_v = 4;
-        // TODO: set tos = 0, id = 0, off = 0, ttl = 64, p = 1(icmp), src and
-        // dst
 
-        // fill icmp header
-        // see RFC792 [Page 6] Time Exceeded Message
-        struct ICMPHeader *icmp_header = (struct ICMPHeader *)&output[20];
-        // icmp type = Time Exceeded
-        icmp_header->type = ICMP_TIME_EXCEEDED;
-        // TODO:
-        // set icmp code = 0
-        // fill unused fields with zero
-        // append "ip header and first 8 bytes of the original payload"
-        // calculate icmp checksum and ip checksum
-        // send icmp packet
-      } else {
-        // forward
-        // beware of endianness
-        uint32_t nexthop, dest_if;
-        if (prefix_query(dst_addr, &nexthop, &dest_if)) {
-          // found
-          ether_addr dest_mac;
-          // direct routing means that destination ip is directly accessible
-          if (nexthop == 0) {
-            nexthop = dst_addr;
+      if (ip6->ip6_nxt == IPPROTO_UDP) {
+        // 检查是否为 RIPng packet
+        RipPacket rip;
+        RipErrorCode err = disassemble(packet, res, &rip);
+        if (err == SUCCESS) {
+          if (rip.command == 1) {
+            // Command 为 Request
+            // 参考 RFC 2080 Section 2.4.1 Request Messages 实现
+            // 本次实验中，可以简化为只考虑输出完整路由表的情况
+
+            RipPacket resp;
+            // 与 5s Timer 时的处理类似，也需要实现水平分割和毒性反转
+            // 可以把两部分代码写到单独的函数中
+            // 不同的是，在 5s Timer
+            // 中要组播发给所有的路由器；这里则是某一个路由器 Request
+            // 本路由器，因此回复 Response 的时候，目的 IPv6 地址和 MAC
+            // 地址都应该指向发出请求的路由器
+
+            // 最后把 RIPng 包发送出去
+          } else {
+            // Command 为 Response
+            // 参考 RFC 2080 Section 2.4.2 Request Messages 实现
+            // 按照接受到的 RIPng 表项更新自己的路由表
+            // 在本实验中，可以忽略 metric=0xFF 的表项，它表示的是 Nexthop
+            // 的设置，可以忽略
+
+            // 接下来的处理中，都首先对输入的 RIPng 表项做如下处理：
+            // metric = MIN(metric + cost, infinity)
+            // 其中 cost 取 1，表示经过了一跳路由器；infinity 用 16 表示
+
+            // 如果出现了一条新的路由表项，并且 metric 不等于 16：
+            // 插入到自己的路由表中，设置 nexthop
+            // 地址为发送这个 Response 的路由器。
+
+            // 如果收到的路由表项和已知的重复（注意，是精确匹配），
+            // 进行以下的判断：如果路由表中的表项是之前从该路由器从学习而来，那么直接更新
+            // metric
+            // 为新的值；如果路由表中表现是从其他路由器那里学来，就比较已有的表项和
+            // RIPng 表项中的 metric 大小，如果 RIPng 表项中的 metric
+            // 更小，说明找到了一条更新的路径，那就用新的表项替换原有的，同时更新
+            // nexthop 地址。
+
+            // 可选功能：实现 Triggered
+            // Updates，即在路由表出现更新的时候，向所有 interface
+            // 发送出现变化的路由表项，注意此时依然要实现水平分割和毒性反转。详见
+            // RFC 2080 Section 2.5.1。
           }
-          if (HAL_GetNeighborMacAddress(dest_if, nexthop, dest_mac) == 0) {
-            // found
+        } else {
+          // 接受到一个错误的 RIPng packet >_<
+          printf("Got bad RIP packet from IP %s with error: %s\n",
+                 inet6_ntoa(ip6->ip6_src), rip_error_to_string(err));
+        }
+      } else if (ip6->ip6_nxt == IPPROTO_ICMPV6) {
+        // 如果是 ICMPv6 packet
+        // 检查是否是 Echo Request
+
+        // 如果是 Echo Request，生成一个对应的 Echo Reply：交换源和目的 IPv6
+        // 地址，设置 type 为 Echo Reply，设置 TTL（Hop Limit） 为 64，重新计算
+        // Checksum 并发送出去。详见 RFC 4443 Section 4.2 Echo Reply Message
+      }
+      continue;
+    } else {
+      // 目标地址不是我，考虑转发给下一跳
+      // 检查 TTL（Hop Limit）是否小于或等于 1
+      uint8_t ttl = ip6->ip6_hops;
+      if (ttl <= 1) {
+        // 发送 ICMP Time Exceeded 消息
+        // 详见 RFC 4443 Section 3.3 Time Exceeded Message
+        // 计算 Checksum 后由自己的 IPv6 地址发送给源 IPv6 地址。
+      } else {
+        // 转发给下一跳
+        // 按最长前缀匹配查询路由表
+        in6_addr nexthop;
+        uint32_t dest_if;
+        if (prefix_query(ip6->ip6_dst, &nexthop, &dest_if)) {
+          // 找到路由
+          ether_addr dest_mac;
+          // 如果下一跳为全 0，表示的是直连路由，目的机器和本路由器可以直接访问
+          if (nexthop == in6_addr{0}) {
+            nexthop = ip6->ip6_dst;
+          }
+          if (HAL_GetNeighborMacAddress(dest_if, nexthop, &dest_mac) == 0) {
+            // 在 NDP 表中找到了下一跳的 MAC 地址
+            // TTL-1
+            ip6->ip6_hops--;
+
+            // 转发出去
             memcpy(output, packet, res);
-            // update ttl and checksum
-            forward(output, res);
             HAL_SendIPPacket(dest_if, output, res, dest_mac);
           } else {
-            // not found
-            // you can drop it
-            printf("Nexthop ip %x is not found in ARP table\n", nexthop);
+            // 没有找到下一跳的 MAC 地址
+            // 本实验中可以直接丢掉，等对方回复 NDP 之后，再恢复正常转发。
+            printf("Nexthop ip %s is not found in NDP table\n",
+                   inet6_ntoa(nexthop));
           }
         } else {
-          // not found
-          // send ICMP Destination Network Unreachable
-          printf("Destination IP %x not found in routing table and source IP "
-                 "is %x\n",
-                 dst_addr, src_addr);
-          // send icmp destination net unreachable to src addr
-          // fill IP header
-          struct ip_header *ip_header = (struct ip_header *)output;
-          ip_header->ip_hl = 5;
-          ip_header->ip_v = 4;
-          // TODO: set tos = 0, id = 0, off = 0, ttl = 64, p = 1(icmp), src and
-          // dst
-
-          // fill icmp header
-          // see RFC792 [Page 4] Destination Unreachable Message
-          struct ICMPHeader *icmp_header = (struct ICMPHeader *)&output[20];
-          // icmp type = Destination Unreachable
-          icmp_header->type = ICMP_DEST_UNREACH;
-          // TODO:
-          // icmp code = Destination Network Unreachable
-          // fill unused fields with zero
-          // append "ip header and first 8 bytes of the original payload"
-          // calculate icmp checksum and ip checksum
-          // send icmp packet
+          // 没有找到路由
+          // 发送 ICMP Time Exceeded 消息
+          // 详见 RFC 4443 Section 3.1 Destination Unreachable Message
+          // 计算 Checksum 后由自己的 IPv6 地址发送给源 IPv6 地址。
+          printf("Destination IP %s not found in routing table ",
+                 inet6_ntoa(ip6->ip6_dst));
+          printf(" and source IP is %s\n", inet6_ntoa(ip6->ip6_src));
         }
       }
     }

@@ -2,7 +2,7 @@ CXX ?= g++
 LAB_ROOT ?= ../../..
 BACKEND ?= LINUX
 LDFLAGS = -lpcap -static
-override CXXFLAGS += --std=c++11 -I $(LAB_ROOT)/HAL/include -DROUTER_BACKEND_$(BACKEND) -Wno-psabi -O2 -static -I../../protocol -I../../lookup -I../../internet-checksum
+override CXXFLAGS += --std=c++11 -I $(LAB_ROOT)/HAL/include -DROUTER_BACKEND_$(BACKEND) -Wno-psabi -O2 -static -I../../protocol -I../../lookup -I../../internet-checksum -I../../eui64
 
 .PHONY: all clean
 all: router
@@ -13,13 +13,16 @@ clean:
 %.o: ../%.cpp
 	$(CXX) $(CXXFLAGS) -c $^ -o $@
 
+common.o: $(LAB_ROOT)/HAL/src/common.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
 hal.o: $(LAB_ROOT)/HAL/src/linux/router_hal.cpp $(LAB_ROOT)/HAL/src/linux/platform/standard.h
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-checksum.o: ../../internet-checksum/checksum.cpp
+eui64.o: ../../eui64/eui64.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-forwarding.o: ../../forwarding/forwarding.cpp
+checksum.o: ../../internet-checksum/checksum.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 lookup.o: ../../lookup/lookup.cpp
@@ -28,5 +31,5 @@ lookup.o: ../../lookup/lookup.cpp
 protocol.o: ../../protocol/protocol.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-router: main.o hal.o protocol.o checksum.o lookup.o forwarding.o
+router: main.o hal.o eui64.o checksum.o lookup.o protocol.o common.o
 	$(CXX) $^ -o $@ $(LDFLAGS) 

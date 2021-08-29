@@ -60,3 +60,9 @@ const char *ether_ntoa(const ether_addr mac) {
           mac.ether_addr_octet[5]);
   return buffer;
 }
+
+in6_addr inet6_pton(const char *addr) {
+  in6_addr res;
+  assert(inet_pton(AF_INET6, addr, &res) == 1);
+  return res;
+}

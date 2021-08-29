@@ -45,5 +45,6 @@ void get_ipv6_mcast_mac(const in6_addr mcast_ip, ether_addr *mac);
 // don't call it twice in a same call to printf!
 const char *inet6_ntoa(const in6_addr addr);
 const char *ether_ntoa(const ether_addr mac);
+in6_addr inet6_pton(const char *addr);
 
 #endif
