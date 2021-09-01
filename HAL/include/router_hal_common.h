@@ -201,7 +201,7 @@ int HAL_ReceiveIPPacket(HAL_IN int if_index_mask, HAL_OUT uint8_t *buffer,
       // TODO: what if len != caplen
       // Beware: might be larger than MTU because of offloading
 
-      ip6_hdr *ip6 = (ip6_hdr *)&packet[sizeof(ether_header)];
+      const ip6_hdr *ip6 = (ip6_hdr *)&packet[sizeof(ether_header)];
       if ((ip6->ip6_vfc) >> 4 != 6) {
         continue;
       }
@@ -222,7 +222,7 @@ int HAL_ReceiveIPPacket(HAL_IN int if_index_mask, HAL_OUT uint8_t *buffer,
 
       // handle icmpv6
       if (ip6->ip6_nxt == IPPROTO_ICMPV6) {
-        icmp6_hdr *icmp6 =
+        const icmp6_hdr *icmp6 =
             (icmp6_hdr *)&packet[sizeof(ether_header) + sizeof(ip6_hdr)];
         if (icmp6->icmp6_type == 136) {
           // neighbor advertisement
@@ -237,6 +237,85 @@ int HAL_ReceiveIPPacket(HAL_IN int if_index_mask, HAL_OUT uint8_t *buffer,
             fprintf(stderr,
                     "HAL_ReceiveIPPacket: learned MAC address of %s is %s\n",
                     inet6_ntoa(ip), ether_ntoa(mac));
+          }
+          continue;
+        } else if (icmp6->icmp6_type == 135) {
+          // neighbor solicitation
+          const nd_neighbor_solicit *ns =
+              (nd_neighbor_solicit
+                   *)&packet[sizeof(ether_header) + sizeof(ip6_hdr)];
+          if (ns->nd_ns_target == interface_addrs[current_port] ||
+              ns->nd_ns_target == eui64(interface_mac[current_port])) {
+
+            // construct reply
+            uint8_t buffer[sizeof(ether_header) + sizeof(ip6_hdr) +
+                           sizeof(nd_neighbor_advert) + sizeof(nd_opt_hdr) +
+                           sizeof(ether_addr)] = {0};
+            ether_header *reply_ether = (ether_header *)&buffer;
+            // dst mac
+            memcpy(reply_ether->ether_dhost, ether->ether_shost,
+                   sizeof(ether_addr));
+            // src mac
+            ether_addr src_mac;
+            HAL_GetInterfaceMacAddress(current_port, &src_mac);
+            memcpy(reply_ether->ether_shost, &src_mac, sizeof(ether_addr));
+
+            // IPv6 ether type
+            reply_ether->ether_type = htons(0x86dd);
+
+            // IPv6 header
+            ip6_hdr *reply_ip6 = (ip6_hdr *)&buffer[14];
+            // flow label
+            reply_ip6->ip6_flow = 0;
+            // version
+            reply_ip6->ip6_vfc = 6 << 4;
+            // payload length
+            // icmpv6 header + opt
+            reply_ip6->ip6_plen =
+                htons(sizeof(nd_neighbor_advert) + sizeof(nd_opt_hdr) +
+                      sizeof(ether_addr));
+            // next header
+            reply_ip6->ip6_nxt = IPPROTO_ICMPV6;
+            // hop limit
+            reply_ip6->ip6_hlim = 255;
+            // src ip
+            reply_ip6->ip6_src = ns->nd_ns_target;
+            // dst ip
+            reply_ip6->ip6_dst = ip6->ip6_src;
+
+            // ICMPv6
+            nd_neighbor_advert *na =
+                (nd_neighbor_advert
+                     *)&buffer[sizeof(ether_header) + sizeof(ip6_hdr)];
+            icmp6_hdr *reply_icmp6 = &na->nd_na_hdr;
+            // type = neighbor advertisement
+            reply_icmp6->icmp6_type = 136;
+            // code = 0
+            reply_icmp6->icmp6_code = 0;
+            // data = solicited & override
+            reply_icmp6->icmp6_data32[0] = htonl(0x60000000);
+            // target ip
+            na->nd_na_target = ns->nd_ns_target;
+
+            // option
+            nd_opt_hdr *opt =
+                (nd_opt_hdr *)&buffer[sizeof(ether_header) + sizeof(ip6_hdr) +
+                                      sizeof(nd_neighbor_advert)];
+            // target link-layer address
+            opt->nd_opt_type = ND_OPT_TARGET_LINKADDR;
+            // 8 bytes
+            opt->nd_opt_len = 1;
+            // target link layer address
+            memcpy(&buffer[sizeof(ether_header) + sizeof(ip6_hdr) +
+                           sizeof(nd_neighbor_advert) + sizeof(nd_opt_hdr)],
+                   &ether->ether_shost, 6);
+
+            validateAndFillChecksum(
+                (uint8_t *)reply_ip6,
+                sizeof(ip6_hdr) + sizeof(nd_neighbor_advert) +
+                    sizeof(nd_opt_hdr) + sizeof(ether_addr));
+
+            pcap_inject(pcap_out_handles[current_port], buffer, sizeof(buffer));
           }
           continue;
         }
