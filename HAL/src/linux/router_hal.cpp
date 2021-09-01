@@ -48,6 +48,28 @@ int HAL_Init(HAL_IN int debug, HAL_IN in6_addr if_addrs[N_IFACE_ON_BOARD]) {
           fprintf(stderr, "HAL_Init: found MAC addr of interface %s\n",
                   interfaces[i]);
         }
+
+        // disable ipv6 of this interface
+        // echo 1 > /proc/sys/net/ipv6/conf/if_name/disable_ipv6
+        char name_buffer[64];
+        sprintf(name_buffer, "/proc/sys/net/ipv6/conf/%s/disable_ipv6",
+                interfaces[i]);
+        FILE *fp = fopen(name_buffer, "w");
+        char ch = '1';
+        if (fp) {
+          fwrite(&ch, 1, 1, fp);
+          fclose(fp);
+
+          if (debugEnabled) {
+            fprintf(stderr, "HAL_Init: disabled ipv6 of interface %s\n",
+                    interfaces[i]);
+          }
+        } else {
+          if (debugEnabled) {
+            fprintf(stderr, "HAL_Init: failed to disable ipv6 of interface %s\n",
+                    interfaces[i]);
+          }
+        }
         break;
       }
     }
@@ -101,6 +123,4 @@ int HAL_Init(HAL_IN int debug, HAL_IN in6_addr if_addrs[N_IFACE_ON_BOARD]) {
   inited = true;
   return 0;
 }
-
-
 }
