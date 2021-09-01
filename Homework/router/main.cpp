@@ -78,18 +78,18 @@ in6_addr addrs[N_IFACE_ON_BOARD] = {
 #endif
 
 int main(int argc, char *argv[]) {
-  // 0a.
+  // 初始化 HAL
   int res = HAL_Init(1, addrs);
   if (res < 0) {
     return res;
   }
 
-  // 0b. 插入直连路由
-  // 例如：
-  // fd00::0:0/112 if 0
-  // fd00::1:0/112 if 1
-  // fd00::2:0/112 if 2
-  // fd00::3:0/112 if 3
+  // 插入直连路由
+  // 例如 R2：
+  // fd00::3:0/112 if 0
+  // fd00::4:0/112 if 1
+  // fd00::8:0/112 if 2
+  // fd00::9:0/112 if 3
   for (uint32_t i = 0; i < N_IFACE_ON_BOARD; i++) {
     in6_addr mask = len_to_mask(112);
     RoutingTableEntry entry = {
