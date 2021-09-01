@@ -1,5 +1,6 @@
 #include "checksum.h"
 #include "common.h"
+#include "eui64.h"
 #include "lookup.h"
 #include "protocol.h"
 #include "router_hal.h"
@@ -93,7 +94,7 @@ int main(int argc, char *argv[]) {
     in6_addr mask = len_to_mask(112);
     RoutingTableEntry entry = {
         .addr = addrs[i] & mask,
-        .len = 24,
+        .len = 112,
         .if_index = i,
         .nexthop = in6_addr{0} // 全 0 表示直连路由
     };
@@ -121,6 +122,9 @@ int main(int argc, char *argv[]) {
       // 的 RIPng 表项中，该项的 metric 设为 16。详见 RFC 2080 Section 2.6 Split
       // Horizon。因此，发往各个 interface 的 RIPng 表项是不同的。
       for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
+        ether_addr mac;
+        HAL_GetInterfaceMacAddress(i, &mac);
+
         // 下面举一个构造 IPv6 packet
         // 的例子，之后有多处代码需要实现类似的功能，请参考此处的例子进行编写。建议实现单独的函数来简化这个过程。
 
@@ -135,9 +139,9 @@ int main(int argc, char *argv[]) {
         // next header
         ip6->ip6_nxt = IPPROTO_UDP;
         // hop limit
-        ip6->ip6_hlim = 64;
+        ip6->ip6_hlim = 255;
         // src ip
-        ip6->ip6_src = addrs[i];
+        ip6->ip6_src = eui64(mac);
         // dst ip
         ip6->ip6_dst = inet6_pton("ff02::9");
 

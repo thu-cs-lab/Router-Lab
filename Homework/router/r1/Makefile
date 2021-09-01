@@ -1,2 +1,2 @@
-override CXXFLAGS += -DROUTER_R1
+CXXFLAGS += -DROUTER_R1
 include ../common/Makefrag
