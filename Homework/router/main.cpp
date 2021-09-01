@@ -270,6 +270,13 @@ int main(int argc, char *argv[]) {
       continue;
     } else {
       // 目标地址不是我，考虑转发给下一跳
+      // 检查是否是组播地址（ff00::/8），不需要转发组播包
+      if (ip6->ip6_dst.s6_addr[0] == 0xff) {
+        printf("Don't forward multicast packet to %s\n",
+               inet6_ntoa(ip6->ip6_dst));
+        continue;
+      }
+
       // 检查 TTL（Hop Limit）是否小于或等于 1
       uint8_t ttl = ip6->ip6_hops;
       if (ttl <= 1) {
