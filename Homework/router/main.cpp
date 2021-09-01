@@ -186,14 +186,18 @@ int main(int argc, char *argv[]) {
     }
 
     // 检查 IPv6 头部目的地址是否为我自己
-    // TODO: 修改这个检查，当目的地址为 RIPng 的组播目的地址（ff02::9）时也设置
-    // dst_is_me 为 true。
     bool dst_is_me = false;
     for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
       if (memcmp(&ip6->ip6_dst, &addrs[i], sizeof(in6_addr)) == 0) {
         dst_is_me = true;
         break;
       }
+    }
+
+    // TODO: 修改这个检查，当目的地址为 RIPng 的组播目的地址（ff02::9）时也设置
+    // dst_is_me 为 true。
+    if (false) {
+      dst_is_me = true;
     }
 
     if (dst_is_me) {
