@@ -9,6 +9,6 @@ RUN wget http://mirrors.tuna.tsinghua.edu.cn/debian/pool/main/libp/libpcap/libpc
 RUN tar xvf libpcap_1.10.0.orig.tar.gz
 WORKDIR libpcap-1.10.0
 RUN apt install -y flex bison
-RUN ./configure --disable-dbus --disable-rdma --disable-usb
+RUN ./configure --prefix=/usr --disable-dbus --disable-rdma --disable-usb --enable-shared
 RUN make -j4 install
 
