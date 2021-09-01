@@ -184,6 +184,7 @@ int HAL_ReceiveIPPacket(HAL_IN int if_index_mask, HAL_OUT uint8_t *buffer,
     const uint8_t *const_packet =
         pcap_next(pcap_in_handles[current_port], &hdr);
     if (!const_packet) {
+      current_port = (current_port + 1) % N_IFACE_ON_BOARD;
       continue;
     }
     std::vector<uint8_t> packet(&const_packet[0], &const_packet[hdr.caplen]);
@@ -308,7 +309,7 @@ int HAL_ReceiveIPPacket(HAL_IN int if_index_mask, HAL_OUT uint8_t *buffer,
             // target link layer address
             memcpy(&buffer[sizeof(ether_header) + sizeof(ip6_hdr) +
                            sizeof(nd_neighbor_advert) + sizeof(nd_opt_hdr)],
-                   &ether->ether_shost, 6);
+                   &interface_mac[current_port], 6);
 
             validateAndFillChecksum(
                 (uint8_t *)reply_ip6,
