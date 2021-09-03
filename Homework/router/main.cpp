@@ -323,7 +323,7 @@ int main(int argc, char *argv[]) {
           // 发送 ICMP Time Exceeded 消息
           // 详见 RFC 4443 Section 3.1 Destination Unreachable Message
           // 计算 Checksum 后由自己的 IPv6 地址发送给源 IPv6 地址。
-          printf("Destination IP %s not found in routing table ",
+          printf("Destination IP %s not found in routing table %s",
                  inet6_ntoa(ip6->ip6_dst));
           printf(" and source IP is %s\n", inet6_ntoa(ip6->ip6_src));
         }
