@@ -320,9 +320,12 @@ int main(int argc, char *argv[]) {
           }
         } else {
           // 没有找到路由
-          // 发送 ICMP Time Exceeded 消息
+          // 发送 ICMPv6 Destination Unreachable 消息
+          // 要求与上面发送 ICMPv6 Time Exceeded 消息一致
+          // Code 取 0，表示 No route to destination
           // 详见 RFC 4443 Section 3.1 Destination Unreachable Message
           // 计算 Checksum 后由自己的 IPv6 地址发送给源 IPv6 地址。
+
           printf("Destination IP %s not found in routing table",
                  inet6_ntoa(ip6->ip6_dst));
           printf(" and source IP is %s\n", inet6_ntoa(ip6->ip6_src));
