@@ -16,7 +16,7 @@ enum RipErrorCode {
   ERR_RIP_BAD_COMMAND,
   // RIPng 的 Version 字段错误
   ERR_RIP_BAD_VERSION,
-  // RIPng 的 Zero 字段错误
+  // RIPng 的 Zero（Reserved） 字段错误
   ERR_RIP_BAD_ZERO,
   // RIPng 表项的 Metric 字段错误
   ERR_RIP_BAD_METRIC,
@@ -73,7 +73,7 @@ static const char *rip_error_to_string(RipErrorCode err) {
   case RipErrorCode::ERR_RIP_BAD_VERSION:
     return "Version field is bad";
   case RipErrorCode::ERR_RIP_BAD_ZERO:
-    return "Zero field is bad";
+    return "Zero(Reserved) field is bad";
   case RipErrorCode::ERR_RIP_BAD_METRIC:
     return "Metric field is bad";
   case RipErrorCode::ERR_RIP_BAD_PREFIX_LEN:
