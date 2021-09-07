@@ -33,7 +33,7 @@ uint32_t assemble(const RipPacket *rip, uint8_t *buffer) {
 
 ## 样例 1 解释
 
-用 Wireshark 打开，可以看到有两个合法的 RIP 包，它们的内容如下：
+用 Wireshark 打开，可以看到有两个合法的 RIPng packet，它们的内容如下：
 
 ```text
 RIPng

@@ -10,7 +10,7 @@ enum RipErrorCode {
   ERR_IP_NEXT_HEADER_NOT_UDP,
   // UDP 头中源端口号或者目的端口号不是 521(RIPng)
   ERR_BAD_UDP_PORT,
-  // IPv6 头、UDP 头和实际的 RIPng 路由项的长度不一致
+  // IPv6 头、UDP 头和实际的 RIPng 路由项的长度出现错误或者不一致
   ERR_LENGTH,
   // RIPng 的 Command 字段错误
   ERR_RIP_BAD_COMMAND,
@@ -43,7 +43,7 @@ typedef struct ripng_hdr {
 
 // RIPng entry 定义
 typedef struct {
-  // 当 Metric=0xFF 时记录了 Nexthop；当 Metric!=0xFF 是记录了 Prefix
+  // 当 Metric=0xFF 时记录了 Nexthop；当 Metric!=0xFF 时记录了 Prefix
   in6_addr prefix_or_nh;
   // 网络字节序存储
   uint16_t route_tag;
@@ -101,14 +101,21 @@ static const char *rip_error_to_string(RipErrorCode err) {
  * @return 如果输入是一个合法的 RIPng 包，把它的内容写入 RipPacket 并且返回
  * RipErrorCode::SUCCESS；否则按照要求返回 RipErrorCode 的具体类型
  *
- * IPv6 Header 的 Payload Length 长度可能和 len 不同，
- * 当 Payload Length 大于 len 时，把传入的 IP 包视为不合法。
- * 你不需要校验 UDP 的校验和是否合法。
- * 你需要检查 IPv6 头中 Next header 字段是否为 UDP 协议，UDP 端口号是否为 521，
- * RIPng header 中的 Command 是否为 1 或 2，Version 是否为 1，Zero 是否为 0，
- * 对于 RIPng entry，当 Metric=0xFF 时，检查 Prefix Len 和 Route Tag 是否为 0；
- * 当 Metric!=0xFF 时，检查 Metric 是否属于 [1,16]，并检查 Prefix Len 是否属于 [0,128]，
- * 是否与 IPv6 prefix 字段组成合法的 IPv6 前缀。
+ * 你需要按照以下顺序检查：
+ * 1. len 是否包括一个的 IPv6 header 的长度。
+ * 2. IPv6 Header 中的 Payload Length 加上 Header 长度是否等于 len。
+ * 3. IPv6 Header 中的 Next header 字段是否为 UDP 协议。
+ * 4. IPv6 Header 中的 Payload Length 是否包括一个 UDP header 的长度。
+ * 5. 检查 UDP 源端口和目的端口是否都为 521。
+ * 6. 检查 UDP header 中 Length 是否等于 UDP header 长度加上 RIPng header
+ * 长度加上 RIPng entry 长度的整数倍。
+ * 7. 检查 RIPng header 中的 Command 是否为 1 或 2，
+ * Version 是否为 1，Zero（Reserved） 是否为 0。
+ * 8. 对每个 RIPng entry，当 Metric=0xFF 时，检查 Prefix Len
+ * 和 Route Tag 是否为 0。
+ * 9. 对每个 RIPng entry，当 Metric!=0xFF 时，检查 Metric 是否属于
+ * [1,16]，并检查 Prefix Len 是否属于 [0,128]，是否与 IPv6 prefix 字段组成合法的
+ * IPv6 前缀。
  */
 RipErrorCode disassemble(const uint8_t *packet, uint32_t len,
                          RipPacket *output);
