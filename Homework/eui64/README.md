@@ -23,7 +23,7 @@ in6_addr eui64(const ether_addr mac) {
 }
 ```
 
-`in6_addr` 类型保存了 IPv6 的 128 位地址信息，你可以通过 `uint8_t s6_addr[8]` 成员来读写，例如 `res.s6_addr[0] = 0xfe;`。`ether_addr` 类型则是 `uint8_t [6]` 类型的别称。
+`in6_addr` 类型保存了 IPv6 的 128 位地址信息，你可以通过 `uint8_t s6_addr[16]` 成员来读写，例如 `res.s6_addr[0] = 0xfe;`。类似地，`ether_addr` 类型通过 `uint8_t ether_addr_octet[6]` 成员来读写。
 
 你不需要处理输入输出，你只需要在本地执行 `make grade` 就可以进行本地评测。
 
