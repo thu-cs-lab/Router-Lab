@@ -20,7 +20,7 @@ bool validateAndFillChecksum(uint8_t *packet, size_t len) {
     struct icmp6_hdr *icmp =
         (struct icmp6_hdr *)&packet[sizeof(struct ip6_hdr)];
     // length: len-sizeof(struct ip6_hdr)
-    // checksum: icmp->icmp6_chksum
+    // checksum: icmp->icmp6_cksum
   } else {
     assert(false);
   }
