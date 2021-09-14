@@ -1,2 +1,2 @@
 Version field is bad
-Zero field is bad
+Zero(Reserved) field is bad
