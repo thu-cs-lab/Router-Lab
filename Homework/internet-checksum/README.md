@@ -4,7 +4,7 @@
 
 在 IPv6 中，Header 不再有校验和（checksum）字段，而在 UDP 和 ICMPv6 协议中计算校验和的时候，需要将 IPv6 Header 的一部分数据考虑进来，这就是 Pseudo Header。
 
-你需要在 `checksum.cpp` 中实现下面的函数 `validateAndFillChecksum`，这个函数接收一个 IPv6 的 packet，在 IPv6 Header 之后一定是一个 UDP 或者 ICMPv6 的 packet。返回值为 UDP 或者 ICMPv6 中的校验和是否正确；无论是否正确，函数返回时，packet 中的校验和应该为正确的值。
+你需要在 `checksum.cpp` 中实现下面的函数 `validateAndFillChecksum`，这个函数接收一个 IPv6 的 packet，在 IPv6 Header 之后一定是一个 UDP 或者 ICMPv6 的 packet。该函数的返回值为 UDP 或者 ICMPv6 中的校验和是否正确；同时，无论原来的校验和是否正确，该函数返回时，packet 中的校验和应该被填充为正确的值。
 
 ```cpp
 // 函数注释见代码
@@ -36,7 +36,7 @@ bool validateAndFillChecksum(uint8_t *packet, size_t len) {
 
 同学你可能会问，如果大家都用上面的计算方法得到校验和，为何还会出现 0xFFFF 的情况呢？在 [RFC 1141](https://datatracker.ietf.org/doc/html/rfc1141) 中定义的增量更新的算法因为设计上的纰漏，会导致计算出 0xFFFF 的校验和，在之后的 [RFC 1624](https://datatracker.ietf.org/doc/html/rfc1624) 中才得以修复。但很可惜的是，一些系统已经实现了错误的算法，因此目前的网络栈对这个问题的策略是：校验的时候，认为 0xFFFF 是正确的校验和；计算的时候，不会计算出 0xFFFF。在本题中，当接受到校验和应该为 0x0000 但实际为 0xFFFF 的情况时，函数返回值设为 true，并将 packet 中的校验和设为 0x0000。
 
-特别地，在 UDP 中，校验和 =0 表示没有进行校验和的计算，但是因为 IPv6 头部中没有校验和字段，因此在 IPv6 场景下的 UDP 要求 校验和 !=0，此时设置校验和 =0xFFFF，并且认为校验和 =0 是错误的。作为补充知识，当 UDP 作为 IPv4 的 Payload 时，则认为校验和 =0 表示没有进行校验的计算（直接认为校验和是正确的），校验和 !=0 时按照上述检验算法进行验证。
+特别地，在 UDP 中，校验和字段为 0 表示没有进行校验和的计算。然而，由于 IPv6 头部中没有校验和字段等原因，承载于 IPv6 的 UDP 要求必须进行校验和计算，即校验和字段不为 0。此时，接收方在检查时应当认为校验和字段为 0 是错误的。对于发送方，如果计算出的校验和为 0，则需要设置校验和字段为 0xFFFF。作为补充知识，当 UDP 作为 IPv4 的 Payload 时，校验和字段为 0 表示发送方没有进行校验和的计算，此时接收方忽略校验和检查，直接认为校验和是正确的；当校验和字段不为 0 时，接收方同样需要按照上述检验算法进行验证。
 
 IPv6 Pseudo Header 由下面几个东西组成：
 
