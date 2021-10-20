@@ -39,7 +39,7 @@ in6_addr len_to_mask(int len) {
 2. 路由表的查询，返回是否查到，如果查到还需要写入 nexthop 和 if_index
 3. 实现 `mask_to_len` 和 `len_to_mask` 函数，实现前缀长度和地址掩码的转换
 
-地址掩码是一种特殊的 IPv6 地址，它的特点是，如果从二进制的视角看，是首先一系列的 1，然后一系列的 0，那么 1 的个数就是前缀长度。比如说，前缀长度 0 对应 `::`，1 对应 `8000::`，4 对应 `f000::`，16 对应 `ffff::`，120 对应 `ffff:ffff:ffff:ffff:ffff:ffff:ffff:ff00`，128 对应 `ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff`
+地址掩码是一种特殊的 IPv6 地址，它的特点是，如果从二进制的视角看，是首先一系列的 1，然后一系列的 0，那么 1 的个数就是前缀长度。比如说，前缀长度 0 对应 `::`，1 对应 `8000::`，4 对应 `f000::`，16 对应 `ffff::`，120 对应 `ffff:ffff:ffff:ffff:ffff:ffff:ffff:ff00`，128 对应 `ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff`。
 
 在 `data` 目录中提供了评测使用的数据。
 
