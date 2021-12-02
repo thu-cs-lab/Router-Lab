@@ -14,9 +14,9 @@ ip l del pc1r1 2>/dev/null
 ip l add pc1r1 type veth peer name r1pc1
 ip l set pc1r1 netns PC1
 ip l set r1pc1 netns R1
-ip netns exec PC1 ip a add 192.168.1.2/24 dev pc1r1
+ip netns exec PC1 ip a add fd00::1:2/112 dev pc1r1
 ip netns exec PC1 ip l set pc1r1 up
-ip netns exec PC1 ip r add default via 192.168.1.1
+ip netns exec PC1 ip -6 r add default via fd00::1:1
 ip netns exec PC1 ethtool -K pc1r1 tx off
 ip netns exec R1 ip l set r1pc1 up
 ip netns exec R1 ethtool -K r1pc1 tx off
@@ -49,10 +49,14 @@ ip l del r3pc2 2>/dev/null
 ip l add r3pc2 type veth peer name pc2r3
 ip l set r3pc2 netns R3
 ip l set pc2r3 netns PC2
-ip netns exec PC2 ip a add 192.168.5.1/24 dev pc2r3
+ip netns exec PC2 ip a add fd00::5:1/112 dev pc2r3
 ip netns exec PC2 ip l set pc2r3 up
-ip netns exec PC2 ip r add default via 192.168.5.2
+ip netns exec PC2 ip -6 r add default via fd00::5:2
 ip netns exec PC2 ethtool -K pc2r3 tx off
 ip netns exec R3 ip l set r3pc2 up
 ip netns exec R3 ethtool -K r3pc2 tx off
 echo 'R3 <-> PC2 done'
+
+# disable IPv6 forwarding
+ip netns exec R1 sysctl -w net.ipv6.conf.all.forwarding=0
+ip netns exec R3 sysctl -w net.ipv6.conf.all.forwarding=0
