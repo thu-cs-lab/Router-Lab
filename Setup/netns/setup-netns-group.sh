@@ -1,4 +1,7 @@
 #!/bin/bash
+# Setup netns for group judge
+# IP is not configured in R1-R3
+# IPv6 forwarding is disabled for R1-R3
 
 # netns
 for ns in PC1 R1 R2 R3 PC2
@@ -59,4 +62,5 @@ echo 'R3 <-> PC2 done'
 
 # disable IPv6 forwarding
 ip netns exec R1 sysctl -w net.ipv6.conf.all.forwarding=0
+ip netns exec R2 sysctl -w net.ipv6.conf.all.forwarding=0
 ip netns exec R3 sysctl -w net.ipv6.conf.all.forwarding=0
