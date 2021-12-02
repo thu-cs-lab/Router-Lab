@@ -1,5 +1,5 @@
 #!/bin/bash
 set -v
 
-ping 192.168.10.1
-ping 192.168.255.1
+ping fd00::14:1
+ping fd00::ff:0
