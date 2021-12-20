@@ -3,6 +3,7 @@ build/
 .idea/
 cmake-build-*/
 *.log
+.DS_Store
 
 # Created by https://www.gitignore.io/api/c++,cmake
 # Edit at https://www.gitignore.io/?templates=c++,cmake
