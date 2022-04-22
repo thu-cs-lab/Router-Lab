@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-uint8_t buffer[1024];
+uint8_t buffer[2048];
 uint8_t packet[2048];
 RipPacket rip;
 in6_addr addrs[N_IFACE_ON_BOARD] = {0};
