@@ -213,10 +213,10 @@ int main(int argc, char *argv[]) {
 
       if (ip6->ip6_nxt == IPPROTO_UDP) {
         // 检查是否为 RIPng packet
-        RipngPacket rip;
-        RipngErrorCode err = disassemble(packet, res, &rip);
+        RipngPacket ripng;
+        RipngErrorCode err = disassemble(packet, res, &ripng);
         if (err == SUCCESS) {
-          if (rip.command == 1) {
+          if (ripng.command == 1) {
             // Command 为 Request
             // 参考 RFC 2080 Section 2.4.1 Request Messages 实现
             // 本次实验中，可以简化为只考虑输出完整路由表的情况
@@ -260,7 +260,7 @@ int main(int argc, char *argv[]) {
           }
         } else {
           // 接受到一个错误的 RIPng packet >_<
-          printf("Got bad RIP packet from IP %s with error: %s\n",
+          printf("Got bad RIPng packet from IP %s with error: %s\n",
                  inet6_ntoa(ip6->ip6_src), ripng_error_to_string(err));
         }
       } else if (ip6->ip6_nxt == IPPROTO_ICMPV6) {

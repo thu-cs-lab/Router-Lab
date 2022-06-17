@@ -169,7 +169,7 @@ RipngErrorCode disassemble(const uint8_t *packet, uint32_t len,
 
 /**
  * @brief 从 RipngPacket 的数据结构构造出 RIPng 协议的二进制格式
- * @param rip 一个 RipngPacket 结构体
+ * @param ripng 一个 RipngPacket 结构体
  * @param buffer 一个足够大的缓冲区，你要把 RIPng 协议的数据写进去
  * @return 写入 buffer 的数据长度
  *

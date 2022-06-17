@@ -8,7 +8,7 @@
 
 uint8_t buffer[2048];
 uint8_t packet[2048];
-RipngPacket rip;
+RipngPacket ripng;
 in6_addr addrs[N_IFACE_ON_BOARD] = {0};
 char addr_buffer[1024];
 
@@ -29,16 +29,16 @@ int main(int argc, char *argv[]) {
     } else if (res < 0) {
       return res;
     }
-    RipngErrorCode err = disassemble(packet, res, &rip);
+    RipngErrorCode err = disassemble(packet, res, &ripng);
     if (err == RipngErrorCode::SUCCESS) {
-      printf("Valid %d %d\n", rip.numEntries, rip.command);
-      for (int i = 0; i < rip.numEntries; i++) {
-        assert(inet_ntop(AF_INET6, &rip.entries[i].prefix_or_nh, addr_buffer,
+      printf("Valid %d %d\n", ripng.numEntries, ripng.command);
+      for (int i = 0; i < ripng.numEntries; i++) {
+        assert(inet_ntop(AF_INET6, &ripng.entries[i].prefix_or_nh, addr_buffer,
                          sizeof(addr_buffer)));
-        printf("%s %d %d %d\n", addr_buffer, htons(rip.entries[i].route_tag),
-               rip.entries[i].prefix_len, rip.entries[i].metric);
+        printf("%s %d %d %d\n", addr_buffer, htons(ripng.entries[i].route_tag),
+               ripng.entries[i].prefix_len, ripng.entries[i].metric);
       }
-      uint32_t len = assemble(&rip, buffer);
+      uint32_t len = assemble(&ripng, buffer);
       for (uint32_t i = 0; i < len; i++) {
         printf("%02x ", buffer[i]);
       }
