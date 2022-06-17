@@ -7,25 +7,25 @@ enum RipErrorCode {
   // 没有错误
   SUCCESS = 0,
   // IPv6 头中 next header 字段不是 UDP 协议
-  ERR_IP_NEXT_HEADER_NOT_UDP,
+  ERR_IPV6_NEXT_HEADER_NOT_UDP,
   // UDP 头中源端口号或者目的端口号不是 521(RIPng)
-  ERR_BAD_UDP_PORT,
+  ERR_UDP_PORT_NOT_RIPNG,
   // IPv6 头、UDP 头和实际的 RIPng 路由项的长度出现错误或者不一致
   ERR_LENGTH,
   // RIPng 的 Command 字段错误
-  ERR_RIP_BAD_COMMAND,
+  ERR_RIPNG_BAD_COMMAND,
   // RIPng 的 Version 字段错误
-  ERR_RIP_BAD_VERSION,
+  ERR_RIPNG_BAD_VERSION,
   // RIPng 的 Zero（Reserved） 字段错误
-  ERR_RIP_BAD_ZERO,
+  ERR_RIPNG_BAD_ZERO,
   // RIPng 表项的 Metric 字段错误
-  ERR_RIP_BAD_METRIC,
+  ERR_RIPNG_BAD_METRIC,
   // RIPng 表项的 Prefix Len 字段错误
-  ERR_RIP_BAD_PREFIX_LEN,
+  ERR_RIPNG_BAD_PREFIX_LEN,
   // RIPng 表项的 Route Tag 字段错误
-  ERR_RIP_BAD_ROUTE_TAG,
+  ERR_RIPNG_BAD_ROUTE_TAG,
   // RIPng 表项的 Prefix 和 Prefix Len 字段不符合要求
-  ERR_RIP_INCONSISTENT_PREFIX_LENGTH,
+  ERR_RIPNG_INCONSISTENT_PREFIX_LENGTH,
 };
 
 // RIPng header 定义
@@ -62,25 +62,25 @@ typedef struct {
 
 static const char *rip_error_to_string(RipErrorCode err) {
   switch (err) {
-  case RipErrorCode::ERR_IP_NEXT_HEADER_NOT_UDP:
+  case RipErrorCode::ERR_IPV6_NEXT_HEADER_NOT_UDP:
     return "IP next header field is not UDP";
-  case RipErrorCode::ERR_BAD_UDP_PORT:
+  case RipErrorCode::ERR_UDP_PORT_NOT_RIPNG:
     return "UDP port is not 521";
   case RipErrorCode::ERR_LENGTH:
     return "Length is inconsistent";
-  case RipErrorCode::ERR_RIP_BAD_COMMAND:
+  case RipErrorCode::ERR_RIPNG_BAD_COMMAND:
     return "Command field is bad";
-  case RipErrorCode::ERR_RIP_BAD_VERSION:
+  case RipErrorCode::ERR_RIPNG_BAD_VERSION:
     return "Version field is bad";
-  case RipErrorCode::ERR_RIP_BAD_ZERO:
+  case RipErrorCode::ERR_RIPNG_BAD_ZERO:
     return "Zero(Reserved) field is bad";
-  case RipErrorCode::ERR_RIP_BAD_METRIC:
+  case RipErrorCode::ERR_RIPNG_BAD_METRIC:
     return "Metric field is bad";
-  case RipErrorCode::ERR_RIP_BAD_PREFIX_LEN:
+  case RipErrorCode::ERR_RIPNG_BAD_PREFIX_LEN:
     return "Prefix len field is bad";
-  case RipErrorCode::ERR_RIP_BAD_ROUTE_TAG:
+  case RipErrorCode::ERR_RIPNG_BAD_ROUTE_TAG:
     return "Route tag field is bad";
-  case RipErrorCode::ERR_RIP_INCONSISTENT_PREFIX_LENGTH:
+  case RipErrorCode::ERR_RIPNG_INCONSISTENT_PREFIX_LENGTH:
     return "Prefix field is inconsistent with Prefix len field";
   default:
     return "Unknown error code";
