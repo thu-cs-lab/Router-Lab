@@ -29,6 +29,25 @@ enum RipErrorCode {
 };
 
 // RIPng header 定义
+// https://datatracker.ietf.org/doc/html/rfc2080#page-5
+// "The RIPng packet format is:"
+//  0                   1                   2                   3
+//  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+// |  command (1)  |  version (1)  |       must be zero (2)        |
+// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+// |                                                               |
+// ~                Route Table Entry 1 (20)                       ~
+// |                                                               |
+// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+// |                                                               |
+// ~                         ...                                   ~
+// |                                                               |
+// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+// |                                                               |
+// ~                Route Table Entry N (20)                       ~
+// |                                                               |
+// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 typedef struct ripng_hdr {
   // 1 表示 request，2 表示 response
   uint8_t command;
@@ -39,17 +58,45 @@ typedef struct ripng_hdr {
 } ripng_hdr;
 
 // (1500-40-8-4)/20=72
-#define RIP_MAX_ENTRY 72
+// https://datatracker.ietf.org/doc/html/rfc2080#page-7
+// "The maximum datagram size is limited by the MTU of the medium over
+// which the protocol is being used.  Since an unsolicited RIPng update
+// is never propagated across a router, there is no danger of an MTU
+// mismatch.  The determination of the number of RTEs which may be put
+// into a given message is a function of the medium's MTU, the number of
+// octets of header information preceeding the RIPng message, the size
+// of the RIPng header, and the size of an RTE.  The formula is:"
+//             +-                                                   -+
+//             | MTU - sizeof(IPv6_hdrs) - UDP_hdrlen - RIPng_hdrlen |
+// #RTEs = INT | --------------------------------------------------- |
+//             |                      RTE_size                       |
+//             +-                                                   -+
+#define RIPNG_MAX_RTE 72
 
 // RIPng entry 定义
+// https://datatracker.ietf.org/doc/html/rfc2080#page-6
+// "Route Table Entry (RTE) has the following format:"
+//  0                   1                   2                   3
+//  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+// |                                                               |
+// ~                        IPv6 prefix (16)                       ~
+// |                                                               |
+// +---------------------------------------------------------------+
+// |         route tag (2)         | prefix len (1)|  metric (1)   |
+// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 typedef struct {
   // 当 Metric=0xFF 时记录了 Nexthop；当 Metric!=0xFF 时记录了 Prefix
+  // "A next hop RTE is identified by a value of 0xFF in the metric field
+  // of an RTE.  The prefix field specifies the IPv6 address of the next
+  // hop.  The route tag and prefix length in the next hop RTE must be set
+  // to zero on sending and ignored on receiption."
   in6_addr prefix_or_nh;
   // 网络字节序存储
   uint16_t route_tag;
   uint8_t prefix_len;
   uint8_t metric;
-} ripng_entry;
+} ripng_rte;
 
 typedef struct {
   uint32_t numEntries;
@@ -57,7 +104,7 @@ typedef struct {
   uint8_t command;
   // 不用存储 `version`，因为它总是 1
   // 不用存储 `zero`，因为它总是 0
-  ripng_entry entries[RIP_MAX_ENTRY];
+  ripng_rte entries[RIPNG_MAX_RTE];
 } RipPacket;
 
 static const char *rip_error_to_string(RipErrorCode err) {
