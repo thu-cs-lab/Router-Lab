@@ -6,13 +6,13 @@
 
 ```cpp
 // 函数注释见代码
-RipErrorCode disassemble(const uint8_t *packet, uint32_t len, RipPacket *output) {
+RipngErrorCode disassemble(const uint8_t *packet, uint32_t len, RipngPacket *output) {
   // TODO
-  return RipErrorCode::SUCCESS;
+  return RipngErrorCode::SUCCESS;
 }
 
 // 函数注释见代码
-uint32_t assemble(const RipPacket *rip, uint8_t *buffer) {
+uint32_t assemble(const RipngPacket *ripng, uint8_t *buffer) {
   // TODO
   return 0;
 }

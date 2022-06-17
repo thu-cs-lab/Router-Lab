@@ -8,7 +8,7 @@
 
 uint8_t buffer[2048];
 uint8_t packet[2048];
-RipPacket rip;
+RipngPacket rip;
 in6_addr addrs[N_IFACE_ON_BOARD] = {0};
 char addr_buffer[1024];
 
@@ -29,8 +29,8 @@ int main(int argc, char *argv[]) {
     } else if (res < 0) {
       return res;
     }
-    RipErrorCode err = disassemble(packet, res, &rip);
-    if (err == RipErrorCode::SUCCESS) {
+    RipngErrorCode err = disassemble(packet, res, &rip);
+    if (err == RipngErrorCode::SUCCESS) {
       printf("Valid %d %d\n", rip.numEntries, rip.command);
       for (int i = 0; i < rip.numEntries; i++) {
         assert(inet_ntop(AF_INET6, &rip.entries[i].prefix_or_nh, addr_buffer,
@@ -44,7 +44,7 @@ int main(int argc, char *argv[]) {
       }
       printf("\n");
     } else {
-      printf("%s\n", rip_error_to_string(err));
+      printf("%s\n", ripng_error_to_string(err));
     }
   }
   return 0;

@@ -213,15 +213,15 @@ int main(int argc, char *argv[]) {
 
       if (ip6->ip6_nxt == IPPROTO_UDP) {
         // 检查是否为 RIPng packet
-        RipPacket rip;
-        RipErrorCode err = disassemble(packet, res, &rip);
+        RipngPacket rip;
+        RipngErrorCode err = disassemble(packet, res, &rip);
         if (err == SUCCESS) {
           if (rip.command == 1) {
             // Command 为 Request
             // 参考 RFC 2080 Section 2.4.1 Request Messages 实现
             // 本次实验中，可以简化为只考虑输出完整路由表的情况
 
-            RipPacket resp;
+            RipngPacket resp;
             // 与 5s Timer 时的处理类似，也需要实现水平分割和毒性反转
             // 可以把两部分代码写到单独的函数中
             // 不同的是，在 5s Timer
@@ -261,7 +261,7 @@ int main(int argc, char *argv[]) {
         } else {
           // 接受到一个错误的 RIPng packet >_<
           printf("Got bad RIP packet from IP %s with error: %s\n",
-                 inet6_ntoa(ip6->ip6_src), rip_error_to_string(err));
+                 inet6_ntoa(ip6->ip6_src), ripng_error_to_string(err));
         }
       } else if (ip6->ip6_nxt == IPPROTO_ICMPV6) {
         // 如果是 ICMPv6 packet

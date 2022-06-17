@@ -3,7 +3,7 @@
 
 // disassemble 函数的返回值定义如下
 // 如果同时出现多种错误，返回满足下面错误描述的第一条错误
-enum RipErrorCode {
+enum RipngErrorCode {
   // 没有错误
   SUCCESS = 0,
   // IPv6 头中 next header 字段不是 UDP 协议
@@ -105,29 +105,29 @@ typedef struct {
   // 不用存储 `version`，因为它总是 1
   // 不用存储 `zero`，因为它总是 0
   ripng_rte entries[RIPNG_MAX_RTE];
-} RipPacket;
+} RipngPacket;
 
-static const char *rip_error_to_string(RipErrorCode err) {
+static const char *ripng_error_to_string(RipngErrorCode err) {
   switch (err) {
-  case RipErrorCode::ERR_IPV6_NEXT_HEADER_NOT_UDP:
+  case RipngErrorCode::ERR_IPV6_NEXT_HEADER_NOT_UDP:
     return "IP next header field is not UDP";
-  case RipErrorCode::ERR_UDP_PORT_NOT_RIPNG:
+  case RipngErrorCode::ERR_UDP_PORT_NOT_RIPNG:
     return "UDP port is not 521";
-  case RipErrorCode::ERR_LENGTH:
+  case RipngErrorCode::ERR_LENGTH:
     return "Length is inconsistent";
-  case RipErrorCode::ERR_RIPNG_BAD_COMMAND:
+  case RipngErrorCode::ERR_RIPNG_BAD_COMMAND:
     return "Command field is bad";
-  case RipErrorCode::ERR_RIPNG_BAD_VERSION:
+  case RipngErrorCode::ERR_RIPNG_BAD_VERSION:
     return "Version field is bad";
-  case RipErrorCode::ERR_RIPNG_BAD_ZERO:
+  case RipngErrorCode::ERR_RIPNG_BAD_ZERO:
     return "Zero(Reserved) field is bad";
-  case RipErrorCode::ERR_RIPNG_BAD_METRIC:
+  case RipngErrorCode::ERR_RIPNG_BAD_METRIC:
     return "Metric field is bad";
-  case RipErrorCode::ERR_RIPNG_BAD_PREFIX_LEN:
+  case RipngErrorCode::ERR_RIPNG_BAD_PREFIX_LEN:
     return "Prefix len field is bad";
-  case RipErrorCode::ERR_RIPNG_BAD_ROUTE_TAG:
+  case RipngErrorCode::ERR_RIPNG_BAD_ROUTE_TAG:
     return "Route tag field is bad";
-  case RipErrorCode::ERR_RIPNG_INCONSISTENT_PREFIX_LENGTH:
+  case RipngErrorCode::ERR_RIPNG_INCONSISTENT_PREFIX_LENGTH:
     return "Prefix field is inconsistent with Prefix len field";
   default:
     return "Unknown error code";
@@ -135,9 +135,9 @@ static const char *rip_error_to_string(RipErrorCode err) {
 }
 
 /*
-  你需要从 IPv6 packet 中解析出 RipPacket 结构体，也要从 RipPacket
+  你需要从 IPv6 packet 中解析出 RipngPacket 结构体，也要从 RipngPacket
   结构体构造出对应的 IPv6 packet。 由于 RIPng 本身不记录表项的个数，需要从 IPv6
-  header 的长度中推断，所以在 RipPacket 中额外记录了个数。
+  header 的长度中推断，所以在 RipngPacket 中额外记录了个数。
 */
 
 /**
@@ -145,8 +145,8 @@ static const char *rip_error_to_string(RipErrorCode err) {
  * @param packet 接受到的 IPv6 包
  * @param len 即 packet 的长度
  * @param output 把解析结果写入 *output
- * @return 如果输入是一个合法的 RIPng 包，把它的内容写入 RipPacket 并且返回
- * RipErrorCode::SUCCESS；否则按照要求返回 RipErrorCode 的具体类型
+ * @return 如果输入是一个合法的 RIPng 包，把它的内容写入 RipngPacket 并且返回
+ * RipngErrorCode::SUCCESS；否则按照要求返回 RipngErrorCode 的具体类型
  *
  * 你需要按照以下顺序检查：
  * 1. len 是否包括一个的 IPv6 header 的长度。
@@ -164,18 +164,18 @@ static const char *rip_error_to_string(RipErrorCode err) {
  * [1,16]，并检查 Prefix Len 是否属于 [0,128]，是否与 IPv6 prefix 字段组成合法的
  * IPv6 前缀。
  */
-RipErrorCode disassemble(const uint8_t *packet, uint32_t len,
-                         RipPacket *output);
+RipngErrorCode disassemble(const uint8_t *packet, uint32_t len,
+                         RipngPacket *output);
 
 /**
- * @brief 从 RipPacket 的数据结构构造出 RIPng 协议的二进制格式
- * @param rip 一个 RipPacket 结构体
+ * @brief 从 RipngPacket 的数据结构构造出 RIPng 协议的二进制格式
+ * @param rip 一个 RipngPacket 结构体
  * @param buffer 一个足够大的缓冲区，你要把 RIPng 协议的数据写进去
  * @return 写入 buffer 的数据长度
  *
- * 在构造二进制格式的时候，你需要把 RipPacket 中没有保存的一些固定值补充上，
+ * 在构造二进制格式的时候，你需要把 RipngPacket 中没有保存的一些固定值补充上，
  * 包括 Version 和 Zero 字段。
  * 你写入 buffer 的数据长度和返回值都应该是四个字节的 RIPng 头，加上每项 20
- * 字节。 需要注意一些没有保存在 RipPacket 结构体内的数据的填写。
+ * 字节。 需要注意一些没有保存在 RipngPacket 结构体内的数据的填写。
  */
-uint32_t assemble(const RipPacket *rip, uint8_t *buffer);
+uint32_t assemble(const RipngPacket *ripng, uint8_t *buffer);
