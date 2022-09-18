@@ -229,7 +229,7 @@ int main(int argc, char *argv[]) {
             // 本路由器，因此回复 Response 的时候，目的 IPv6 地址和 MAC
             // 地址都应该指向发出请求的路由器
 
-            // 最后把 RIPng 包发送出去
+            // 最后把 RIPng 报文发送出去
           } else {
             // Command 为 Response
             // 参考 RFC 2080 Section 2.4.2 Request Messages 实现
@@ -264,6 +264,7 @@ int main(int argc, char *argv[]) {
                  inet6_ntoa(ip6->ip6_src), ripng_error_to_string(err));
         }
       } else if (ip6->ip6_nxt == IPPROTO_ICMPV6) {
+        // 可选功能，如果实现了对调试会有帮助
         // 如果是 ICMPv6 packet
         // 检查是否是 Echo Request
 
@@ -274,7 +275,7 @@ int main(int argc, char *argv[]) {
       continue;
     } else {
       // 目标地址不是我，考虑转发给下一跳
-      // 检查是否是组播地址（ff00::/8），不需要转发组播包
+      // 检查是否是组播地址（ff00::/8），不需要转发组播分组
       if (ip6->ip6_dst.s6_addr[0] == 0xff) {
         printf("Don't forward multicast packet to %s\n",
                inet6_ntoa(ip6->ip6_dst));
@@ -320,6 +321,7 @@ int main(int argc, char *argv[]) {
           }
         } else {
           // 没有找到路由
+          // 可选功能，如果实现了对调试会有帮助
           // 发送 ICMPv6 Destination Unreachable 消息
           // 要求与上面发送 ICMPv6 Time Exceeded 消息一致
           // Code 取 0，表示 No route to destination

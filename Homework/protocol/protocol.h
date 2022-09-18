@@ -142,10 +142,10 @@ static const char *ripng_error_to_string(RipngErrorCode err) {
 
 /**
  * @brief 从接受到的 IPv6 packet 解析出 RIPng 协议的数据
- * @param packet 接受到的 IPv6 包
+ * @param packet 接受到的 IPv6 分组
  * @param len 即 packet 的长度
  * @param output 把解析结果写入 *output
- * @return 如果输入是一个合法的 RIPng 包，把它的内容写入 RipngPacket 并且返回
+ * @return 如果输入是一个合法的 RIPng 报文，把它的内容写入 RipngPacket 并且返回
  * RipngErrorCode::SUCCESS；否则按照要求返回 RipngErrorCode 的具体类型
  *
  * 你需要按照以下顺序检查：
