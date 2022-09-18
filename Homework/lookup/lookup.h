@@ -1,9 +1,9 @@
 #ifndef __LOOKUP_H__
 #define __LOOKUP_H__
 
+#include "common.h"
 #include <netinet/in.h>
 #include <stdint.h>
-#include "common.h"
 
 /*
   表示路由表的一项。
@@ -16,7 +16,8 @@ typedef struct {
   uint32_t len;      // 前缀长度
   uint32_t if_index; // 出端口编号
   in6_addr nexthop;  // 下一跳的 IPv6 地址
-  // 为了实现 RIPng 协议，在 router 作业中需要在这里添加额外的字段
+  // TODO: 为了实现 RIPng 协议，
+  // 在 router 作业中需要在这里添加额外的字段保存 metric
 } RoutingTableEntry;
 
 /**
