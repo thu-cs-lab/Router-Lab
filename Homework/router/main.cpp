@@ -268,7 +268,7 @@ int main(int argc, char *argv[]) {
                  inet6_ntoa(ip6->ip6_src), ripng_error_to_string(err));
         }
       } else if (ip6->ip6_nxt == IPPROTO_ICMPV6) {
-        // 可选功能，如果实现了对调试会有帮助
+        // TODO
         // 如果是 ICMPv6 packet
         // 检查是否是 Echo Request
 
@@ -325,8 +325,8 @@ int main(int argc, char *argv[]) {
                    inet6_ntoa(nexthop));
           }
         } else {
+          // TODO
           // 没有找到路由
-          // 可选功能，如果实现了对调试会有帮助
           // 发送 ICMPv6 Destination Unreachable 消息
           // 要求与上面发送 ICMPv6 Time Exceeded 消息一致
           // Code 取 0，表示 No route to destination

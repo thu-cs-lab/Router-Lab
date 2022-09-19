@@ -149,13 +149,18 @@ int main(int argc, char *argv[]) {
       if (ip6->ip6_nxt == IPPROTO_UDP) {
         // TODO
         // 检查 UDP 端口，判断是否为 DHCPv6 message
+        udphdr *udp = (udphdr *)&packet[sizeof(ip6_hdr)];
         if (false) {
-          // TODO
-          // 解析 DHCPv6 头部后的 Option，找到其中的 Client Identifier
-          // 和 IA_NA 中的 IAID
 
+          dhcpv6_hdr *dhcpv6 =
+              (dhcpv6_hdr *)&packet[sizeof(ip6_hdr) + sizeof(udphdr)];
+          // TODO
           // 检查是否为 DHCPv6 Solicit 或 DHCPv6 Request
           if (false) {
+            // TODO
+            // 解析 DHCPv6 头部后的 Option，找到其中的 Client Identifier
+            // 和 IA_NA 中的 IAID
+            // TODO
             // 如果是 DHCPv6 Solicit，说明客户端想要寻找一个 DHCPv6 服务器
             // 生成一个 DHCPv6 Advertise 并发送，
             // 其 Transaction ID 与 DHCPv6 Solicit 一致。
@@ -173,6 +178,42 @@ int main(int argc, char *argv[]) {
             // Address：记录服务器将会分配给客户端的 IPv6 地址。
             // 4. DNS recursive name server：包括两个 DNS 服务器地址
             // 2402:f000:1:801::8:28 和 2402:f000:1:801::8:29。
+
+            // IPv6 header
+            ip6_hdr *reply_ip6 = (ip6_hdr *)&output[0];
+            // flow label
+            reply_ip6->ip6_flow = 0;
+            // version
+            reply_ip6->ip6_vfc = 6 << 4;
+            // next header
+            reply_ip6->ip6_nxt = IPPROTO_UDP;
+            // hop limit
+            reply_ip6->ip6_hlim = 255;
+            // src ip
+            ether_addr mac_addr;
+            HAL_GetInterfaceMacAddress(if_index, &mac_addr);
+            reply_ip6->ip6_src = eui64(mac_addr);
+            // dst ip
+            reply_ip6->ip6_dst = ip6->ip6_src;
+
+            udphdr *reply_udp = (udphdr *)&output[sizeof(ip6_hdr)];
+            // src port
+            reply_udp->uh_sport = htons(547);
+            // dst port
+            reply_udp->uh_dport = htons(546);
+
+            dhcpv6_hdr *reply_dhcpv6 =
+                (dhcpv6_hdr *)&output[sizeof(ip6_hdr) + sizeof(udphdr)];
+
+            uint16_t dhcpv6_len = 0;
+            // 根据 DHCPv6 消息长度，计算 UDP 和 IPv6 头部中的长度字段
+            uint16_t udp_len = dhcpv6_len + sizeof(dhcpv6_hdr) + sizeof(udphdr);
+            uint16_t ip_len = udp_len + sizeof(ip6_hdr);
+            reply_udp->uh_ulen = htons(udp_len);
+            reply_ip6->ip6_plen = htons(udp_len);
+            validateAndFillChecksum(output, ip_len);
+
+            HAL_SendIPPacket(if_index, output, ip_len, src_mac);
           }
         }
       } else if (ip6->ip6_nxt == IPPROTO_ICMPV6) {
@@ -180,6 +221,7 @@ int main(int argc, char *argv[]) {
         // 如果是 ICMPv6 packet
         // 检查是否是 Router Solicitation
 
+        icmp6_hdr *icmp6 = (icmp6_hdr *)&packet[sizeof(ip6_hdr)];
         if (false) {
           // 如果是 Router Solicitation，生成一个 Router Advertisement 并发送
           // 源 IPv6 地址是本路由器在本接口上的 Link Local 地址
