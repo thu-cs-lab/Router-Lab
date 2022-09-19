@@ -128,7 +128,8 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    // TODO: 修改这个检查，当目的地址为 ICMPv6 RA
+    // TODO（2 行）
+    // 修改这个检查，当目的地址为 ICMPv6 RA
     // 的组播目的地址（ff02::2）或者 DHCPv6 Solicit
     // 的组播目的地址（ff02::1:2）时也设置 dst_is_me 为 true。
     if (false) {
@@ -147,20 +148,20 @@ int main(int argc, char *argv[]) {
       }
 
       if (ip6->ip6_nxt == IPPROTO_UDP) {
-        // TODO
+        // TODO（1 行）
         // 检查 UDP 端口，判断是否为 DHCPv6 message
         udphdr *udp = (udphdr *)&packet[sizeof(ip6_hdr)];
         if (false) {
 
           dhcpv6_hdr *dhcpv6 =
               (dhcpv6_hdr *)&packet[sizeof(ip6_hdr) + sizeof(udphdr)];
-          // TODO
+          // TODO（1 行）
           // 检查是否为 DHCPv6 Solicit 或 DHCPv6 Request
           if (false) {
-            // TODO
+            // TODO（20 行）
             // 解析 DHCPv6 头部后的 Option，找到其中的 Client Identifier
             // 和 IA_NA 中的 IAID
-            // TODO
+            // TODO（100 行）
             // 如果是 DHCPv6 Solicit，说明客户端想要寻找一个 DHCPv6 服务器
             // 生成一个 DHCPv6 Advertise 并发送，
             // 其 Transaction ID 与 DHCPv6 Solicit 一致。
@@ -217,12 +218,13 @@ int main(int argc, char *argv[]) {
           }
         }
       } else if (ip6->ip6_nxt == IPPROTO_ICMPV6) {
-        // TODO
+        // TODO（1 行）
         // 如果是 ICMPv6 packet
         // 检查是否是 Router Solicitation
 
         icmp6_hdr *icmp6 = (icmp6_hdr *)&packet[sizeof(ip6_hdr)];
         if (false) {
+          // TODO（70 行）
           // 如果是 Router Solicitation，生成一个 Router Advertisement 并发送
           // 源 IPv6 地址是本路由器在本接口上的 Link Local 地址
           // 目的 IPv6 地址是 ff02::1
