@@ -164,6 +164,7 @@ int main(int argc, char *argv[]) {
             // https://www.rfc-editor.org/rfc/rfc8415.html#section-21.2
             // https://www.rfc-editor.org/rfc/rfc8415.html#section-21.4
 
+            // 构造响应的 IPv6 头部
             // IPv6 header
             ip6_hdr *reply_ip6 = (ip6_hdr *)&output[0];
             // flow label
@@ -174,6 +175,7 @@ int main(int argc, char *argv[]) {
             reply_ip6->ip6_nxt = IPPROTO_UDP;
             // hop limit
             reply_ip6->ip6_hlim = 255;
+            // 源 IPv6 地址应为 Link Local 地址
             // src ip
             ether_addr mac_addr;
             HAL_GetInterfaceMacAddress(if_index, &mac_addr);
@@ -191,12 +193,11 @@ int main(int argc, char *argv[]) {
                 (dhcpv6_hdr *)&output[sizeof(ip6_hdr) + sizeof(udphdr)];
             // TODO（100 行）
             // 如果是 DHCPv6 Solicit，说明客户端想要寻找一个 DHCPv6 服务器
-            // 生成一个 DHCPv6 Advertise 并发送，
-            // 其 Transaction ID 与 DHCPv6 Solicit 一致。
-
+            // 生成一个 DHCPv6 Advertise 并发送
             // 如果是 DHCPv6 Request，说明客户端想要获取动态 IPv6 地址
             // 生成一个 DHCPv6 Reply 并发送
-            // 其 Transaction ID 与 DHCPv6 Solicit 一致。
+
+            // 响应的 Transaction ID 与 DHCPv6 Solicit/Request 一致。
 
             uint16_t dhcpv6_len = 0;
             // 响应的 DHCPv6 Advertise 和 DHCPv6 Reply

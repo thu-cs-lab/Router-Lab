@@ -112,17 +112,6 @@ int main(int argc, char *argv[]) {
       // 提示：你可以打印完整的路由表到 stdout/stderr 来帮助调试。
       printf("5s Timer\n");
 
-      // 这一步需要向所有 interface 发送当前的完整路由表，设置 Command 为
-      // Response，并且注意当路由表表项较多时，需要拆分为多个 IPv6 packet。此时
-      // IPv6 packet 的源地址应为使用 eui64 计算得到的 Link Local
-      // 地址，目的地址为 ff02::9，以太网帧的源 MAC 地址为当前 interface 的 MAC
-      // 地址，目的 MAC 地址为 33:33:00:00:00:09，详见 RFC 2080 Section 2.5.2
-      // Generating Response Messages。
-      //
-      // 注意需要实现水平分割以及毒性反转（Split Horizon with Poisoned Reverse）
-      // 即，如果某一条路由表项是从 interface A 学习到的，那么发送给 interface A
-      // 的 RIPng 表项中，该项的 metric 设为 16。详见 RFC 2080 Section 2.6 Split
-      // Horizon。因此，发往各个 interface 的 RIPng 表项是不同的。
       for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
         ether_addr mac;
         HAL_GetInterfaceMacAddress(i, &mac);
@@ -130,29 +119,42 @@ int main(int argc, char *argv[]) {
         // 下面举一个构造 IPv6 packet
         // 的例子，之后有多处代码需要实现类似的功能，请参考此处的例子进行编写。建议实现单独的函数来简化这个过程。
 
-        // TODO（40 行）
         // IPv6 header
-        ip6_hdr *ip6 = (ip6_hdr *)&output[0];
+        ip6_hdr *reply_ip6 = (ip6_hdr *)&output[0];
         // flow label
-        ip6->ip6_flow = 0;
+        reply_ip6->ip6_flow = 0;
         // version
-        ip6->ip6_vfc = 6 << 4;
+        reply_ip6->ip6_vfc = 6 << 4;
         // payload length
-        ip6->ip6_plen = htons(1234);
+        // ip6->ip6_plen = htons(???);
         // next header
-        ip6->ip6_nxt = IPPROTO_UDP;
+        reply_ip6->ip6_nxt = IPPROTO_UDP;
         // hop limit
-        ip6->ip6_hlim = 255;
+        reply_ip6->ip6_hlim = 255;
         // src ip
-        ip6->ip6_src = eui64(mac);
+        reply_ip6->ip6_src = eui64(mac);
         // dst ip
-        ip6->ip6_dst = inet6_pton("ff02::9");
+        reply_ip6->ip6_dst = inet6_pton("ff02::9");
 
         udphdr *udp = (udphdr *)&output[sizeof(ip6_hdr)];
         // dst port
         udp->uh_dport = htons(521);
         // src port
         udp->uh_sport = htons(521);
+
+        // TODO（40 行）
+        // 这一步需要向所有 interface 发送当前的完整路由表，设置 Command 为
+        // Response，并且注意当路由表表项较多时，需要拆分为多个 IPv6
+        // packet。此时 IPv6 packet 的源地址应为使用 eui64 计算得到的 Link Local
+        // 地址，目的地址为 ff02::9，以太网帧的源 MAC 地址为当前 interface 的
+        // MAC 地址，目的 MAC 地址为 33:33:00:00:00:09，详见 RFC 2080
+        // Section 2.5.2 Generating Response Messages。
+        //
+        // 注意需要实现水平分割以及毒性反转（Split Horizon with Poisoned
+        // Reverse） 即，如果某一条路由表项是从 interface A 学习到的，那么发送给
+        // interface A 的 RIPng 表项中，该项的 metric 设为 16。详见 RFC 2080
+        // Section 2.6 Split Horizon。因此，发往各个 interface 的 RIPng
+        // 表项是不同的。
       }
       last_time = time;
     }
@@ -274,9 +276,12 @@ int main(int argc, char *argv[]) {
         // 如果是 ICMPv6 packet
         // 检查是否是 Echo Request
 
-        // 如果是 Echo Request，生成一个对应的 Echo Reply：交换源和目的 IPv6
-        // 地址，设置 type 为 Echo Reply，设置 TTL（Hop Limit） 为 64，重新计算
-        // Checksum 并发送出去。详见 RFC 4443 Section 4.2 Echo Reply Message
+        if (false) {
+          // 如果是 Echo Request，生成一个对应的 Echo Reply：交换源和目的 IPv6
+          // 地址，设置 type 为 Echo Reply，设置 TTL（Hop Limit） 为
+          // 64，重新计算 Checksum 并发送出去。详见 RFC 4443 Section 4.2 Echo
+          // Reply Message
+        }
       }
       continue;
     } else {
