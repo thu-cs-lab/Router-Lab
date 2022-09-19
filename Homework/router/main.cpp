@@ -92,7 +92,8 @@ int main(int argc, char *argv[]) {
   // fd00::9:0/112 if 3
   for (uint32_t i = 0; i < N_IFACE_ON_BOARD; i++) {
     in6_addr mask = len_to_mask(112);
-    // TODO: 这里需要添加额外的字段来初始化 metric
+    // TODO（1 行）
+    // 这里需要添加额外的字段来初始化 metric
     RoutingTableEntry entry = {
         .addr = addrs[i] & mask,
         .len = 112,
@@ -111,7 +112,6 @@ int main(int argc, char *argv[]) {
       // 提示：你可以打印完整的路由表到 stdout/stderr 来帮助调试。
       printf("5s Timer\n");
 
-      // TODO
       // 这一步需要向所有 interface 发送当前的完整路由表，设置 Command 为
       // Response，并且注意当路由表表项较多时，需要拆分为多个 IPv6 packet。此时
       // IPv6 packet 的源地址应为使用 eui64 计算得到的 Link Local
@@ -130,6 +130,7 @@ int main(int argc, char *argv[]) {
         // 下面举一个构造 IPv6 packet
         // 的例子，之后有多处代码需要实现类似的功能，请参考此处的例子进行编写。建议实现单独的函数来简化这个过程。
 
+        // TODO（40 行）
         // IPv6 header
         ip6_hdr *ip6 = (ip6_hdr *)&output[0];
         // flow label
@@ -196,7 +197,8 @@ int main(int argc, char *argv[]) {
       }
     }
 
-    // TODO: 修改这个检查，当目的地址为 RIPng 的组播目的地址（ff02::9）时也设置
+    // TODO（1 行）
+    // 修改这个检查，当目的地址为 RIPng 的组播目的地址（ff02::9）时也设置
     // dst_is_me 为 true。
     if (false) {
       dst_is_me = true;
@@ -219,7 +221,7 @@ int main(int argc, char *argv[]) {
         RipngErrorCode err = disassemble(packet, res, &ripng);
         if (err == SUCCESS) {
           if (ripng.command == 1) {
-            // TODO
+            // 可选功能，实现了可以加快路由表收敛速度
             // Command 为 Request
             // 参考 RFC 2080 Section 2.4.1 Request Messages 实现
             // 本次实验中，可以简化为只考虑输出完整路由表的情况
@@ -234,7 +236,7 @@ int main(int argc, char *argv[]) {
 
             // 最后把 RIPng 报文发送出去
           } else {
-            // TODO
+            // TODO（40 行）
             // Command 为 Response
             // 参考 RFC 2080 Section 2.4.2 Request Messages 实现
             // 按照接受到的 RIPng 表项更新自己的路由表
@@ -268,7 +270,7 @@ int main(int argc, char *argv[]) {
                  inet6_ntoa(ip6->ip6_src), ripng_error_to_string(err));
         }
       } else if (ip6->ip6_nxt == IPPROTO_ICMPV6) {
-        // TODO
+        // TODO（20 行）
         // 如果是 ICMPv6 packet
         // 检查是否是 Echo Request
 
@@ -289,7 +291,7 @@ int main(int argc, char *argv[]) {
       // 检查 TTL（Hop Limit）是否小于或等于 1
       uint8_t ttl = ip6->ip6_hops;
       if (ttl <= 1) {
-        // TODO
+        // TODO（40 行）
         // 发送 ICMP Time Exceeded 消息
         // 将接受到的 IPv6 packet 附在 ICMPv6 头部之后。
         // 如果长度大于 1232 字节，则取前 1232 字节：
@@ -325,7 +327,7 @@ int main(int argc, char *argv[]) {
                    inet6_ntoa(nexthop));
           }
         } else {
-          // TODO
+          // TODO（40 行）
           // 没有找到路由
           // 发送 ICMPv6 Destination Unreachable 消息
           // 要求与上面发送 ICMPv6 Time Exceeded 消息一致
