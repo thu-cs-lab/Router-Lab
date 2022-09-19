@@ -1,0 +1,42 @@
+CXX ?= g++
+LAB_ROOT ?= ../../..
+BACKEND ?= LINUX
+
+CXXFLAGS += --std=c++11 -I $(LAB_ROOT)/HAL/include -DROUTER_BACKEND_$(BACKEND) -Wno-psabi -O2 -static -I../../protocol -I../../lookup -I../../internet-checksum -I../../eui64
+LDFLAGS += -lpcap
+ifeq ($(CI),)
+	CXXFLAGS += -fsanitize=address
+	LDFLAGS += -fsanitize=address
+else
+	LDFLAGS += -static
+endif
+
+.PHONY: all clean
+all: router
+
+clean:
+	rm -f *.o router std
+
+%.o: ../%.cpp
+	$(CXX) $(CXXFLAGS) -c $^ -o $@
+
+common.o: $(LAB_ROOT)/HAL/src/common.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+hal.o: $(LAB_ROOT)/HAL/src/linux/router_hal.cpp $(LAB_ROOT)/HAL/src/linux/platform/standard.h
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+eui64.o: ../../eui64/eui64.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+checksum.o: ../../internet-checksum/checksum.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+lookup.o: ../../lookup/lookup.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+protocol.o: ../../protocol/protocol.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
+
+router: main.o hal.o eui64.o checksum.o lookup.o protocol.o common.o
+	$(CXX) $^ -o $@ $(LDFLAGS) 
