@@ -161,24 +161,8 @@ int main(int argc, char *argv[]) {
             // TODO（20 行）
             // 解析 DHCPv6 头部后的 Option，找到其中的 Client Identifier
             // 和 IA_NA 中的 IAID
-            // TODO（100 行）
-            // 如果是 DHCPv6 Solicit，说明客户端想要寻找一个 DHCPv6 服务器
-            // 生成一个 DHCPv6 Advertise 并发送，
-            // 其 Transaction ID 与 DHCPv6 Solicit 一致。
-
-            // 如果是 DHCPv6 Request，说明客户端想要获取动态 IPv6 地址
-            // 生成一个 DHCPv6 Reply 并发送
-            // 其 Transaction ID 与 DHCPv6 Solicit 一致。
-
-            // 响应的 DHCPv6 Advertise 和 DHCPv6 Reply
-            // 都包括如下的 Option：
-            // 1. Server Identifier：根据本路由器在本接口上的 MAC 地址生成。
-            // 2. Client Identifier：从 DHCPv6 Solicit/Request 中的 Client
-            // Identifier Option 复制。
-            // 3. Identity Association for Non-temporary
-            // Address：记录服务器将会分配给客户端的 IPv6 地址。
-            // 4. DNS recursive name server：包括两个 DNS 服务器地址
-            // 2402:f000:1:801::8:28 和 2402:f000:1:801::8:29。
+            // https://www.rfc-editor.org/rfc/rfc8415.html#section-21.2
+            // https://www.rfc-editor.org/rfc/rfc8415.html#section-21.4
 
             // IPv6 header
             ip6_hdr *reply_ip6 = (ip6_hdr *)&output[0];
@@ -205,8 +189,60 @@ int main(int argc, char *argv[]) {
 
             dhcpv6_hdr *reply_dhcpv6 =
                 (dhcpv6_hdr *)&output[sizeof(ip6_hdr) + sizeof(udphdr)];
+            // TODO（100 行）
+            // 如果是 DHCPv6 Solicit，说明客户端想要寻找一个 DHCPv6 服务器
+            // 生成一个 DHCPv6 Advertise 并发送，
+            // 其 Transaction ID 与 DHCPv6 Solicit 一致。
+
+            // 如果是 DHCPv6 Request，说明客户端想要获取动态 IPv6 地址
+            // 生成一个 DHCPv6 Reply 并发送
+            // 其 Transaction ID 与 DHCPv6 Solicit 一致。
 
             uint16_t dhcpv6_len = 0;
+            // 响应的 DHCPv6 Advertise 和 DHCPv6 Reply
+            // 都包括如下的 Option：
+
+            // 1. Server Identifier：根据本路由器在本接口上的 MAC 地址生成。
+            //    - https://www.rfc-editor.org/rfc/rfc8415.html#section-21.3
+            //    - Option Code: 22
+            //    - Option Length: 14
+            //    - DUID Type: 1 (Link-layer address plus time)
+            //    - Hardware Type: 1 (Ethernet)
+            //    - DUID Time: 0
+            //    - Link layer address: MAC Address
+
+            // 2. Client Identifier
+            //    - https://www.rfc-editor.org/rfc/rfc8415.html#section-21.2
+            //    - Option Code: 1
+            //    - Option Length: 和 Solicit/Request 中的 Client Identifier
+            //    一致
+            //    - DUID: 和 Solicit/Request 中的 Client Identifier 一致
+
+            // 3. Identity Association for Non-temporary
+            // Address：记录服务器将会分配给客户端的 IPv6 地址。
+            //    - https://www.rfc-editor.org/rfc/rfc8415.html#section-21.4
+            //    - Option Code: 3
+            //    - Option Length: 40
+            //    - IAID: 和 Solicit/Request 中的 Identity Association for
+            //    Non-temporary Address 一致
+            //    - T1: 0
+            //    - T2: 0
+            //    - IA_NA options:
+            //      - https://www.rfc-editor.org/rfc/rfc8415.html#section-21.6
+            //      - Option code: 5 (IA address)
+            //      - Length: 24
+            //      - IPv6 Address: fd00::1:2
+            //      - Preferred lifetime: 54000s
+            //      - Valid lifetime: 86400s
+
+            // 4. DNS recursive name server：包括两个 DNS 服务器地址
+            // 2402:f000:1:801::8:28 和 2402:f000:1:801::8:29。
+            //    - https://www.rfc-editor.org/rfc/rfc3646#section-3
+            //    - Option Code: 23
+            //    - Option Length: 32
+            //    - DNS: 2402:f000:1:801::8:28
+            //    - DNS: 2402:f000:1:801::8:29
+
             // 根据 DHCPv6 消息长度，计算 UDP 和 IPv6 头部中的长度字段
             uint16_t udp_len = dhcpv6_len + sizeof(dhcpv6_hdr) + sizeof(udphdr);
             uint16_t ip_len = udp_len + sizeof(ip6_hdr);
@@ -229,6 +265,7 @@ int main(int argc, char *argv[]) {
           // 源 IPv6 地址是本路由器在本接口上的 Link Local 地址
           // 目的 IPv6 地址是 ff02::1
           // ICMPv6 的各字段要求如下：
+          // https://www.rfc-editor.org/rfc/rfc4861#section-4.2
           // 其 Type 是 Router Advertisement，Code 是 0
           // Cur Hop Limit 设为 64
           // M（Managed address configuration）和 O（Other configuration）设为 1
@@ -236,7 +273,14 @@ int main(int argc, char *argv[]) {
           // Reachable Time 和 Retrans Timer 设为 0ms
           // 需要附上两个 ICMPv6 Option：
           // 1. Source link-layer address：内容是本路由器在本接口上的 MAC 地址
+          //    - Type: 1
+          //    - Length: 1
+          //    - Link-layer address: MAC 地址
+
           // 2. MTU：1500
+          //    - Type: 5
+          //    - Length: 1
+          //    - MTU: 1500
         }
       }
       continue;
