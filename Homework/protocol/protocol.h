@@ -149,7 +149,7 @@ static const char *ripng_error_to_string(RipngErrorCode err) {
  * RipngErrorCode::SUCCESS；否则按照要求返回 RipngErrorCode 的具体类型
  *
  * 你需要按照以下顺序检查：
- * 1. len 是否包括一个的 IPv6 header 的长度。
+ * 1. len 是否不小于一个 IPv6 header 的长度。
  * 2. IPv6 Header 中的 Payload Length 加上 Header 长度是否等于 len。
  * 3. IPv6 Header 中的 Next header 字段是否为 UDP 协议。
  * 4. IPv6 Header 中的 Payload Length 是否包括一个 UDP header 的长度。
@@ -161,11 +161,11 @@ static const char *ripng_error_to_string(RipngErrorCode err) {
  * 8. 对每个 RIPng entry，当 Metric=0xFF 时，检查 Prefix Len
  * 和 Route Tag 是否为 0。
  * 9. 对每个 RIPng entry，当 Metric!=0xFF 时，检查 Metric 是否属于
- * [1,16]，并检查 Prefix Len 是否属于 [0,128]，是否与 IPv6 prefix 字段组成合法的
- * IPv6 前缀。
+ * [1,16]，并检查 Prefix Len 是否属于 [0,128]，Prefix Len 是否与 IPv6 prefix
+ * 字段组成合法的 IPv6 前缀。
  */
 RipngErrorCode disassemble(const uint8_t *packet, uint32_t len,
-                         RipngPacket *output);
+                           RipngPacket *output);
 
 /**
  * @brief 从 RipngPacket 的数据结构构造出 RIPng 协议的二进制格式
@@ -175,7 +175,8 @@ RipngErrorCode disassemble(const uint8_t *packet, uint32_t len,
  *
  * 在构造二进制格式的时候，你需要把 RipngPacket 中没有保存的一些固定值补充上，
  * 包括 Version 和 Zero 字段。
- * 你写入 buffer 的数据长度和返回值都应该是四个字节的 RIPng 头，加上每项 20
- * 字节。 需要注意一些没有保存在 RipngPacket 结构体内的数据的填写。
+ * 你写入 buffer 的数据长度（同时也是该函数的返回值）都应该是四个字节（RIPng
+ * 头）加上每个 RIPng 表项 20 字节。需要注意一些没有保存在 RipngPacket
+ * 结构体内的数据的填写。
  */
 uint32_t assemble(const RipngPacket *ripng, uint8_t *buffer);
