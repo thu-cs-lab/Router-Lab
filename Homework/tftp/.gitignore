@@ -1,0 +1,7 @@
+*.o
+client
+server
+std
+std.cpp
+test
+!Makefile
