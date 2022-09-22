@@ -1,7 +1,16 @@
 #include "router_hal.h"
 
 // for online experiment, don't change
-#ifdef ROUTER_R1
+#ifdef ROUTER_PC1
+
+static const char *interfaces[N_IFACE_ON_BOARD] = {
+    "pc1r1",
+    "eth2",
+    "eth3",
+    "eth4",
+};
+
+#elif defined(ROUTER_R1)
 
 static const char *interfaces[N_IFACE_ON_BOARD] = {
     "r1pc1",

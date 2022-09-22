@@ -50,7 +50,7 @@ in6_addr addrs[N_IFACE_ON_BOARD] = {
     {0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
      0x00, 0x03, 0x00, 0x01},
 };
-// 默认网关：fd00::3:2
+// 默认网关：fd00::1:2
 in6_addr default_gateway = {0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                             0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x02};
 #endif
@@ -180,8 +180,8 @@ int main(int argc, char *argv[]) {
           // 新连接
           // 判断 Opcode 是否为 RRQ 或 WRQ
           tftp_hdr *tftp =
-              (tftp_hdr *)&packet[sizeof(ip6_hdr) + sizeof(tftp_hdr)];
-          uint8_t opcode = ntohs(tftp->opcode);
+              (tftp_hdr *)&packet[sizeof(ip6_hdr) + sizeof(udphdr)];
+          uint16_t opcode = ntohs(tftp->opcode);
           if (false) {
             // TODO（6 行）
             // 解析 Filename（文件名）和 Mode（传输模式）
