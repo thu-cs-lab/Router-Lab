@@ -31,7 +31,7 @@ in6_addr len_to_mask(int len) {
 }
 ```
 
-其中 `RoutingTableEntry` 的定义见 `router.h` 文件。
+其中 `RoutingTableEntry` 的定义见 `lookup.h` 文件。
 
 你需要实现：
 
