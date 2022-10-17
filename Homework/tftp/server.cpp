@@ -116,7 +116,6 @@ int main(int argc, char *argv[]) {
       .addr = in6_addr{0}, .len = 0, .if_index = 1, .nexthop = default_gateway};
   update(true, entry);
 
-  uint64_t last_time = 0;
   while (1) {
     uint64_t time = HAL_GetTicks();
 
