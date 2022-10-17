@@ -1,6 +1,6 @@
 #!/bin/bash
 # Setup netns for individual judge
-# IPv6 forwarding is enable for R1 & R3
+# IPv6 forwarding is enabled for R1 & R3
 
 # netns
 for ns in PC1 R1 R2 R3 PC2
