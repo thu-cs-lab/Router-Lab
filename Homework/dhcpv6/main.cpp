@@ -203,7 +203,7 @@ int main(int argc, char *argv[]) {
 
             // 1. Server Identifier：根据本路由器在本接口上的 MAC 地址生成。
             //    - https://www.rfc-editor.org/rfc/rfc8415.html#section-21.3
-            //    - Option Code: 22
+            //    - Option Code: 2
             //    - Option Length: 14
             //    - DUID Type: 1 (Link-layer address plus time)
             //    - Hardware Type: 1 (Ethernet)
