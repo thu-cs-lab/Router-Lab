@@ -1,4 +1,8 @@
 #!/bin/sh
+# Test 6
+# Standard client -> Custom server
+# You need to ensure that a custom server is running
+# Setup ipv6 address and route
 ip netns exec PC1 sysctl net.ipv6.conf.pc1r1.disable_ipv6=0
 ip netns exec PC1 ip a add fd00::1:2/112 dev pc1r1
 ip netns exec PC1 ip l set pc1r1 up
