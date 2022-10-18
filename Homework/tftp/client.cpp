@@ -351,8 +351,15 @@ int main(int argc, char *argv[]) {
               // 如果等于，则把文件内容写到文件中
               // 并更新最后一次传输的 Block Number
 
+              uint16_t block_size = 0;
+
               // 如果块的大小小于 512，说明这是最后一个块，写入文件后，
               // 关闭文件，发送 ACK 后就可以退出程序
+              if (block_size < 512) {
+                fclose(current_transfer.fp);
+                printf("Get file done\n");
+                done = true;
+              }
             }
 
             // 发送 ACK，其 Block Number 为最后一次传输的 Block Number
@@ -378,6 +385,7 @@ int main(int argc, char *argv[]) {
 
               } else if (current_transfer.state == LastAck) {
                 // 收到最后一个 ACK，说明文件传输完成
+                printf("Put file done\n");
                 done = true;
               }
             } else {
