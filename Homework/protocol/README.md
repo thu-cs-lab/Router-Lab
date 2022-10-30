@@ -25,7 +25,7 @@ uint32_t assemble(const RipngPacket *ripng, uint8_t *buffer) {
 
 需要注意的是，这一题中所有数据都是网络传输的数据格式，所以每一个 RIPng 数据字段都是网络字节序，见 `rip.h` 中的注释。
 
-评测所使用的数据都在 `data` 目录下。输入一共有 $n$ 个 IPv6 分组，`main.cpp` 会调用你的代码来判断每个分组是不是一个合法的 RIPng 报文，如果是，则保存下来，输出一行 `Valid {numEntries} {command}`，之后是 `numEntries` 行，每一行四个十六进制数，分别对应 `addr` `mask` `nexthop` 和 `metric` ，再输出一行，是重新构造出来的 RIPng 报文，用十六进制格式输出；如果不合法，就输出不合法的地方。
+评测所使用的数据都在 `data` 目录下。输入一共有 $n$ 个 IPv6 分组，`main.cpp` 会调用你的代码来判断每个分组是不是一个合法的 RIPng 报文，如果是，则保存下来，输出一行 `Valid {numEntries} {command}`，之后是 `numEntries` 行，每一行的输出分别对应 `prefix_or_nh` `route_tag` `prefix_len` 和 `metric`，再输出一行，是重新构造出来的 RIPng 报文，用十六进制格式输出；如果不合法，就输出不合法的地方。
 
 ## 样例 1
 
