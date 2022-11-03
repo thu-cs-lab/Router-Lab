@@ -16,7 +16,7 @@ bool validateAndFillChecksum(uint8_t *packet, size_t len) {
 校验和的计算方式如下：
 
 1. 将校验和字段填充为 0
-2. 将 IPv6 Pseudo Header 拼接上 UDP/ICMPv6 packet 视作大端序 16 位整数的数组，将所有 16 位整数相加
+2. 将 IPv6 Pseudo Header（而不是 IPv6 Header）拼接上 UDP/ICMPv6 packet 视作大端序 16 位整数的数组，将所有 16 位整数相加
 3. 如果和发生溢出，则将其截断为低 16 位及溢出部分，然后将溢出部分加到低 16 位
    (如 0x1CB2F -> 0xCB2F + 0x1)
 4. 如果上述操作中又发生了溢出，则重复上述操作，直到不发生溢出
@@ -24,7 +24,7 @@ bool validateAndFillChecksum(uint8_t *packet, size_t len) {
 
 检验校验和是否正确的方式如下：
 
-1. 将 IPv6 Pseudo Header 拼接上 UDP/ICMPv6 packet 视作大端序 16 位整数的数组，将所有 16 位整数相加
+1. 将 IPv6 Pseudo Header（而不是 IPv6 Header）拼接上 UDP/ICMPv6 packet 视作大端序 16 位整数的数组，将所有 16 位整数相加
 2. 如果和发生溢出，则将其截断为低 16 位及溢出部分，然后将溢出部分加到低 16 位
    (如 0x1CB2F -> 0xCB2F + 0x1)
 3. 如果上述操作中又发生了溢出，则重复上述操作，直到不发生溢出
@@ -42,7 +42,7 @@ IPv6 Pseudo Header 由下面几个东西组成：
 
 1. 16 字节的 Source IPv6 Address
 2. 16 字节的 Destination IPv6 Address
-3. 4 字节的 UDP/ICMPv6 Length（网络字节序）
+3. 4 字节的 UDP/ICMPv6 Length（记得要用网络字节序）
 4. 3 字节的 0，然后是 1 字节的 Next Protocol（对 UDP 来说是 17，对 ICMPv6 来说是 58）
 
 可以对照 [UDP Checksum](https://en.wikipedia.org/wiki/User_Datagram_Protocol#IPv6_pseudo_header)  和 [ICMPv6 Checksum](https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol_for_IPv6#Checksum) 网页上的表格进行实现。
