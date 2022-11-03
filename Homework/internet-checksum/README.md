@@ -22,7 +22,7 @@ bool validateAndFillChecksum(uint8_t *packet, size_t len) {
 
 校验和的检验方式如下：
 
-1. 将 IPv6 Pseudo Header 拼接上 UDP/ICMPv6 packet ，拼接后的数据每 16 个二进制位成一组，视作一个大端序的整数。将所有 16 位的整数相加；
+1. 将 IPv6 Pseudo Header 拼接上 UDP/ICMPv6 packet ，拼接后的数据每 16 个二进制位为一组，视作一个大端序的整数。将所有 16 位的整数相加；
 2. 如果上述求和结果发生溢出（二进制表示下超过 16 位），则将其截断为低 16 位及溢出部分，然后将溢出部分加到低 16 位 (如求和结果为 0x1CB2F ，则拆成低 16 位
    的 0xCB2F 与溢出部分 0x1 ，并相加 0xCB2F + 0x1)；
 3. 如果结果又发生了溢出，则重复上述操作，直到不发生溢出；
