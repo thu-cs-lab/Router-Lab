@@ -2,7 +2,7 @@
 
 ## 题目描述
 
-在 IPv6 中，Header 不再有校验和（checksum）字段，而在 UDP 和 ICMPv6 协议中计算校验和的时候，需要将 IPv6 Header 的一部分数据考虑进来，这就是 Pseudo Header。
+在 IPv6 中，Header 不再有校验和（checksum）字段，而在 UDP 和 ICMPv6 协议中计算校验和的时候，需要将 IPv6 Header 的一部分字段信息考虑进来，这些字段也称为（IPv6）Pseudo Header（伪头）。需要注意的是，与 IPv6 Header 不同，Pseudo Header 实际上不在分组中直接出现，也不直接传输，只是程序在计算校验和时需要加上这几个字段而已。
 
 你需要在 `checksum.cpp` 中实现下面的函数 `validateAndFillChecksum`，这个函数接收一个 IPv6 的 packet，在 IPv6 Header 之后一定是一个 UDP 或者 ICMPv6 的 packet。该函数的返回值为 UDP 或者 ICMPv6 中的校验和是否正确；同时，无论原来的校验和是否正确，该函数返回时，packet 中的校验和应该被填充为正确的值。
 
@@ -38,11 +38,11 @@ bool validateAndFillChecksum(uint8_t *packet, size_t len) {
 
 特别地，在 UDP 中，校验和字段为 0 表示没有进行校验和的计算。然而，由于 IPv6 头部中没有校验和字段等原因，承载于 IPv6 的 UDP 要求必须进行校验和计算，即校验和字段不为 0。此时，接收方在检查时应当认为校验和字段为 0 是错误的。对于发送方，如果计算出的校验和为 0，则需要设置校验和字段为 0xFFFF。作为补充知识，当 UDP 作为 IPv4 的 Payload 时，校验和字段为 0 表示发送方没有进行校验和的计算，此时接收方忽略校验和检查，直接认为校验和是正确的；当校验和字段不为 0 时，接收方同样需要按照上述检验算法进行验证。
 
-IPv6 Pseudo Header 由下面几个东西组成：
+IPv6 Pseudo Header 由以下几个字段组成：
 
 1. 16 字节的 Source IPv6 Address
 2. 16 字节的 Destination IPv6 Address
-3. 4 字节的 UDP/ICMPv6 Length（记得要用网络字节序）
+3. 4 字节的 UDP/ICMPv6 Length（记得也要用网络字节序）
 4. 3 字节的 0，然后是 1 字节的 Next Protocol（对 UDP 来说是 17，对 ICMPv6 来说是 58）
 
 可以对照 [UDP Checksum](https://en.wikipedia.org/wiki/User_Datagram_Protocol#IPv6_pseudo_header)  和 [ICMPv6 Checksum](https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol_for_IPv6#Checksum) 网页上的表格进行实现。
