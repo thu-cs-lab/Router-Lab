@@ -20,7 +20,7 @@ uint32_t assemble(const RipngPacket *ripng, uint8_t *buffer) {
 
 你需要实现：
 
-1. 解析 IPv6 、 UDP 和 RIPng 的格式，把有用的信息保存下来
+1. 解析 IPv6、UDP 和 RIPng 的格式，把有用的信息保存下来
 2. 如果上一步得到了合法的数据，从保存下来的信息恢复出 RIPng 的传输格式
 
 需要注意的是，这一题中所有数据都是网络传输的数据格式，所以每一个 RIPng 数据字段都是网络字节序，见 `rip.h` 中的注释。
