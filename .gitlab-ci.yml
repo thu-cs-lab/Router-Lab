@@ -28,6 +28,7 @@ router:
         - make -C Homework/router/r1
         - make -C Homework/router/r2
         - make -C Homework/router/r3
+        - make -C Homework/router/interconnect-r2
         - make -C Homework/tftp/pc1
         - make -C Homework/tftp/pc2
         - make -C Homework/tftp/r2
@@ -37,6 +38,7 @@ router:
             - Homework/router/r1/router
             - Homework/router/r2/router
             - Homework/router/r3/router
+            - Homework/router/interconnect-r2/router
             - Homework/tftp/pc1/client
             - Homework/tftp/pc1/server
             - Homework/tftp/pc2/client
