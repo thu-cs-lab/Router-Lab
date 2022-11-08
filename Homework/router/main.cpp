@@ -103,6 +103,22 @@ int main(int argc, char *argv[]) {
     update(true, entry);
   }
 
+#ifdef ROUTER_INTERCONNECT
+  // 互联测试
+  // 添加路由：
+  // fd00::1:0/112 via fd00::3:1 if 0
+  // TODO（1 行）
+  // 这里需要添加额外的字段来初始化 metric
+  RoutingTableEntry entry = {
+      .addr = {0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+               0x00, 0x00, 0x01, 0x00, 0x00},
+      .len = 112,
+      .if_index = 0,
+      .nexthop = {0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                  0x00, 0x00, 0x00, 0x03, 0x00, 0x01}};
+  update(true, entry);
+#endif
+
   uint64_t last_time = 0;
   while (1) {
     uint64_t time = HAL_GetTicks();

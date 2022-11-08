@@ -37,6 +37,15 @@ static const char *interfaces[N_IFACE_ON_BOARD] = {
     "eth4",
 };
 
+#elif defined(ROUTER_PC2)
+
+static const char *interfaces[N_IFACE_ON_BOARD] = {
+    "pc2r3",
+    "eth2",
+    "eth3",
+    "eth4",
+};
+
 #else
 // you can customize this
 // configure this to match the output of `ip a`
