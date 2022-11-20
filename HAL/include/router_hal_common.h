@@ -206,7 +206,7 @@ int HAL_ReceiveIPPacket(HAL_IN int if_index_mask, HAL_OUT uint8_t *buffer,
       if ((ip6->ip6_vfc) >> 4 != 6) {
         continue;
       }
-      uint16_t plen = htons(ip6->ip6_plen);
+      uint16_t plen = ntohs(ip6->ip6_plen);
       if (hdr.caplen < sizeof(ether_header) + sizeof(ip6_hdr) + plen) {
         continue;
       }

@@ -288,7 +288,7 @@ int main(int argc, char *argv[]) {
       printf("Received invalid ipv6 packet (%d < %d)\n", res, sizeof(ip6_hdr));
       continue;
     }
-    uint16_t plen = htons(ip6->ip6_plen);
+    uint16_t plen = ntohs(ip6->ip6_plen);
     if (res < plen + sizeof(ip6_hdr)) {
       printf("Received invalid ipv6 packet (%d < %d + %d)\n", res, plen,
              sizeof(ip6_hdr));
