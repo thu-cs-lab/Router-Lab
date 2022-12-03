@@ -128,9 +128,9 @@ int main(int argc, char *argv[]) {
     }
 
     // TODO（2 行）
-    // 修改这个检查，当目的地址为 ICMPv6 RA
-    // 的组播目的地址（ff02::2）或者 DHCPv6 Solicit
-    // 的组播目的地址（ff02::1:2）时也设置 dst_is_me 为 true。
+    // 修改这个检查，当目的地址为 ICMPv6 RS 的
+    // 组播目的地址（ff02::2，all-routers multicast address）或者
+    // DHCPv6 Solicit 的组播目的地址（ff02::1:2）时也设置 dst_is_me 为 true。
     if (false) {
       dst_is_me = true;
     }
