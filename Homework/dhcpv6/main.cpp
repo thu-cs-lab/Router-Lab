@@ -263,6 +263,7 @@ int main(int argc, char *argv[]) {
           // 如果是 Router Solicitation，生成一个 Router Advertisement 并发送
           // 源 IPv6 地址是本路由器在本接口上的 Link Local 地址
           // 目的 IPv6 地址是 ff02::1
+          // IPv6 头部的 Hop Limit 是 255
           // ICMPv6 的各字段要求如下：
           // https://www.rfc-editor.org/rfc/rfc4861#section-4.2
           // 其 Type 是 Router Advertisement，Code 是 0
