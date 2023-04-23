@@ -14,7 +14,7 @@ This procedure is defined in [RFC 4291](https://datatracker.ietf.org/doc/html/rf
 
 You need to implement this conversion process in the `eui64.cpp` file in the following functions.
 
-``cpp
+```cpp
 // See comments in the code for the function
 in6_addr eui64(const ether_addr mac) {
   in6_addr res = {0};
