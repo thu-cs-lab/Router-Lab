@@ -26,7 +26,7 @@ enum RipngErrorCode {
   // RIPng 的 Version 字段错误
   // The Version field of RIPng is wrong
   ERR_RIPNG_BAD_VERSION,
-  // RIPng 的 Zero（Reserved） 字段错误
+  // RIPng 的 Zero（Reserved）字段错误
   // The Zero(Reserved) field of RIPng is wrong
   ERR_RIPNG_BAD_ZERO,
   // RIPng 表项的 Metric 字段错误

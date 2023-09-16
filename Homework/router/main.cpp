@@ -167,7 +167,7 @@ int main(int argc, char *argv[]) {
         // Section 2.5.2 Generating Response Messages。
         //
         // 注意需要实现水平分割以及毒性反转（Split Horizon with Poisoned
-        // Reverse） 即，如果某一条路由表项是从 interface A 学习到的，那么发送给
+        // Reverse）即，如果某一条路由表项是从 interface A 学习到的，那么发送给
         // interface A 的 RIPng 表项中，该项的 metric 设为 16。详见 RFC 2080
         // Section 2.6 Split Horizon。因此，发往各个 interface 的 RIPng
         // 表项是不同的。
@@ -294,7 +294,7 @@ int main(int argc, char *argv[]) {
 
         if (false) {
           // 如果是 Echo Request，生成一个对应的 Echo Reply：交换源和目的 IPv6
-          // 地址，设置 type 为 Echo Reply，设置 TTL（Hop Limit） 为
+          // 地址，设置 type 为 Echo Reply，设置 TTL（Hop Limit）为
           // 64，重新计算 Checksum 并发送出去。详见 RFC 4443 Section 4.2 Echo
           // Reply Message
         }
