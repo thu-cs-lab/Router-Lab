@@ -54,7 +54,7 @@ bool validateAndFillChecksum(uint8_t *packet, size_t len) {
 
 4. 以上的校验和计算方式和检验方式定义在 [RFC 1071](https://datatracker.ietf.org/doc/html/rfc1071) 中。
 
-5. 你可以用一些结构体来简化解析过程：`struct ip6_hdr`、`struct udphdr` 和 `struct icmp6_hdr`，代码中已经提供了一些使用的例子。对于 UDP/ICMPv6 Length，你可以用 `htonl/htons/ntohl/ntohs` 函数来转换字节序。
+5. 你可以用一些结构体来简化解析过程：`struct ip6_hdr`、`struct udphdr` 和 `struct icmp6_hdr`，代码中已经提供了一些使用的例子。对于 UDP/ICMPv6 Length 等需要转换字节序的字段，你可以用 `htonl/htons/ntohl/ntohs` 函数来转换字节序。通常的用法是，要写入网络字节序的字段时，用 `htonl/htons` 函数，`hton` 表示 `Host To Network`；反过来，要解析网络字节序的字段的时候，用 `ntohl/ntohs` 函数，`ntoh` 表示 `Network To Host`。
 
 6. 你不需要处理输入输出，你只需要在本地执行 `make grade` 就可以进行本地评测。在本题中，保证 packet 中的数据只有 checksum 可能是不合法的。
 
