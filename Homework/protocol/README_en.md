@@ -23,7 +23,7 @@ You need to implement.
 1. parse the IPv6, UDP and RIPng data and save the useful information
 2. recover the contents of RIPng from the saved information if you got the legal data in the previous step
 
-Note that all data in this problem is in network transmission format, so each RIPng data field is in network byte order, see the note in `rip.h`.
+Note that all data in this problem is in network transmission format, so each RIPng data field is in network byte order, see the note in `protocol.h`.
 
 The data used for the evaluation are in the `data` directory. The input has a total of $n$ IPv6 packets, and `main.cpp` calls your code to determine if each packet is a legitimate RIPng message, and if so, saves it and outputs a line `Valid {numEntries} {command}`, followed by `numEntries` lines, each of which corresponds to `prefix_or_nh` `route_tag` `prefix_len` and `metric`, and then a line of output, which is the reconstructed RIPng message, in hexadecimal format; if it is not legal, the illegal part is printed.
 
