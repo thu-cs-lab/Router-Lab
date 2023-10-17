@@ -1,0 +1,19 @@
+Success
+RouterLSA: 24
+  ls_age: 12
+  link_state_id: 0x00000000
+  advertising_router: 0x0a000000
+  ls_sequence_number: 0x80000001
+Other LSA: 84
+Other LSA: 44
+Other LSA: 36
+Other LSA: 44
+RouterLSA: 24
+  ls_age: 13
+  link_state_id: 0x00000000
+  advertising_router: 0x0a000002
+  ls_sequence_number: 0x80000001
+Other LSA: 84
+Other LSA: 36
+Other LSA: 44
+Other LSA: 44

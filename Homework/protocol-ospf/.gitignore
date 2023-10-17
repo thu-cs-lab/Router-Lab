@@ -1,0 +1,6 @@
+*.o
+protocol_ospf
+std
+std.cpp
+*_output*.txt
+!Makefile

@@ -1,0 +1,18 @@
+Success
+RouterLSA: 56
+  ls_age: 1
+  link_state_id: 0x00000000
+  advertising_router: 0x0a000001
+  ls_sequence_number: 0x80000002
+  Entry
+    type: 1
+    metric: 10
+    interface_id: 86
+    neighbor_interface_id: 85
+    neighbor_router_id: 0x0a000002
+  Entry
+    type: 1
+    metric: 10
+    interface_id: 81
+    neighbor_interface_id: 82
+    neighbor_router_id: 0x0a000000
