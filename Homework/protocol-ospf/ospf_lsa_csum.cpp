@@ -19,6 +19,8 @@ uint16_t ospf_lsa_checksum(struct ospf_lsa_header *lsa, size_t length) {
 
   // "Initialize C0 and C1 to zero."
   uint16_t c0 = 0, c1 = 0;
+  // "n   number (i.e. position) of the first octet of the  checksum
+  //      parameter"
   size_t n = (uint8_t *)&lsa->ls_checksum - buff + 1;
 
   // "Process each octet sequentially from i = 1 to L by:

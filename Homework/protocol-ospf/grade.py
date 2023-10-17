@@ -61,7 +61,7 @@ if __name__ == '__main__':
         try:
             out = [line.strip() for line in open(out_file, 'r').readlines() if line.strip()]
             ans = [line.strip() for line in open(ans_file, 'r').readlines() if line.strip()]
-                
+
             if out == ans:
                 grade += 1
             elif os.isatty(1):
@@ -73,4 +73,3 @@ if __name__ == '__main__':
                 traceback.print_exc()
 
     write_grade(grade, total)
-

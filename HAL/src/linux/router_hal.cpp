@@ -52,8 +52,8 @@ int HAL_Init(HAL_IN int debug, HAL_IN in6_addr if_addrs[N_IFACE_ON_BOARD]) {
         // disable ipv6 of this interface
         // echo 1 > /proc/sys/net/ipv6/conf/if_name/disable_ipv6
         char name_buffer[64];
-        sprintf(name_buffer, "/proc/sys/net/ipv6/conf/%s/disable_ipv6",
-                interfaces[i]);
+        snprintf(name_buffer, sizeof(name_buffer), "/proc/sys/net/ipv6/conf/%s/disable_ipv6",
+                 interfaces[i]);
         FILE *fp = fopen(name_buffer, "w");
         char ch = '1';
         if (fp) {

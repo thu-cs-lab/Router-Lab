@@ -47,17 +47,17 @@ void get_ipv6_mcast_mac(const in6_addr mcast_ip, ether_addr *mac) {
 }
 
 const char *inet6_ntoa(const in6_addr addr) {
-  static char buffer[1024];
+  static char buffer[INET6_ADDRSTRLEN];
   assert(inet_ntop(AF_INET6, &addr, buffer, sizeof(buffer)));
   return buffer;
 }
 
 const char *ether_ntoa(const ether_addr mac) {
-  static char buffer[1024];
-  sprintf(buffer, "%02X:%02X:%02X:%02X:%02X:%02X", mac.ether_addr_octet[0],
-          mac.ether_addr_octet[1], mac.ether_addr_octet[2],
-          mac.ether_addr_octet[3], mac.ether_addr_octet[4],
-          mac.ether_addr_octet[5]);
+  static char buffer[32];
+  snprintf(buffer, sizeof(buffer), "%02X:%02X:%02X:%02X:%02X:%02X",
+           mac.ether_addr_octet[0], mac.ether_addr_octet[1],
+           mac.ether_addr_octet[2], mac.ether_addr_octet[3],
+           mac.ether_addr_octet[4], mac.ether_addr_octet[5]);
   return buffer;
 }
 

@@ -26,7 +26,7 @@ lookup.o: ../lookup/lookup.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 protocol_ospf: protocol_ospf.o main.o hal.o lookup.o common.o ospf_lsa_csum.o
-	$(CXX) $^ -o $@ $(LDFLAGS) 
+	$(CXX) $^ -o $@ $(LDFLAGS)
 
 std: std.o main.o hal.o lookup.o common.o
-	$(CXX) $^ -o $@ $(LDFLAGS) 
+	$(CXX) $^ -o $@ $(LDFLAGS)

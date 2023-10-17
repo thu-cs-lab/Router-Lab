@@ -20,7 +20,7 @@ OspfErrorCode disassemble(const uint8_t* lsa, uint16_t buf_len, uint16_t *len, R
 
 你需要实现：
 
-1. 解析 IPv6、OSPF 和 LSU 的格式，获取 LSA 的起始位置和数量
+1. 解析 IPv6、OSPF 和 LSU（Link State Update）报文的格式，获取 LSA（Link State Advertisement）的起始位置和数量
 2. 如果上一步得到了合法的数据，解析 LSA
 
 需要注意的是，这一题中所有数据都是网络传输的数据格式，所以每一个 OSPF 数据字段都是网络字节序。
@@ -33,4 +33,4 @@ OspfErrorCode disassemble(const uint8_t* lsa, uint16_t buf_len, uint16_t *len, R
 
 ## 样例 1 解释
 
-用 Wireshark 打开，可以看到有一个合法的 OSPF packet，且是一个 LSU 包。这个 LSU 包包括了 10 个 LSA，其中有两个是 Router-LSA。由此，只需要将这两个 Router-LSA 中的信息填入对应的结构体即可。
+用 Wireshark 打开，可以看到有一个合法的 OSPF 报文，且是一个 LSU 报文。这个 LSU 报文包括了 10 个 LSA，其中有两个是 Router-LSA。由此，只需要将这两个 Router-LSA 中的信息填入对应的结构体即可。
