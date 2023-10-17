@@ -323,7 +323,7 @@ OspfErrorCode parse_ip(const uint8_t *packet, uint32_t len,
 /**
  * @brief 解析接受到的 LSA
  * @param lsa 接受到 LSA
- * @param buf_len 收包缓冲区的剩余长度
+ * @param buf_len 接收到缓冲区后待处理数据的剩余分组长度
  * @param len 用于返回 LSA 的长度
  * @param output 用于返回解析出的 LSA
  * @return 如果输入是一个合法的 LSA，将 LSA 的长度和具体内容分别填入 len
@@ -346,7 +346,7 @@ OspfErrorCode parse_ip(const uint8_t *packet, uint32_t len,
 /**
  * @brief Parse the received LSA
  * @param lsa Received LSA
- * @param buf_len The remaining length of the receive buffer
+ * @param buf_len The remaining length of the packet after being received by the receive buffer
  * @param len Used to return the length of the LSA
  * @param output Used to return the parsed LSA
  * @return If the input is a legal LSA, fill in the length and specific content
