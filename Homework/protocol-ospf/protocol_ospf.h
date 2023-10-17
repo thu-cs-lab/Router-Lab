@@ -108,6 +108,35 @@ struct ospf_header {
   uint8_t zero;       // 0
 };
 
+// RFC 5340 A.3.5. The Link State Update Packet
+// https://datatracker.ietf.org/doc/html/rfc5340#appendix-A.3.5
+//  0                   1                   2                   3
+//  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1
+// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+// |      3        |       4       |         Packet Length         |
+// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+// |                         Router ID                             |
+// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+// |                          Area ID                              |
+// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+// |          Checksum             |  Instance ID  |      0        |
+// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+// |                           # LSAs                              |
+// +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
+// |                                                               |
+// +-                                                            +-+
+// |                            LSAs                               |
+// +-                                                            +-+
+// |                             ...                               |
+//
+//  # LSAs
+//     The number of LSAs included in this update.
+struct ospf_lsu_header {
+  struct ospf_header header;
+  uint32_t the_number_of_lsas;
+};
+
+
 // RFC 5340 A.4.2. The LSA Header
 // https://datatracker.ietf.org/doc/html/rfc5340#appendix-A.4.2
 //  0                   1                   2                   3
@@ -328,8 +357,8 @@ OspfErrorCode parse_ip(const uint8_t *packet, uint32_t len,
  * @param output 用于返回解析出的 LSA
  * @return 如果输入是一个合法的 LSA，将 LSA 的长度和具体内容分别填入 len
  * 和 output，并且返回 OspfErrorCode::SUCCESS；否则按照要求返回 OspfErrorCode
- * 的具体类型。 注意只要可能，就应该将 LSA 的长度填入 len，即使 LSA
- * 没有通过部分检查。
+ * 的具体类型。 注意只要 buf_len 通过了检查，就应该将 LSA 的长度填入 len，即使 LSA
+ * 没有通过其它检查。
  *
  * 你需要按照以下顺序检查：
  * 1. buf_len 是否能容纳 LSA header 的长度。
