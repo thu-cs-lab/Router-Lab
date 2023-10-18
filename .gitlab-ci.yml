@@ -12,6 +12,8 @@ homework:
         - (cd Homework/lookup && python3 grade.py | tee ../../logs/lookup.log)
         - make -C Homework/protocol
         - (cd Homework/protocol && python3 grade.py | tee ../../logs/protocol.log)
+        - make -C Homework/protocol-ospf
+        - (cd Homework/protocol-ospf && python3 grade.py | tee ../../logs/protocol-ospf.log)
     artifacts:
         paths:
             - logs
