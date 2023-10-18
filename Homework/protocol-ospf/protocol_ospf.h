@@ -133,9 +133,8 @@ struct ospf_header {
 //     The number of LSAs included in this update.
 struct ospf_lsu_header {
   struct ospf_header header;
-  uint32_t the_number_of_lsas;
+  uint32_t num_lsas;
 };
-
 
 // RFC 5340 A.4.2. The LSA Header
 // https://datatracker.ietf.org/doc/html/rfc5340#appendix-A.4.2
@@ -268,11 +267,11 @@ struct RouterLsa {
 };
 
 /*
-  计算 OSPF LSA 的 Checksum（Fletcher checksum），输入一个 LSA
+  计算 OSPF LSA 的校验和（Fletcher checksum），输入一个 LSA
   和它的长度，返回计算结果。
 
   验证校验和时，不修改 LSA 中的
-  checksum，调用该函数，如果校验和正确，那么应当返回 0。
+  checksum 字段，调用该函数，如果校验和正确，那么应当返回 0。
 
   生成校验和时，把 LSA 中的 checksum 字段设为
   0，调用该函数，就可以得到正确的校验和，再填入 checksum 字段。
@@ -291,8 +290,8 @@ struct RouterLsa {
 uint16_t ospf_lsa_checksum(struct ospf_lsa_header *lsa, size_t length);
 
 /*
-  你需要从 IPv6 包中解析出 Router-LSA。一个 IPv6 packet 中可能包含多个
-  LSA，这些 LSA 并不都是 Router-LSA。你需要先解析 IPv6 包头中的 OSPF
+  你需要从 IPv6 分组中解析出 Router-LSA。一个 IPv6 分组中可能包含多个
+  LSA，这些 LSA 并不都是 Router-LSA。你需要先解析 IPv6 分组头中的 OSPF
   头部和 LSU 头部，从中解析出 LSA 的起始位置和数量。然后，对每个 LSA，你需
   要判断其是否是 Router-LSA，然后从其长度推断 Entries 的数量，并解析出每
   个 Entry 的内容。
@@ -307,8 +306,8 @@ uint16_t ospf_lsa_checksum(struct ospf_lsa_header *lsa, size_t length);
 */
 
 /**
- * @brief 从接受到的 IPv6 packet 解析出 LSA 的起始位置和数量
- * @param packet 接受到的 IPv6 分组
+ * @brief 从接收到的 IPv6 分组解析出 LSA 的起始位置和数量
+ * @param packet 接收到的 IPv6 分组
  * @param len 即 packet 的长度
  * @param lsa_start 用于返回 LSA 的起始位置
  * @param lsa_num 用于返回 LSA 的数量
@@ -350,24 +349,24 @@ OspfErrorCode parse_ip(const uint8_t *packet, uint32_t len,
                        const uint8_t **lsa_start, int *lsa_num);
 
 /**
- * @brief 解析接受到的 LSA
- * @param lsa 接受到 LSA
- * @param buf_len 接收到缓冲区后待处理数据的剩余分组长度
+ * @brief 解析接收到的 LSA
+ * @param lsa 接收到 LSA
+ * @param buf_len 接收缓冲区中待处理数据的剩余长度。注意只要 buf_len 通过了检查，
+ * 就应该将 LSA 的长度填入 len，即使 LSA 没有通过其它检查。
  * @param len 用于返回 LSA 的长度
  * @param output 用于返回解析出的 LSA
  * @return 如果输入是一个合法的 LSA，将 LSA 的长度和具体内容分别填入 len
  * 和 output，并且返回 OspfErrorCode::SUCCESS；否则按照要求返回 OspfErrorCode
- * 的具体类型。 注意只要 buf_len 通过了检查，就应该将 LSA 的长度填入 len，即使 LSA
- * 没有通过其它检查。
+ * 的具体类型。
  *
  * 你需要按照以下顺序检查：
  * 1. buf_len 是否能容纳 LSA header 的长度。
  * 2. buf_len 是否能容纳 LSA header 中宣称的 LSA 长度。
  * 3. LSA 头部中的 checksum 是否正确。（注意此处使用了一种特殊的 checksum
  * 计算方式，可以使用 ospf_lsa_checksum 函数来计算和验证）
- * 4. LSA 类型是否为 Router-LSA。
- * 5. LSA 头部的 ls_age 是否超过了 LSA_MAX_AGE。
- * 6. LSA 头部的 ls_sequence_number 是否为保留值。
+ * 4. LSA 头部的 ls_age 是否超过了 LSA_MAX_AGE。
+ * 5. LSA 头部的 ls_sequence_number 是否为保留值。
+ * 6. LSA 类型是否为 Router-LSA。
  * 7. LSA 是否包含整数个 Entry。
  * 8. 每个 LSA Entry 是否具有合法的类型（1 - 4）。
  * 9. 每个 LSA Entry 中的 reserve 字段是否为 0。
@@ -375,14 +374,15 @@ OspfErrorCode parse_ip(const uint8_t *packet, uint32_t len,
 /**
  * @brief Parse the received LSA
  * @param lsa Received LSA
- * @param buf_len The remaining length of the packet after being received by the receive buffer
+ * @param buf_len The remaining length of the received packet. Note that whenever
+ * buf_len passes the checks, the value of len should be filled with the length
+ * of the LSA, even if the LSA does not pass other checks.
  * @param len Used to return the length of the LSA
  * @param output Used to return the parsed LSA
  * @return If the input is a legal LSA, fill in the length and specific content
  * of the LSA into len and output respectively, and return
  * OspfErrorCode::SUCCESS; otherwise, return the specific type of OspfErrorCode
- * as required. Note that whenever possible, the value of len should be filled
- * in the length of the LSA, even if the LSA does not pass some checks.
+ * as required.
  *
  * You need to check in the following order:
  * 1. Whether buf_len can accommodate the length of the LSA header.
@@ -391,9 +391,9 @@ OspfErrorCode parse_ip(const uint8_t *packet, uint32_t len,
  * 3. Whether the checksum in the LSA header is correct. (Note that a special
  * checksum calculation method is used here, you can use ospf_lsa_checksum to
  * compute and verify)
- * 4. Whether the type of LSA is Router-LSA.
- * 5. Whether the ls_age in the LSA header exceeds LSA_MAX_AGE.
- * 6. Whether the ls_sequence_number in the LSA header is a reserved value.
+ * 4. Whether the ls_age in the LSA header exceeds LSA_MAX_AGE.
+ * 5. Whether the ls_sequence_number in the LSA header is a reserved value.
+ * 6. Whether the type of LSA is Router-LSA.
  * 7. Whether the LSA contains an integer number of Entries.
  * 8. Whether each LSA Entry has a valid type (1 - 4).
  * 9. Whether the reserve field in each LSA Entry is 0.
