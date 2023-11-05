@@ -2,7 +2,7 @@ CXX ?= g++
 LAB_ROOT ?= ../../..
 BACKEND ?= LINUX
 
-CXXFLAGS += --std=c++11 -I $(LAB_ROOT)/HAL/include -DROUTER_BACKEND_$(BACKEND) -Wno-psabi -static -I../../protocol-ospf -I../../lookup -I../../internet-checksum -I../../eui64
+CXXFLAGS += --std=c++11 -I $(LAB_ROOT)/HAL/include -DROUTER_BACKEND_$(BACKEND) -Wno-psabi -static -O2 -I../../protocol-ospf -I../../lookup -I../../internet-checksum -I../../eui64
 LDFLAGS += -lpcap
 ifeq ($(CI),)
 	CXXFLAGS += -fsanitize=address
