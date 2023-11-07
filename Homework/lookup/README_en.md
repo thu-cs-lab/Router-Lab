@@ -68,8 +68,8 @@ See *lookup_input4.txt* and *lookup_answer4.txt* in the data directory.
 You can see that the first two lines of input data construct a routing table like this.
 
 ```text
-fd00::0102:0300/120 via if9 nexthop fe80::c0a8:0302
-fd00::0102:0304/128 via if10 nexthop fe80::c0a8:0901
+fd00::0102:0300/120 via if9 nexthop fd00::c0a8:0302
+fd00::0102:0304/128 via if10 nexthop fd00::c0a8:0901
 ```
 
 The first three queries matched the second, the first, and could not be found; after deleting the second entry of the routing table, the first two queries matched the first entry, and the third could not be found; after the routing table was deleted, all three could not be found.
