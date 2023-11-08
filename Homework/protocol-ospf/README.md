@@ -2,16 +2,16 @@
 
 ## 题目描述
 
-这一题要求你实现 [RFC 5340: OSPF for IPv6](https://datatracker.ietf.org/doc/html/rfc5340/) 数据格式的处理，你需要按照 `protocol_ospf.cpp` 文件中函数的注释，实现如下两个函数：
+这一题要求你实现 [RFC 5340: OSPF for IPv6](https://datatracker.ietf.org/doc/html/rfc5340/) 数据格式的处理，你需要按照 `protocol_ospf.h` 文件中函数的注释，在 `protocol_ospf.cpp` 中实现如下两个函数：
 
 ```cpp
-// 函数注释见代码
+// 函数注释见 protocol_ospf.h
 OspfErrorCode parse_ip(const uint8_t *packet, uint32_t len, const uint8_t **lsa_start, int *lsa_num) {
   // TODO
   return OspfErrorCode::SUCCESS;
 }
 
-// 函数注释见代码
+// 函数注释见 protocol_ospf.h
 OspfErrorCode disassemble(const uint8_t* lsa, uint16_t buf_len, uint16_t *len, RouterLsa *output) {
   // TODO
   return OspfErrorCode::SUCCESS;

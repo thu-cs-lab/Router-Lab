@@ -5,7 +5,7 @@
 You need to implement the following function `validateAndFillChecksum` in `checksum.cpp`, which takes an IPv6 packet, which after the IPv6 Header must be a UDP or ICMPv6 packet. The function returns whether the checksum is correct or not; also, the checksum in the packet should be filled with the correct value when the function returns, regardless of whether the original checksum is correct or not.
 
 ```cpp
-// See the code for function comments
+// See checksum.h for function comments
 bool validateAndFillChecksum(uint8_t *packet, size_t len) {
   return true;
 }

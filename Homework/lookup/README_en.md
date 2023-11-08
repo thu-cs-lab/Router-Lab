@@ -5,12 +5,12 @@
 This problem requires you to implement routing table updates and lookups, including the following four functions.
 
 ```cpp
-// See code for function comments
+// See lookup.h for function comments
 void update(bool insert, RoutingTableEntry entry) {
   // TODO
 }
 
-// See code for function comments
+// See lookup.h for function comments
 bool prefix_query(in6_addr addr, in6_addr *nexthop, uint32_t *if_index) {
   // TODO
   *nexthop = 0;
@@ -18,13 +18,13 @@ bool prefix_query(in6_addr addr, in6_addr *nexthop, uint32_t *if_index) {
   return false;
 }
 
-// See code for function comments
+// See lookup.h for function comments
 int mask_to_len(in6_addr mask) {
   // TODO
   return -1;
 }
 
-// See code for function comments
+// See lookup.h for function comments
 in6_addr len_to_mask(int len) {
   // TODO
   return 0;

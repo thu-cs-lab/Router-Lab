@@ -5,7 +5,7 @@
 你需要在 `checksum.cpp` 中实现下面的函数 `validateAndFillChecksum`，这个函数接收一个 IPv6 的 packet，在 IPv6 Header 之后一定是一个 UDP 或者 ICMPv6 的 packet。该函数的返回值为 UDP 或者 ICMPv6 中的校验和是否正确；同时，无论原来的校验和是否正确，该函数返回时，packet 中的校验和应该被填充为正确的值。
 
 ```cpp
-// 函数注释见代码
+// 函数注释见 checksum.h
 bool validateAndFillChecksum(uint8_t *packet, size_t len) {
   return true;
 }

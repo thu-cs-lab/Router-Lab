@@ -2,16 +2,16 @@
 
 ## Problem Description
 
-This problem requires you to implement the [RFC 2080: RIPng for IPv6](https://datatracker.ietf.org/doc/html/rfc2080) data format processing. You need to implement the following two functions, as annotated in the functions in the ``protocol.cpp`` file.
+This problem requires you to implement the [RFC 2080: RIPng for IPv6](https://datatracker.ietf.org/doc/html/rfc2080) data format processing. You need to implement the following two functions in `protocol.cpp`, as annotated in the functions in the `protocol.h` file.
 
 ```cpp
-// See the code for the function comments
+// See protocol.h for the function comments
 RipngErrorCode disassemble(const uint8_t *packet, uint32_t len, RipngPacket *output) {
   // TODO
   return RipngErrorCode::SUCCESS;
 }
 
-// See code for function comments
+// See protocol.h for the function comments
 uint32_t assemble(const RipngPacket *ripng, uint8_t *buffer) {
   // TODO
   return 0;

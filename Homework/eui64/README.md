@@ -15,7 +15,7 @@
 你需要在 `eui64.cpp` 文件中实现将这个转换过程实现中在下列的函数中。
 
 ```cpp
-// 函数注释见代码
+// 函数注释见 eui64.h
 in6_addr eui64(const ether_addr mac) {
   in6_addr res = {0};
   // TODO

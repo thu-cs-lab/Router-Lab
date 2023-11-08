@@ -2,16 +2,16 @@
 
 ## 题目描述
 
-这一题要求你实现 [RFC 2080: RIPng for IPv6](https://datatracker.ietf.org/doc/html/rfc2080) 数据格式的处理，你需要按照 `protocol.cpp` 文件中函数的注释，实现如下两个函数：
+这一题要求你实现 [RFC 2080: RIPng for IPv6](https://datatracker.ietf.org/doc/html/rfc2080) 数据格式的处理，你需要按照 `protocol.h` 文件中函数的注释，在 `protocol.cpp` 中实现如下两个函数：
 
 ```cpp
-// 函数注释见代码
+// 函数注释见 protocol.h
 RipngErrorCode disassemble(const uint8_t *packet, uint32_t len, RipngPacket *output) {
   // TODO
   return RipngErrorCode::SUCCESS;
 }
 
-// 函数注释见代码
+// 函数注释见 protocol.h
 uint32_t assemble(const RipngPacket *ripng, uint8_t *buffer) {
   // TODO
   return 0;

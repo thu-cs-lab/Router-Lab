@@ -5,12 +5,12 @@
 这一题要求你实现路由表的更新和查询，包括以下四个函数：
 
 ```cpp
-// 函数注释见代码
+// 函数注释见 lookup.h
 void update(bool insert, RoutingTableEntry entry) {
   // TODO
 }
 
-// 函数注释见代码
+// 函数注释见 lookup.h
 bool prefix_query(in6_addr addr, in6_addr *nexthop, uint32_t *if_index) {
   // TODO
   *nexthop = 0;
@@ -18,13 +18,13 @@ bool prefix_query(in6_addr addr, in6_addr *nexthop, uint32_t *if_index) {
   return false;
 }
 
-// 函数注释见代码
+// 函数注释见 lookup.h
 int mask_to_len(in6_addr mask) {
   // TODO
   return -1;
 }
 
-// 函数注释见代码
+// 函数注释见 lookup.h
 in6_addr len_to_mask(int len) {
   // TODO
   return 0;

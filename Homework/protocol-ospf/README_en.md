@@ -2,16 +2,16 @@
 
 ## Problem Description
 
-This problem requires you to implement the [RFC 5340: OSPF for IPv6](https://datatracker.ietf.org/doc/html/rfc5340/) data format processing. You need to implement the following two functions, as annotated in the functions in the ``protocol_ospf.cpp`` file:
+This problem requires you to implement the [RFC 5340: OSPF for IPv6](https://datatracker.ietf.org/doc/html/rfc5340/) data format processing. You need to implement the following two functions in `protocol_ospf.cpp`, as annotated in the functions in the `protocol_ospf.h` file:
 
 ```cpp
-// See the code for the function comments
+// See protocol_ospf.h for the function comments
 OspfErrorCode parse_ip(const uint8_t *packet, uint32_t len, const uint8_t **lsa_start, int *lsa_num) {
   // TODO
   return OspfErrorCode::SUCCESS;
 }
 
-// See the code for the function comments
+// See protocol_ospf.h for the function comments
 OspfErrorCode disassemble(const uint8_t* lsa, uint16_t buf_len, uint16_t *len, RouterLsa *output) {
   // TODO
   return OspfErrorCode::SUCCESS;
