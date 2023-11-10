@@ -750,7 +750,7 @@ struct LinkStateDB {
 
   // 根据 LSDB 计算出新的路由表
   void recalculateRoutingTable() {
-    // TODO（20 行）
+    // TODO（20-40 行）
     // 根据 own_router_lsa 和 others_lsas 中的 Router-LSA
     // 构建一个有向图（例如用邻接表）
     // 例如：
@@ -762,7 +762,7 @@ struct LinkStateDB {
     // 计算从当前路由器（router_id）到其他路由器的最短距离
     // 并记录到每个路由器的最短路径（例如通过 prev 数组记录）
 
-    // TODO（60 行）
+    // TODO（40-60 行）
     // 对于每个除了本路由器以外的路由器，
     // 如果它可达（距离不等于无穷大），找到最短路径
     // 那么最短路径的第一跳就是 nexthop
@@ -1022,6 +1022,20 @@ void ospf_flood_lsa(Lsa &lsa) {
   printf("Flood LSA to neighbors\n");
   for (int if_index = 0; if_index < N_IFACE_ON_BOARD; if_index++) {
     for (auto &neighbor : neighbors[if_index]) {
+      // 如果 Link state retransmission list 已经有该 LSA，则删除已有的
+      for (int k = 0; k < neighbor.link_state_retransmission_list.size(); k++) {
+        if (neighbor.link_state_retransmission_list[k].type == lsa.type &&
+            neighbor.link_state_retransmission_list[k].get_link_state_id() ==
+                lsa.get_link_state_id() &&
+            neighbor.link_state_retransmission_list[k]
+                    .get_advertising_router() == lsa.get_advertising_router()) {
+          printf("Remove old lsa from retransmission list\n");
+          neighbor.link_state_retransmission_list.erase(
+              neighbor.link_state_retransmission_list.begin() + k);
+          k--;
+        }
+      }
+
       // 记录到 Link state retransmission list 中，用于重传 LSA
       neighbor.link_state_retransmission_list.push_back(lsa);
 
@@ -1144,7 +1158,7 @@ int main(int argc, char *argv[]) {
         // Router ID 为本路由器的 router_id（注意端序）
         // Area ID、Instance 和 Zero 等于 0
         // OSPF Hello 部分：
-        // Interface ID 等于 0
+        // Interface ID 等于 i（注意端序）
         // Router Priority 等于 1
         // Options 等于 0x13 = V6(0x1) | E(0x2) | R(0x10)（注意端序）
         // Hello Interval 等于 5s（注意端序）
@@ -1970,7 +1984,10 @@ int main(int argc, char *argv[]) {
                         ntohl(ospf->lsa_header[j].link_state_id) &&
                     link_state_retransmission_list[k]
                             .get_advertising_router() ==
-                        ntohl(ospf->lsa_header[j].advertising_router)) {
+                        ntohl(ospf->lsa_header[j].advertising_router) &&
+                    link_state_retransmission_list[k]
+                            .get_ls_sequence_number() ==
+                        ntohl(ospf->lsa_header[j].ls_sequence_number)) {
                   printf("Remove acknowledged lsa from retransmission list\n");
                   link_state_retransmission_list.erase(
                       link_state_retransmission_list.begin() + k);
