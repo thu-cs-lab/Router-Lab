@@ -1045,6 +1045,33 @@ void ospf_flood_lsa(Lsa &lsa) {
   }
 }
 
+void ospf_finish_sync(int if_index, OspfNeighbor *neighbor) {
+  // 和邻居路由器完成了 LSDB 同步，进入 Full 状态
+  // 更新 Router LSA，添加 neighbor
+  // RFC 2328 Page 83
+  // "When this synchronization is finished, the neighbor
+  // is in state Full and we say that the two routers are
+  // fully adjacent.  At this point the adjacency is listed in
+  // LSAs."
+  RouterLsaEntry entry;
+  // Point-to-point connection to another router
+  entry.type = 1;
+  entry.metric = 1;
+  entry.interface_id = if_index;
+  entry.neighbor_router_id = neighbor->router_id;
+  entry.neighbor_interface_id = neighbor->interface_id;
+  lsdb.own_router_lsa.entries.push_back(entry);
+  lsdb.own_router_lsa.ls_sequence_number += 1;
+  // 更新路由表
+  lsdb.recalculateRoutingTable();
+
+  // 广播 LSA 更新
+  Lsa lsa;
+  lsa.type = OSPF_ROUTER_LSA;
+  lsa.router_lsa = lsdb.own_router_lsa;
+  ospf_flood_lsa(lsa);
+}
+
 int main(int argc, char *argv[]) {
   // 初始化 HAL
   int res = HAL_Init(1, addrs);
@@ -1568,9 +1595,13 @@ int main(int argc, char *argv[]) {
               // listed in the Link state request list associated with the
               // neighbor."
               if (neighbor->link_state_request_list.empty()) {
+                // 和邻居路由器完成了 LSDB 同步，进入 Full 状态
                 printf("Neighbor %s enters Full state\n",
                        neighbor_router_id_buffer);
                 neighbor->state = NeighborFull;
+
+                // 更新 Router LSA，添加 neighbor
+                ospf_finish_sync(if_index, neighbor);
               } else {
                 printf("Neighbor %s enters Loading state\n",
                        neighbor_router_id_buffer);
@@ -1783,26 +1814,13 @@ int main(int argc, char *argv[]) {
                   // Event:  Loading Done
                   // New state:  Full"
                   if (link_state_request_list.empty()) {
+                    // 和邻居路由器完成了 LSDB 同步，进入 Full 状态
                     printf("Neighbor %s enters Full state\n",
                            neighbor_router_id_buffer);
                     neighbor->state = NeighborFull;
 
                     // 更新 Router LSA，添加 neighbor
-                    RouterLsaEntry entry;
-                    // Point-to-point connection to another router
-                    entry.type = 1;
-                    entry.metric = 1;
-                    entry.interface_id = if_index;
-                    entry.neighbor_router_id = neighbor->router_id;
-                    entry.neighbor_interface_id = neighbor->interface_id;
-                    lsdb.own_router_lsa.entries.push_back(entry);
-                    lsdb.own_router_lsa.ls_sequence_number += 1;
-
-                    // 广播 LSA 更新
-                    Lsa lsa;
-                    lsa.type = OSPF_ROUTER_LSA;
-                    lsa.router_lsa = lsdb.own_router_lsa;
-                    ospf_flood_lsa(lsa);
+                    ospf_finish_sync(if_index, neighbor);
                   }
                 }
               }
