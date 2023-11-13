@@ -749,7 +749,11 @@ struct LinkStateDB {
   }
 
   // 根据 LSDB 计算出新的路由表
+  // RFC 2328 16.  Calculation of the routing table
+  // https://lab.cs.tsinghua.edu.cn/router/doc/software/second_stage/static/rfc2328.html#section-16
   void recalculateRoutingTable() {
+    // RFC 2328 16.1.  Calculating the shortest-path tree for an area (Stage 1)
+    // https://lab.cs.tsinghua.edu.cn/router/doc/software/second_stage/static/rfc2328.html#section-16.1
     // TODO（20-40 行）
     // 根据 own_router_lsa 和 others_lsas 中的 Router-LSA
     // 构建一个有向图（例如用邻接表）
@@ -760,9 +764,21 @@ struct LinkStateDB {
     // TODO（30 行）
     // 实现 Dijkstra 算法
     // 计算从当前路由器（router_id）到其他路由器的最短距离
-    // 并记录到每个路由器的最短路径（例如通过 prev 数组记录）
 
+    // RFC 2328 16.1.1.  The next hop calculation
+    // https://lab.cs.tsinghua.edu.cn/router/doc/software/second_stage/static/rfc2328.html#section-16.1.1
     // TODO（40-60 行）
+    // 记录每个路由器的 nexthop（下一跳）
+    // "If there is at least one intervening router in the current shortest path
+    // between the destination and the root, the destination simply inherits the
+    // set of next hops from the parent.  Otherwise, ...,  the parent vertex is
+    // the root (the calculating router itself).  This means that the
+    // destination is either a directly connected network or directly connected
+    // router.  The outgoing interface in this case is simply the OSPF interface
+    // connecting to the destination network/router."
+
+    // 也可以记录到每个路由器的最短路径（例如通过 prev 数组记录），
+    // 然后计算 nexthop：
     // 对于每个除了本路由器以外的路由器，
     // 如果它可达（距离不等于无穷大），找到最短路径
     // 那么最短路径的第一跳就是 nexthop
@@ -770,23 +786,27 @@ struct LinkStateDB {
     // A 到 D 的最短路径是 A-B-C-D
     // 因此 A 到 D 的最短路径上的 nexthop 是 B
 
+    // RFC 2328 16.1.  Calculating the shortest-path tree for an area (Stage 2)
+    // https://lab.cs.tsinghua.edu.cn/router/doc/software/second_stage/static/rfc2328.html#page-166
     // 枚举所有路由器的所有 Intra-Area-Prefix-LSA
     // 根据它的 Reference Advertising Router，得到它的距离
     // 例如：当前路由器是 A，A 连接到 B，B 连接到 C，C 连接到 N 网络
     // C 会给 N 网络产生一个 Intra-Area-Prefix-LSA
     // 于是 A 到 N 网络的距离，就是 A 到 C 的距离（Dijkstra 算法求得），加上 C
     // 到 N 的距离（IntraAreaPrefixLSAEntry.metric 字段）
-    // 对于每个路由前缀（N 网络），找到它距离最近的一个路径（A-B-C-N）和对应的
+    // RFC 2328 16.1.1.  The next hop calculation
+    // https://lab.cs.tsinghua.edu.cn/router/doc/software/second_stage/static/rfc2328.html#section-16.1.1
+    // 对于每个路由前缀（N 网络），找到它距离最近的一个路径（A-B-C-N）所对应的
     // nexthop（B）和 if_index（A 连往 B 的 if_index，可以在邻居表中找到），
     // 插入路由表（使用 lookup 小作业的 update 函数）
     //
     // 注意同一个网络可能有多个 Intra-Area-Prefix-LSA，例如：
-    // A 连接到 B，B 连接到 C：A-B-C
-    // B 会给 B 到 C 的网络 N1 产生 Intra-Area-Prefix-LSA。
-    // C 也会给 C 到 B 的网络 N2 产生 Intra-Area-Prefix-LSA：
-    //        N1  N2
-    // A -- B ------ C
-    // 此时距离更近的路径是 A-B-N1，而不是 A-B-C-N2。
+    // A 连接到 B，B 连接到 C：A-B-C；
+    // B 会给 B 到 C 的网络 N 产生 Intra-Area-Prefix-LSA；
+    // C 也会给 C 到 B 的网络 N 产生 Intra-Area-Prefix-LSA：
+    //          N
+    // A -- B ----- C
+    // 此时距离更近的路径是 A-B-N，而不是 A-B-C-N。
   }
 };
 
@@ -1197,11 +1217,9 @@ int main(int argc, char *argv[]) {
         // "In order to ensure two-way communication between adjacent routers,
         // the Hello packet contains the list of all routers on the network from
         // which Hello Packets have been seen recently."
-        for (int j = 0; j < neighbors[i].size(); j++) {
-          // TODO（1 行）
-          // 对于 neighbors[i] 里的每个邻居 neighbors[i][j] 的 Router ID
-          // 把它填入 OSPF Hello 的 neighbor_id 中
-        }
+        // TODO（3 行）
+        // 对于 neighbors[i] 里的每个邻居 neighbors[i][j] 的 Router ID
+        // 把它填入 OSPF Hello 的 neighbor_id 中
 
         uint16_t ip_len = ospf_len + sizeof(ip6_hdr);
         reply_ip6->ip6_plen = htons(ospf_len);
@@ -1314,9 +1332,9 @@ int main(int argc, char *argv[]) {
         if (ospf_hdr->type == 1 && ospf_hdr->version == 3) {
           // 如果是 OSPF Hello Packet
           // RFC 2328 10.5.  Receiving Hello Packets
-          // https://www.rfc-editor.org/rfc/rfc2328.html#page-96
+          // https://lab.cs.tsinghua.edu.cn/router/doc/software/second_stage/static/rfc2328.html#section-10.5
           // RFC 5340 4.2.2.1.  Receiving Hello Packets
-          // https://www.rfc-editor.org/rfc/rfc5340.html#section-4.2.2.1
+          // https://lab.cs.tsinghua.edu.cn/router/doc/software/second_stage/static/rfc5340.html#section-4.2.2.1
 
           ospf_hello *hello = (ospf_hello *)&packet[sizeof(ip6_hdr)];
           printf("Received OSPF Hello Packet from %s\n",
@@ -1340,81 +1358,78 @@ int main(int argc, char *argv[]) {
             int num_neighbors =
                 (ntohl(ospf_hdr->length) - sizeof(struct ospf_hello)) /
                 sizeof(uint32_t);
-            for (int i = 0; i < num_neighbors; i++) {
-              // TODO（1 行）
-              // 修改这个检查，完成 Hello 的协商判断 当发现对方发送的 OSPF Hello
-              // 的 neighbor 列表出现了本路由器的 router id，进入分支
-              if (false) {
-                printf("Neighbor %s enters ExStart state\n",
-                       neighbor_router_id_buffer);
-                neighbor->state = NeighborExStart;
+            // TODO（8 行）
+            // 修改这个检查，完成 Hello 的协商判断：当发现对方发送的 OSPF Hello
+            // 的 neighbor 列表中出现了本路由器的 router id，进入分支
+            if (false) {
+              printf("Neighbor %s enters ExStart state\n",
+                     neighbor_router_id_buffer);
+              neighbor->state = NeighborExStart;
 
-                // RFC2328 Page 91
-                // "... starts sending Database Description Packets, ...
-                // This Database Description Packet should be otherwise
-                // empty."
-                // 发送 Database Description
-                ether_addr mac;
-                HAL_GetInterfaceMacAddress(if_index, &mac);
+              // RFC2328 Page 91
+              // "... starts sending Database Description Packets, ...
+              // This Database Description Packet should be otherwise
+              // empty."
+              // 发送 Database Description
+              ether_addr mac;
+              HAL_GetInterfaceMacAddress(if_index, &mac);
 
-                // IPv6 header
-                ip6_hdr *reply_ip6 = (ip6_hdr *)&output[0];
-                // flow label
-                reply_ip6->ip6_flow = 0;
-                // version
-                reply_ip6->ip6_vfc = 6 << 4;
-                // next header
-                reply_ip6->ip6_nxt = 89;
-                // hop limit
-                reply_ip6->ip6_hlim = 1;
-                // src ip
-                reply_ip6->ip6_src = eui64(mac);
-                // dst ip
-                reply_ip6->ip6_dst = ip6->ip6_src;
+              // IPv6 header
+              ip6_hdr *reply_ip6 = (ip6_hdr *)&output[0];
+              // flow label
+              reply_ip6->ip6_flow = 0;
+              // version
+              reply_ip6->ip6_vfc = 6 << 4;
+              // next header
+              reply_ip6->ip6_nxt = 89;
+              // hop limit
+              reply_ip6->ip6_hlim = 1;
+              // src ip
+              reply_ip6->ip6_src = eui64(mac);
+              // dst ip
+              reply_ip6->ip6_dst = ip6->ip6_src;
 
-                uint16_t ospf_len = sizeof(struct ospf_database_description);
-                ospf_database_description *reply_ospf =
-                    (ospf_database_description *)&output[sizeof(ip6_hdr)];
-                // OSPFv3
-                reply_ospf->header.version = 3;
-                // Database Description
-                reply_ospf->header.type = 2;
-                reply_ospf->header.length = htons(ospf_len);
-                reply_ospf->header.router_id = htonl(router_id);
-                reply_ospf->header.area_id = 0;
-                reply_ospf->header.instance = 0;
-                reply_ospf->header.zero = 0;
+              uint16_t ospf_len = sizeof(struct ospf_database_description);
+              ospf_database_description *reply_ospf =
+                  (ospf_database_description *)&output[sizeof(ip6_hdr)];
+              // OSPFv3
+              reply_ospf->header.version = 3;
+              // Database Description
+              reply_ospf->header.type = 2;
+              reply_ospf->header.length = htons(ospf_len);
+              reply_ospf->header.router_id = htonl(router_id);
+              reply_ospf->header.area_id = 0;
+              reply_ospf->header.instance = 0;
+              reply_ospf->header.zero = 0;
 
-                reply_ospf->zero = 0;
-                // V6(0x1) | E(0x2) | R(0x10)
-                reply_ospf->options = htons(0x1 | 0x2 | 0x10);
-                // MTU = 1500
-                reply_ospf->interface_mtu = htons(1500);
+              reply_ospf->zero = 0;
+              // V6(0x1) | E(0x2) | R(0x10)
+              reply_ospf->options = htons(0x1 | 0x2 | 0x10);
+              // MTU = 1500
+              reply_ospf->interface_mtu = htons(1500);
 
-                // RFC2328 Page 91
-                // "It then declares itself master (sets the master/slave
-                // bit to master), and starts sending Database Description
-                // Packets, with the initialize (I), more (M) and master
-                // (MS) bits set."
-                // I(0x4) | M(0x2) | MS(0x1)
-                reply_ospf->flags = htons(0x4 | 0x2 | 0x1);
+              // RFC2328 Page 91
+              // "It then declares itself master (sets the master/slave
+              // bit to master), and starts sending Database Description
+              // Packets, with the initialize (I), more (M) and master
+              // (MS) bits set."
+              // I(0x4) | M(0x2) | MS(0x1)
+              reply_ospf->flags = htons(0x4 | 0x2 | 0x1);
 
-                // set initial sequence number
-                // RFC2328 Page 91
-                // "... the DD sequence number should be assigned some
-                // unique value (like the time of day clock)."
-                uint32_t seq_num = rand();
-                neighbor->dd_sequence_number = seq_num;
-                reply_ospf->sequence_number = htonl(seq_num);
+              // set initial sequence number
+              // RFC2328 Page 91
+              // "... the DD sequence number should be assigned some
+              // unique value (like the time of day clock)."
+              uint32_t seq_num = rand();
+              neighbor->dd_sequence_number = seq_num;
+              reply_ospf->sequence_number = htonl(seq_num);
 
-                uint16_t ip_len = ospf_len + sizeof(ip6_hdr);
-                reply_ip6->ip6_plen = htons(ospf_len);
+              uint16_t ip_len = ospf_len + sizeof(ip6_hdr);
+              reply_ip6->ip6_plen = htons(ospf_len);
 
-                // compute checksum
-                validateAndFillChecksum(output, ip_len);
-                HAL_SendIPPacket(if_index, output, ip_len, src_mac);
-                break;
-              }
+              // compute checksum
+              validateAndFillChecksum(output, ip_len);
+              HAL_SendIPPacket(if_index, output, ip_len, src_mac);
             }
           }
 
