@@ -675,6 +675,9 @@ struct OspfNeighbor {
 // 邻居状态，每个接口上允许有多个邻居
 std::vector<struct OspfNeighbor> neighbors[N_IFACE_ON_BOARD];
 
+// forward declaration
+void ospf_remove_lsa_from_retransmission(Lsa &lsa);
+
 // RFC 2328 Page 121 12.2. The link state database
 // 主机字节序
 struct LinkStateDB {
@@ -731,6 +734,9 @@ struct LinkStateDB {
         // 匹配到了，判断是否 new_lsa 比 lsa 新
 
         if (new_lsa.get_ls_sequence_number() > lsa.get_ls_sequence_number()) {
+          // 从 Link state retransmission list 删除旧的 LSA
+          ospf_remove_lsa_from_retransmission(lsa);
+
           // 更新 LSA
           lsa = new_lsa;
           printf("LSA updated\n");
@@ -1049,20 +1055,6 @@ void ospf_flood_lsa(Lsa &lsa, uint32_t received_neighbor_router_id) {
         continue;
       }
 
-      // 如果 Link state retransmission list 已经有该 LSA，则删除已有的
-      for (int k = 0; k < neighbor.link_state_retransmission_list.size(); k++) {
-        if (neighbor.link_state_retransmission_list[k].type == lsa.type &&
-            neighbor.link_state_retransmission_list[k].get_link_state_id() ==
-                lsa.get_link_state_id() &&
-            neighbor.link_state_retransmission_list[k]
-                    .get_advertising_router() == lsa.get_advertising_router()) {
-          printf("Remove old lsa from retransmission list\n");
-          neighbor.link_state_retransmission_list.erase(
-              neighbor.link_state_retransmission_list.begin() + k);
-          k--;
-        }
-      }
-
       // 记录到 Link state retransmission list 中，用于重传 LSA
       neighbor.link_state_retransmission_list.push_back(lsa);
 
@@ -1073,6 +1065,12 @@ void ospf_flood_lsa(Lsa &lsa, uint32_t received_neighbor_router_id) {
 }
 
 void ospf_finish_sync(int if_index, OspfNeighbor *neighbor) {
+  // 从 Link state retransmission list 删除旧的 LSA
+  Lsa lsa;
+  lsa.type = OSPF_ROUTER_LSA;
+  lsa.router_lsa = lsdb.own_router_lsa;
+  ospf_remove_lsa_from_retransmission(lsa);
+
   // 和邻居路由器完成了 LSDB 同步，进入 Full 状态
   // 更新 Router LSA，添加 neighbor
   // RFC 2328 Page 83
@@ -1093,10 +1091,39 @@ void ospf_finish_sync(int if_index, OspfNeighbor *neighbor) {
   lsdb.recalculateRoutingTable();
 
   // 广播 LSA 更新
-  Lsa lsa;
   lsa.type = OSPF_ROUTER_LSA;
   lsa.router_lsa = lsdb.own_router_lsa;
   ospf_flood_lsa(lsa, router_id);
+}
+
+void ospf_remove_lsa_from_retransmission(Lsa &lsa) {
+  // LSA 被更新或删除前，也要从 Link state retransmission list 删除该 LSA
+  // RFC 2328 Page 122
+  // "An LSA is deleted from a router's database when either a) it has
+  // been overwritten by a newer instance during the flooding process
+  // (Section 13) or b) the router originates a newer instance of one of
+  // its self-originated LSAs (Section 12.4) or c) the LSA ages out and
+  // is flushed from the routing domain (Section 14).  Whenever an LSA
+  // is deleted from the database it must also be removed from all
+  // neighbors' Link state retransmission lists (see Section 10)."
+  for (int if_index = 0; if_index < N_IFACE_ON_BOARD; if_index++) {
+    for (auto &neighbor : neighbors[if_index]) {
+      for (int k = 0; k < neighbor.link_state_retransmission_list.size(); k++) {
+        if (neighbor.link_state_retransmission_list[k].type == lsa.type &&
+            neighbor.link_state_retransmission_list[k].get_link_state_id() ==
+                lsa.get_link_state_id() &&
+            neighbor.link_state_retransmission_list[k]
+                    .get_advertising_router() == lsa.get_advertising_router() &&
+            neighbor.link_state_retransmission_list[k]
+                    .get_ls_sequence_number() == lsa.get_ls_sequence_number()) {
+          printf("Remove old lsa from retransmission list\n");
+          neighbor.link_state_retransmission_list.erase(
+              neighbor.link_state_retransmission_list.begin() + k);
+          k--;
+        }
+      }
+    }
+  }
 }
 
 int main(int argc, char *argv[]) {
