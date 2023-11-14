@@ -1037,11 +1037,18 @@ void ospf_send_ls_update(int if_index, OspfNeighbor &neighbor, Lsa &lsa) {
   }
 }
 
-void ospf_flood_lsa(Lsa &lsa) {
+void ospf_flood_lsa(Lsa &lsa, uint32_t received_neighbor_router_id) {
   // 向每个邻居路由器发送 OSPF LS Update Packet
   printf("Flood LSA to neighbors\n");
   for (int if_index = 0; if_index < N_IFACE_ON_BOARD; if_index++) {
     for (auto &neighbor : neighbors[if_index]) {
+      // RFC 2328 Page 150
+      // "(c) If the new LSA was received from this neighbor, examine
+      // the next neighbor."
+      if (neighbor.router_id == received_neighbor_router_id) {
+        continue;
+      }
+
       // 如果 Link state retransmission list 已经有该 LSA，则删除已有的
       for (int k = 0; k < neighbor.link_state_retransmission_list.size(); k++) {
         if (neighbor.link_state_retransmission_list[k].type == lsa.type &&
@@ -1089,7 +1096,7 @@ void ospf_finish_sync(int if_index, OspfNeighbor *neighbor) {
   Lsa lsa;
   lsa.type = OSPF_ROUTER_LSA;
   lsa.router_lsa = lsdb.own_router_lsa;
-  ospf_flood_lsa(lsa);
+  ospf_flood_lsa(lsa, router_id);
 }
 
 int main(int argc, char *argv[]) {
@@ -1905,7 +1912,7 @@ int main(int argc, char *argv[]) {
                 // 把 LSA 更新到 lsdb
                 if (lsdb.updateLSA(lsa)) {
                   // 需要 flood
-                  ospf_flood_lsa(lsa);
+                  ospf_flood_lsa(lsa, neighbor_router_id);
                   // 更新路由表
                   lsdb.recalculateRoutingTable();
                 }
