@@ -1049,6 +1049,14 @@ void ospf_flood_lsa(Lsa &lsa, uint32_t received_neighbor_router_id) {
   for (int if_index = 0; if_index < N_IFACE_ON_BOARD; if_index++) {
     for (auto &neighbor : neighbors[if_index]) {
       // RFC 2328 Page 150
+      // "(a) If the neighbor is in a lesser state than Exchange, it
+      // does not participate in flooding, and the next neighbor
+      // should be examined."
+      if (neighbor.state < NeighborExchange) {
+        continue;
+      }
+
+      // RFC 2328 Page 150
       // "(c) If the new LSA was received from this neighbor, examine
       // the next neighbor."
       if (neighbor.router_id == received_neighbor_router_id) {
