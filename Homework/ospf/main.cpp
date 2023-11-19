@@ -813,6 +813,8 @@ struct LinkStateDB {
     //          N
     // A -- B ----- C
     // 此时距离更近的路径是 A-B-N，而不是 A-B-C-N。
+    //
+    // 同时注意避免把在 main 函数里预设的路由表条目覆盖成错误的
   }
 };
 
@@ -1207,6 +1209,20 @@ int main(int argc, char *argv[]) {
     entry.address_prefix = addrs[i] & mask;
     lsdb.own_intra_area_prefix_lsa.entries.push_back(entry);
   }
+#ifdef ROUTER_INTERCONNECT
+  // 互联测试
+  // 添加路由：
+  // fd00::1:0/112 via fd00::3:1 if 0
+  {
+    IntraAreaPrefixLsaEntry entry;
+    entry.prefix_length = 112;
+    entry.prefix_options = 0;
+    entry.metric = 1;
+    entry.address_prefix = {0xfd, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                            0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00};
+    lsdb.own_intra_area_prefix_lsa.entries.push_back(entry);
+  }
+#endif
 
   uint64_t last_time = 0;
   while (1) {
