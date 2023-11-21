@@ -83,7 +83,7 @@ typedef struct ripng_hdr {
 // is never propagated across a router, there is no danger of an MTU
 // mismatch.  The determination of the number of RTEs which may be put
 // into a given message is a function of the medium's MTU, the number of
-// octets of header information preceeding the RIPng message, the size
+// octets of header information preceding the RIPng message, the size
 // of the RIPng header, and the size of an RTE.  The formula is:"
 //             +-                                                   -+
 //             | MTU - sizeof(IPv6_hdrs) - UDP_hdrlen - RIPng_hdrlen |
@@ -111,7 +111,7 @@ typedef struct {
   // "A next hop RTE is identified by a value of 0xFF in the metric field
   // of an RTE.  The prefix field specifies the IPv6 address of the next
   // hop.  The route tag and prefix length in the next hop RTE must be set
-  // to zero on sending and ignored on receiption."
+  // to zero on sending and ignored on reception."
   in6_addr prefix_or_nh;
   // 网络字节序存储
   // Saved in network byte order
