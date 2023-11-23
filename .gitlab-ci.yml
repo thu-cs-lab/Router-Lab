@@ -35,6 +35,10 @@ router:
         - make -C Homework/tftp/pc2
         - make -C Homework/tftp/r2
         - make -C Homework/dhcpv6/r1
+        - make -C Homework/ospf/r1
+        - make -C Homework/ospf/r2
+        - make -C Homework/ospf/r3
+        - make -C Homework/ospf/interconnect-r2
     artifacts:
         paths:
             - Homework/router/r1/router
@@ -48,5 +52,9 @@ router:
             - Homework/tftp/r2/client
             - Homework/tftp/r2/server
             - Homework/dhcpv6/r1/router
+            - Homework/ospf/r1/router
+            - Homework/ospf/r2/router
+            - Homework/ospf/r3/router
+            - Homework/ospf/interconnect-r2/router
         when: always
         expire_in: 1 year

@@ -1,4 +1,5 @@
 #!/bin/sh
 # Test 5
-# Ping fd00::5:1 with hop limit = 3
-ip netns exec PC1 ping6 -c 4 -t 3 fd00::5:1
+# You need to ensure that PC1 receives dynamic IPv6 via dhcpcd
+# Ping fd00::3:2
+ip netns exec PC1 ping6 -c4 fd00::3:2

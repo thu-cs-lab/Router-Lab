@@ -232,7 +232,7 @@ enum OspfType {
 };
 
 // RFC 2328 B. Architectural Constants
-// https://datatracker.ietf.org/doc/html/rfc2328#appendix-B
+// https://lab.cs.tsinghua.edu.cn/router/doc/software/second_stage/static/rfc2328.html#appendix-B
 // MaxAge
 // The maximum age that an LSA can attain. When an LSA's LS age
 // field reaches MaxAge, it is reflooded in an attempt to flush the
@@ -242,7 +242,7 @@ enum OspfType {
 const uint16_t LSA_MAX_AGE = 3600;
 
 // RFC 2328 12.1.6. LS Sequence Number
-// https://datatracker.ietf.org/doc/html/rfc2328#page-120
+// https://lab.cs.tsinghua.edu.cn/router/doc/software/second_stage/static/rfc2328.html#section-12.1.6
 // The sequence number -N (0x80000000) is reserved (and
 // unused).
 const uint32_t RESERVED_LS_SEQ = 0x80000000;
