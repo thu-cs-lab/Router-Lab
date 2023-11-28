@@ -25,7 +25,7 @@ OspfErrorCode disassemble(const uint8_t* lsa, uint16_t buf_len, uint16_t *len, R
 
 需要注意的是，这一题中所有数据都是网络传输的数据格式，所以每一个 OSPF 数据字段都是网络字节序。
 
-评测所使用的数据都在 `data` 目录下。输入一共有 $n$ 个 IPv6 分组，`main.cpp` 会调用你的代码来判断每个分组是不是一个合法的 OSPF 报文。如果合法，则保存下来，输出一行 `Success`。之后是 `lsa_num` 组，每一组先输出 LSA 类型和相应的 LSA 长度。如果 LSA 是 Router-LSA，就进一步输出其 `ls_age` `link_state_id` `advertising_router` 和 `ls_sequence_number`。如果 Router-LSA 含有一些 Entry，则对于每个 Entry，先输出一行 `Entry`，再进一步输出对应的 `type` `metric` `interface_id` `neighbor_interface_id` `neighbor_router_id`。如果不合法，就输出不合法的地方。
+评测所使用的数据都在 `data` 目录下。输入一共有 $n$ 个 IPv6 分组，`main.cpp` 会调用你的代码来判断每个分组是不是一个合法的 OSPF LS Update 报文。如果合法，则保存下来，输出一行 `Success`。之后是 `lsa_num` 组，每一组先输出 LSA 类型和相应的 LSA 长度。如果 LSA 是 Router-LSA，就进一步输出其 `ls_age` `link_state_id` `advertising_router` 和 `ls_sequence_number`。如果 Router-LSA 含有一些 Entry，则对于每个 Entry，先输出一行 `Entry`，再进一步输出对应的 `type` `metric` `interface_id` `neighbor_interface_id` `neighbor_router_id`。如果不合法，就输出不合法的地方。
 
 ## 样例 1
 
