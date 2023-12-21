@@ -1414,7 +1414,7 @@ int main(int argc, char *argv[]) {
           // neighbor state transitions to ExStart."
           if (neighbor_found && neighbor->state == NeighborInit) {
             int num_neighbors =
-                (ntohl(ospf_hdr->length) - sizeof(struct ospf_hello)) /
+                (ntohs(ospf_hdr->length) - sizeof(struct ospf_hello)) /
                 sizeof(uint32_t);
             // TODO（8 行）
             // 修改这个检查，完成 Hello 的协商判断：当发现对方发送的 OSPF Hello
