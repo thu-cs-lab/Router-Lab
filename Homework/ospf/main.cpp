@@ -774,7 +774,7 @@ struct LinkStateDB {
     // RFC 2328 16.1.1.  The next hop calculation
     // https://lab.cs.tsinghua.edu.cn/router/doc/software/second_stage/static/rfc2328.html#section-16.1.1
     // TODO（40-60 行）
-    // 记录每个路由器的 nexthop（下一跳）
+    // 直接记录每个路由器的 nexthop（下一跳）
     // "If there is at least one intervening router in the current shortest path
     // between the destination and the root, the destination simply inherits the
     // set of next hops from the parent.  Otherwise, ...,  the parent vertex is
@@ -803,7 +803,8 @@ struct LinkStateDB {
     // RFC 2328 16.1.1.  The next hop calculation
     // https://lab.cs.tsinghua.edu.cn/router/doc/software/second_stage/static/rfc2328.html#section-16.1.1
     // 对于每个路由前缀（N 网络），找到它距离最近的一个路径（A-B-C-N）所对应的
-    // nexthop（B）和 if_index（A 连往 B 的 if_index，可以在邻居表中找到），
+    // nexthop（B）、nexthop IP 地址（邻居 B 的 IP 地址，可以在邻居表中找到）
+    // 和 nexthop if_index（A 连往 B 的 if_index，可以在查找邻居表时获得），
     // 插入路由表（使用 lookup 小作业的 update 函数）
     //
     // 注意同一个网络可能有多个 Intra-Area-Prefix-LSA，例如：
