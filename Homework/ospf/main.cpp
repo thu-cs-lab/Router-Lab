@@ -1232,6 +1232,8 @@ int main(int argc, char *argv[]) {
     if (time > last_time + 5 * 1000) {
       // 提示：你可以打印完整的路由表到 stdout/stderr 来帮助调试。
       printf("5s Timer\n");
+      // 清空 stdout 缓冲区，使得评测时能够观察到 OSPF 完成 LSDB 同步的日志
+      fflush(stdout);
 
       for (int i = 0; i < N_IFACE_ON_BOARD; i++) {
         ether_addr mac;
