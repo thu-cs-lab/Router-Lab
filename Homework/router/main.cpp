@@ -320,7 +320,8 @@ int main(int argc, char *argv[]) {
         // 意味着发送的 ICMP Time Exceeded packet 大小不大于 IPv6 Minimum MTU
         // 不会因为 MTU 问题被丢弃。
         // 详见 RFC 4443 Section 3.3 Time Exceeded Message
-        // 计算 Checksum 后由自己的 IPv6 地址发送给源 IPv6 地址。
+        // 计算 Checksum 后由自己的 IPv6 地址（不能使用 Link Local 地址）
+        // 发送给原始分组的源 IPv6 地址。
       } else {
         // 转发给下一跳
         // 按最长前缀匹配查询路由表
@@ -354,7 +355,8 @@ int main(int argc, char *argv[]) {
           // 要求与上面发送 ICMPv6 Time Exceeded 消息一致
           // Code 取 0，表示 No route to destination
           // 详见 RFC 4443 Section 3.1 Destination Unreachable Message
-          // 计算 Checksum 后由自己的 IPv6 地址发送给源 IPv6 地址。
+          // 计算 Checksum 后由自己的 IPv6 地址（不能使用 Link Local 地址）
+          // 发送给原始分组的源 IPv6 地址。
 
           printf("Destination IP %s not found in routing table",
                  inet6_ntoa(ip6->ip6_dst));
