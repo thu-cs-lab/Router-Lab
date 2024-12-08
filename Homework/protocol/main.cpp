@@ -6,8 +6,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-uint8_t buffer[2048];
-uint8_t packet[2048];
+uint8_t buffer[2048] __attribute__((aligned(4)));
+uint8_t packet[2048] __attribute__((aligned(4)));
 RipngPacket ripng;
 in6_addr addrs[N_IFACE_ON_BOARD] = {0};
 char addr_buffer[1024];

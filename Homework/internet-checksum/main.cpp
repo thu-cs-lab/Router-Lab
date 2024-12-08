@@ -5,7 +5,7 @@
 #include "checksum.h"
 
 in6_addr addrs[N_IFACE_ON_BOARD] = {0};
-uint8_t packet[1024];
+uint8_t packet[1024] __attribute__((aligned(4)));
 
 int main(int argc, char *argv[]) {
   int res = HAL_Init(0, addrs);

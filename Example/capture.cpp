@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-uint8_t packet[2048];
+uint8_t packet[2048] __attribute__((aligned(4)));
 bool cont = false;
 
 // fd00::0:1 ~ fd00::3:1
