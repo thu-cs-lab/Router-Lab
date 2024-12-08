@@ -1288,7 +1288,7 @@ int main(int argc, char *argv[]) {
         // compute checksum
         // TODO（5 行）
         // 修改 checksum 小作业，加入对 OSPF 的支持
-        // OSPF 和 ICMPv6 类似，区别是 OSPF 的 ip6_nxt 是 89
+        // OSPF 和 ICMPv6 类似，区别是 OSPF 的 ip6_nxt 是 89，以及 checksum 字段的位置不同
         validateAndFillChecksum(output, ip_len);
         HAL_SendIPPacket(i, output, ip_len,
                          {0x33, 0x33, 0x00, 0x00, 0x00, 0x05});
