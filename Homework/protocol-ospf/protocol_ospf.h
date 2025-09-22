@@ -39,11 +39,13 @@ enum OspfErrorCode {
   // LSA 的 sequence number 字段为保留值
   // The sequence number field of LSA is a reserved value
   ERR_LS_SEQ,
-  // Router-LSA 的项目不完整，即项目的总长度不是 16 的倍数
-  // The Router-LSA entries are incomplete, that is, the total length of the
-  // entries
-  // is not a multiple of 16
-  ERR_ROUTER_LSA_INCOMPLETE_ENTRY,
+  // Router-LSA 的长度不正确，即项目的总长度不是 16 的倍数，或 header 中宣称的 LSA 长
+  // 度小于 LSA header 与 Router-LSA 中标志、零和选项字段长度之和
+  // The length of Router-LSA is incorrect, that is, the total length of the
+  // entries is not a multiple of 16, or the length of LSA claimed in the header
+  // of Router-LSA cannot accommodate the sum of the lengths of the LSA header and
+  // the flags, zero and options fields in the Router-LSA
+  ERR_ROUTER_LSA_LENGTH,
   // Router-LSA entry 的类型不正确，正确的类型应为 1 - 4
   // The type of Router-LSA entry is incorrect, and the correct type should be
   // 1 - 4
@@ -51,6 +53,10 @@ enum OspfErrorCode {
   // 头部的 reserved 字段不为 0
   // The reserved field of the header is not 0
   ERR_BAD_ZERO,
+  // LSA header 中宣称的 LSA 长度小于 LSA header 的长度
+  // The length of LSA claimed in the LSA header cannot accommodate the length
+  // of the LSA header
+  ERR_LSA_LENGTH,
 };
 
 static const char *ospf_error_to_string(OspfErrorCode err) {
@@ -73,12 +79,14 @@ static const char *ospf_error_to_string(OspfErrorCode err) {
     return "LSA age is greater than LSA_MAX_AGE";
   case ERR_LS_SEQ:
     return "LSA sequence number is a reserved value";
-  case ERR_ROUTER_LSA_INCOMPLETE_ENTRY:
-    return "Router-LSA entry is incomplete";
+  case ERR_ROUTER_LSA_LENGTH:
+    return "Router-LSA entry is incomplete, or Router-LSA claimed length is too short";
   case ERR_ROUTER_LSA_ENTRY_TYPE:
     return "Router-LSA entry type is incorrect";
   case ERR_BAD_ZERO:
     return "Reserved bits are not zero";
+  case ERR_LSA_LENGTH:
+    return "LSA claimed length is too short";
   default:
     return "Unknown error code";
   }
@@ -362,14 +370,17 @@ OspfErrorCode parse_ip(const uint8_t *packet, uint32_t len,
  * 你需要按照以下顺序检查：
  * 1. buf_len 是否能容纳 LSA header 的长度。
  * 2. buf_len 是否能容纳 LSA header 中宣称的 LSA 长度。
- * 3. LSA 头部中的 checksum 是否正确。（注意此处使用了一种特殊的 checksum
+ * 3. LSA header 中宣称的 LSA 长度是否能容纳 LSA header 的长度。
+ * 4. LSA 头部中的 checksum 是否正确。（注意此处使用了一种特殊的 checksum
  * 计算方式，可以使用 ospf_lsa_checksum 函数来计算和验证）
- * 4. LSA 头部的 ls_age 是否超过了 LSA_MAX_AGE。
- * 5. LSA 头部的 ls_sequence_number 是否为保留值。
- * 6. LSA 类型是否为 Router-LSA。
- * 7. LSA 是否包含整数个 Entry。
- * 8. 每个 LSA Entry 是否具有合法的类型（1 - 4）。
- * 9. 每个 LSA Entry 中的 reserve 字段是否为 0。
+ * 5. LSA 头部的 ls_age 是否超过了 LSA_MAX_AGE。
+ * 6. LSA 头部的 ls_sequence_number 是否为保留值。
+ * 7. LSA 类型是否为 Router-LSA。
+ * 8. 如果 LSA 类型为 Router-LSA，LSA header 中宣称的 LSA 长度是否能进
+ * 一步容纳 LSA header 与 Router-LSA 中标志、零和选项字段长度之和。
+ * 9. LSA 是否包含整数个 Entry。
+ * 10. 每个 LSA Entry 是否具有合法的类型（1 - 4）。
+ * 11. 每个 LSA Entry 中的 reserve 字段是否为 0。
  */
 /**
  * @brief Parse the received LSA
@@ -388,15 +399,20 @@ OspfErrorCode parse_ip(const uint8_t *packet, uint32_t len,
  * 1. Whether buf_len can accommodate the length of the LSA header.
  * 2. Whether buf_len can accommodate the length of the LSA claimed in the LSA
  * header.
- * 3. Whether the checksum in the LSA header is correct. (Note that a special
+ * 3. Whether the length of LSA claimed in the LSA header can accommodate the
+ * length of the LSA header.
+ * 4. Whether the checksum in the LSA header is correct. (Note that a special
  * checksum calculation method is used here, you can use ospf_lsa_checksum to
  * compute and verify)
- * 4. Whether the ls_age in the LSA header exceeds LSA_MAX_AGE.
- * 5. Whether the ls_sequence_number in the LSA header is a reserved value.
- * 6. Whether the type of LSA is Router-LSA.
- * 7. Whether the LSA contains an integer number of Entries.
- * 8. Whether each LSA Entry has a valid type (1 - 4).
- * 9. Whether the reserve field in each LSA Entry is 0.
+ * 5. Whether the ls_age in the LSA header exceeds LSA_MAX_AGE.
+ * 6. Whether the ls_sequence_number in the LSA header is a reserved value.
+ * 7. Whether the type of LSA is Router-LSA.
+ * 8. If the type of LSA is Router-LSA, whether the length of LSA claimed in
+ * the LSA header can accommodate the sum of the lengths of the LSA header and
+ * the flags, zero and options fields in the Router-LSA.
+ * 9. Whether the LSA contains an integer number of Entries.
+ * 10. Whether each LSA Entry has a valid type (1 - 4).
+ * 11. Whether the reserve field in each LSA Entry is 0.
  */
 OspfErrorCode disassemble(const uint8_t *lsa, uint16_t buf_len, uint16_t *len,
                           RouterLsa *output);
